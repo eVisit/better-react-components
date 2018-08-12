@@ -1,0 +1,20 @@
+{
+  "env": {
+    "production": {
+      "presets": [
+        "react-native"
+      ],
+      "plugins": [
+        "transform-dirname-filename"
+      ]
+    },
+    "development": {
+      "presets": [
+        "react-native"
+      ],
+      "plugins": [
+        "transform-dirname-filename"
+      ]
+    }
+  }
+}
