@@ -70,8 +70,9 @@ class Theme {
   }
 
   static getScreenInfo() {
-    if (typeof global !== 'undefined' && global && typeof global._getWindowDimensions === 'function')
-      return global._getWindowDimensions('window');
+    /* globals _getWindowDimensions */
+    if (typeof _getWindowDimensions === 'function')
+      return _getWindowDimensions('window');
 
     return Dimensions.get('window');
   }

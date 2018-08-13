@@ -46,7 +46,14 @@ class StyleSheetBuilder {
 
   static createStyleSheet(factory, props = {}) {
     function styleSheetName(name) {
-      // TODO: get sheet name via throw
+      var error = new Error('___TAG___'),
+          lines = ('' + error.stack).split(/^\s+at\s+/gm),
+          callingFunction = lines[3];
+
+      if (callingFunction == null)
+        return `<unknown:${thisSheetID}>`;
+
+      return callingFunction.replace(/^[^(]+\(/, '').replace(/\)[^)]+$/, '');
     }
 
     var thisSheetID = styleSheetID++,
@@ -73,11 +80,18 @@ class StyleSheetBuilder {
       value: true
     });
 
-    Object.defineProperty(styleFunction, '_sheetName', {
+    Object.defineProperty(styleFunction, '_styleSheetName', {
       writable: false,
       enumerable: false,
       configurable: false,
       value: sheetName
+    });
+
+    Object.defineProperty(styleFunction, '_styleSheetID', {
+      writable: false,
+      enumerable: false,
+      configurable: false,
+      value: thisSheetID
     });
 
     return styleFunction;
@@ -220,6 +234,13 @@ class StyleSheetBuilder {
     return styles;
   }
 
+  invokeFactoryCallback(theme, args) {
+    if (typeof this.factory !== 'function')
+      return {};
+
+    return (this.factory(theme, ...args) || {});
+  }
+
   getRawStyle() {
     var lut = this.theme.lastUpdateTime();
     if (this._rawStyle && lut <= this._lastRawStyleUpdateTime)
@@ -231,7 +252,7 @@ class StyleSheetBuilder {
         mergeStyles = this.resolveDependencies(this._mergeStyles || []),
         nonMergeStyles = this.resolveDependencies(this._resolveStyles || []),
         args = mergeStyles.concat(nonMergeStyles),
-        rawStyle = this.sanitizeProps(this.factory(currentTheme, ...args) || {}, this.platform);
+        rawStyle = this.sanitizeProps(this.invokeFactoryCallback(currentTheme, args), this.platform);
 
     // Now merge all style sheets
     args.push(rawStyle);
@@ -275,11 +296,10 @@ class StyleSheetBuilder {
       var key = keys[i],
           val = obj[key];
 
-      if (val && val.constructor === Object)
+      if (val != null && U.noe(val))
+        console.warn('Invalid style property: ' + styleSheetName + ':' + path.concat(key).join('.') + ':' + ((val && U.instanceOf(val, 'object', 'array')) ? JSON.stringify(val) : val));
+      else if (val && U.instanceOf(val, 'object'))
         this.veryifySanity(styleSheetName, val, path.concat(key));
-      else if (val !== null && val !== undefined && U.noe(val))
-        console.warn('Invalid style property: ' + styleSheetName + ':' + path.concat(key).join('.') + ':' + val);
-
     }
   }
 
@@ -293,7 +313,7 @@ class StyleSheetBuilder {
 
   // Here we sanitize the style... meaning we take the platform styles
   // and either strip them on the non-matching platforms, or override with the correct platform
-  sanitizeProps(props, platform) {
+  sanitizeProps(props, platform, alreadyVisited = []) {
     const filterObjectKeys = (_props) => {
       var props = (_props) ? _props : {},
           keys = Object.keys(props),
@@ -301,14 +321,20 @@ class StyleSheetBuilder {
           normalProps = {},
           platforms = this.getAllPlatforms().reduce((obj, platform) => obj[platform] = obj, {});
 
+      alreadyVisited.push(props);
+
       for (var i = 0, il = keys.length; i < il; i++) {
         var key = keys[i],
             value = props[key];
 
-        if (platforms.hasOwnProperty(key))
+        if (platforms.hasOwnProperty(key)) {
           platformProps[key] = value;
-        else
-          normalProps[key] = value;
+        } else {
+          if (value && U.instanceOf(value, 'object') && alreadyVisited.indexOf(value) < 0)
+            normalProps[key] = this.sanitizeProps(value, platform, alreadyVisited);
+          else
+            normalProps[key] = value;
+        }
       }
 
       return { platformProps, normalProps };

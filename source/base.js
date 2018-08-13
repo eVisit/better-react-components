@@ -1,6 +1,5 @@
 import { utils as U }       from 'evisit-js-utils';
 import React, { Component } from 'react';
-import { isDesktop }        from './base-utils';
 
 const defineROProperty = U.defineROProperty,
       defineRWProperty = U.defineRWProperty;
@@ -131,7 +130,7 @@ function overloadFunction(func, cb) {
 
 function resolveStateWithStore(componentStateResolver, store, nextProps) {
   var state = (store) ? store.getState() : {};
-  return componentStateResolver(stateResolver.bind(state), state, store.selectors, (nextProps) ? nextProps : this.props, store, this.getNavigationService());
+  return componentStateResolver({ resolve: stateResolver.bind(state), state, selectors: (store) ? store.selectors : undefined, props: (nextProps) ? nextProps : this.props, store });
 }
 
 function connectToStore(propsSelector) {
@@ -182,7 +181,7 @@ function connectToStore(propsSelector) {
 }
 
 function disconnectFromStore() {
-  if (this._disconnectFromStore instanceof Function) {
+  if (typeof this._disconnectFromStore === 'function') {
     this._disconnectFromStore();
     this._disconnectFromStore = null;
   }
@@ -224,7 +223,7 @@ function cloneComponents(children, recursive, propsHelper, cloneHelper, _depth) 
   return children.map(cloneChild.bind(this)).filter((c) => (c !== undefined && c !== null));
 }
 
-function getStyleSheetFromFactory(theme, _styleSheetFactory, _isMobilePlatform) {
+function getStyleSheetFromFactory(theme, _styleSheetFactory, _platform) {
   if (!theme)
     return;
 
@@ -236,20 +235,16 @@ function getStyleSheetFromFactory(theme, _styleSheetFactory, _isMobilePlatform) 
   }
 
   var styleSheetFactory = _styleSheetFactory;
-  if (!(styleSheetFactory instanceof Function)) {
-    console.warn('styleSheet for component is not a proper styleSheet');
+  if (typeof styleSheetFactory !== 'function') {
+    console.warn('static styleSheet for component is not a proper styleSheet');
     return;
   }
 
-  var isMobilePlatform = _isMobilePlatform,
-      styleID = U.id(styleSheetFactory),
+  var styleID = styleSheetFactory._styleSheetID,
       cachedStyle = styleCache[styleID];
 
   if (!cachedStyle) {
-    if (isMobilePlatform === undefined || isMobilePlatform === null)
-      isMobilePlatform = !isDesktop();
-
-    cachedStyle = styleSheetFactory(theme, isMobilePlatform);
+    cachedStyle = styleSheetFactory(theme, _platform);
     styleCache[styleID] = cachedStyle;
   }
 
