@@ -106,7 +106,7 @@ function factory(isValidElement, throwOnDirectAccess) {
     }
   }
 
-  function allElementsAreValid(typeChecker, failOnInteratorError, props, propName, componentName, location, propFullName, secret) {
+  function allElementsAreValid(typeChecker, failOnInteratorError, props, propName, componentName, location, propFullName, secret, forceRun) {
     var propValue = props[propName];
     if (propValue == null)
       return;
@@ -114,7 +114,7 @@ function factory(isValidElement, throwOnDirectAccess) {
     // Is this just an array?
     if (Array.isArray(propValue) || (propValue instanceof Array)) {
       for (var i = 0, il = propValue.length; i < il; i++) {
-        var ret = typeChecker(propValue, i, componentName, location, propFullName + ('[' + i + ']'), secret);
+        var ret = typeChecker(propValue, i, componentName, location, propFullName + ('[' + i + ']'), secret, forceRun);
         if (ret)
           return ret;
       }
@@ -139,7 +139,7 @@ function factory(isValidElement, throwOnDirectAccess) {
         value = value[1];
 
       valueArray[0] = value;
-      var ret = typeChecker(valueArray, 0, componentName, location, propFullName + ('[' + index + ']'), secret);
+      var ret = typeChecker(valueArray, 0, componentName, location, propFullName + ('[' + index + ']'), secret, forceRun);
       if (ret)
         return ret;
 
@@ -205,8 +205,56 @@ function factory(isValidElement, throwOnDirectAccess) {
   // Make `instanceof Error` still work for returned errors.
   PropTypeError.prototype = Error.prototype;
 
-  function createValidator(type, validator, _args) {
-    function checkType(isRequired, props, propName, componentName, location, propFullName, secret) {
+  function mergeTypeContextArgs(_currentType, _newType) {
+    function hasItem(value) {
+      for (var i = 0, il = finalArray.length; i < il; i++) {
+        var item = finalArray[i];
+        if (areSame(value, item))
+          return true;
+      }
+
+      return false;
+    }
+
+    var currentTypeArgs = (_currentType instanceof Array) ? _currentType : _currentType._context.args[0],
+        newTypeArgs = (_newType instanceof Array) ? _newType : _newType._context.args[0],
+        finalArray = [],
+        allItems = currentTypeArgs.concat(newTypeArgs);
+
+    for (var i = 0, il = allItems.length; i < il; i++) {
+      var thisItem = allItems[i];
+      if (hasItem(thisItem))
+        continue;
+
+      finalArray.push(thisItem);
+    }
+
+    return finalArray;
+  }
+
+  function mergeOneOfTypes(propName, currentType, newType) {
+    // If they aren't both a oneOfType, then merge the current type into oneOfTypes
+    if (!currentType._context || currentType._context.type !== 'oneOfType')
+      return oneOfType(mergeTypeContextArgs([currentType], newType));
+
+    // They are both oneOfTypes, so merge them
+    return oneOfType(mergeTypeContextArgs(currentType, newType));
+  }
+
+  function defaultTypeMerge(propName, currentType, newType) {
+    // Are types exactly the same?
+    if (currentType._context && newType._context && currentType._context.type === newType._context.type && newType._context.primitive)
+      return newType;
+
+    // If the current type is a oneOfType, then just merge newType into its types
+    if (currentType._context && currentType._context.type === 'oneOfType')
+      return oneOfType(mergeTypeContextArgs(currentType, [newType]));
+
+    return oneOfType([currentType, newType]);
+  }
+
+  function createValidator(type, validator, _args, _mergeHelper, _extraContextProps) {
+    function checkType(isRequired, props, propName, componentName, location, propFullName, secret, forceRun) {
       if (secret !== REACT_CREATIVE_SECRET) {
         if (throwOnDirectAccess !== false) {
           var err = new Error(
@@ -219,7 +267,7 @@ function factory(isValidElement, throwOnDirectAccess) {
           throw err;
         }
 
-        if (!IS_DEVELOPMENT)
+        if (!IS_DEVELOPMENT && forceRun !== true)
           return null;
 
         var cacheKey = componentName + ':' + propName;
@@ -238,7 +286,7 @@ function factory(isValidElement, throwOnDirectAccess) {
         manualPropTypeWarningCount++;
       }
 
-      if (!IS_DEVELOPMENT)
+      if (!IS_DEVELOPMENT && forceRun !== true)
         return null;
 
       var fullPropName = propFullName || propName,
@@ -251,28 +299,42 @@ function factory(isValidElement, throwOnDirectAccess) {
           return;
       }
 
-      var ret = validator.call(this, props, propName, componentName, location, fullPropName, secret);
+      var ret = validator.call(this, props, propName, componentName, location, fullPropName, secret, forceRun);
       return (ret === undefined) ? null : ret;
     }
 
     var manualPropTypeCallCache = {},
         manualPropTypeWarningCount = 0,
         args = (_args) ? _args : [],
-        context = { type: type, args: args, validator: validator };
+        mergeHelper = _mergeHelper;
 
-    Object.defineProperty(checkType, '_context', {
+    if (!mergeHelper)
+      mergeHelper = defaultTypeMerge;
+
+    var context = Object.assign({ type: type, args: args, validator: validator, required: false, mergeHelper }, _extraContextProps || {}),
+        contextRequired = Object.assign({}, context, { required: true });
+
+    var checker = checkType.bind(context, false);
+    checker.isRequired = checkType.bind(context, true);
+
+    Object.defineProperty(checker, '_context', {
       writable: false,
       enumerable: false,
       configurable: false,
       value: context
     });
 
-    var checker = checkType.bind(context, false);
-    checker.isRequired = checkType.bind(context, true);
+    Object.defineProperty(checker.isRequired, '_context', {
+      writable: false,
+      enumerable: false,
+      configurable: false,
+      value: contextRequired
+    });
+
     return checker;
   }
 
-  function createValidatorWithArguments(type, validator, argumentValidator) {
+  function createValidatorWithArguments(type, validator, argumentValidator, mergeHelper) {
     return function(..._args) {
       var args = _args;
       if (!args.length)
@@ -284,7 +346,7 @@ function factory(isValidElement, throwOnDirectAccess) {
       if (typeof argumentValidator === 'function')
         args = argumentValidator(type, args);
 
-      return createValidator(type, validator, args);
+      return createValidator(type, validator, args, mergeHelper);
     };
   }
 
@@ -302,15 +364,34 @@ function factory(isValidElement, throwOnDirectAccess) {
         return;
 
       return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` of type ' + ('`' + propType + '` supplied to `' + componentName + '`, expected ') + ('`' + expectedTypeMessage + '`.'));
-    });
+    }, undefined, undefined, { primitive: true });
   }
 
-  const any = createValidator('any', () => undefined),
+  function shapeArgumentChecker(type, args) {
+    var propType = getPropType(args[0]);
+    if (propType !== 'object') {
+      printWarning([
+        'Invalid argument supplied to ' + type + '. Expected an object of check functions, but ',
+        'received ', getPostfixForTypeWarning(args[0]), ' instead.'
+      ].join(''));
+    }
+
+    return args;
+  }
+
+  function shapeMerger(propName, currentType, newType) {
+    if (!currentType._context || (currentType._context.type !== 'exact' && currentType._context.type !== 'shape'))
+      return defaultTypeMerge(propName, currentType, newType);
+
+    return shape(mergeTypes(currentType._context.args[0], newType._context.args[0]));
+  }
+
+  const any = createValidator('any', () => undefined, undefined, undefined, { primitive: true }),
         bool = createPrimitiveTypeValidator('bool', 'boolean'),
         number = createPrimitiveTypeValidator('number', 'number'),
         string = createPrimitiveTypeValidator('string', 'string'),
         symbol = createPrimitiveTypeValidator('symbol', 'symbol'),
-        func = createPrimitiveTypeValidator('function', 'function'),
+        func = createPrimitiveTypeValidator('func', 'function'),
         array = createPrimitiveTypeValidator('array', 'array'),
         object = createPrimitiveTypeValidator('object', ['object', 'date', 'regexp', 'array'], 'object'),
         node = createValidator('node', function(props, propName, componentName, location, propFullName) {
@@ -354,15 +435,20 @@ function factory(isValidElement, throwOnDirectAccess) {
           }
 
           return args;
+        }, (propName, currentType, newType) => {
+          if (!currentType._context || currentType._context.type !== 'oneOf')
+            return defaultTypeMerge(propName, currentType, newType);
+
+          return oneOf(mergeTypeContextArgs(currentType, newType));
         }),
-        oneOfType = createValidatorWithArguments('oneOfType', function(props, propName, componentName, location, propFullName, secret) {
+        oneOfType = createValidatorWithArguments('oneOfType', function(props, propName, componentName, location, propFullName, secret, forceRun) {
           var checkers = this.args[0];
           if (!checkers || !checkers.length)
             return;
 
           for (var i = 0, il = checkers.length; i < il; i++) {
             var checker = checkers[i];
-            if (checker(props, propName, componentName, location, propFullName, secret) == null)
+            if (checker(props, propName, componentName, location, propFullName, secret, forceRun) == null)
               return;
           }
 
@@ -394,8 +480,8 @@ function factory(isValidElement, throwOnDirectAccess) {
           }
 
           return args;
-        }),
-        arrayOf = createValidatorWithArguments('oneOfType', function(props, propName, componentName, location, propFullName, secret) {
+        }, mergeOneOfTypes),
+        arrayOf = createValidatorWithArguments('arrayOf', function(props, propName, componentName, location, propFullName, secret, forceRun) {
           var propValue = props[propName],
               typeChecker = this.args[0];
 
@@ -403,7 +489,7 @@ function factory(isValidElement, throwOnDirectAccess) {
             return new PropTypeError('Property `' + propFullName + '` of component `' + componentName + '` has invalid PropType notation inside arrayOf.');
 
           if (Array.isArray(propValue) || (propValue instanceof Array)) {
-            var error = allElementsAreValid(typeChecker, undefined, props, propName, componentName, location, propFullName, secret);
+            var error = allElementsAreValid(typeChecker, undefined, props, propName, componentName, location, propFullName, secret, forceRun);
 
             if (error)
               return error;
@@ -416,7 +502,7 @@ function factory(isValidElement, throwOnDirectAccess) {
 
           return new PropTypeError('Invalid ' + location + ' `' + propFullName + '` supplied to ' + ('`' + componentName + '`.'));
         }),
-        objectOf = createValidatorWithArguments('objectOf', function(props, propName, componentName, location, propFullName, secret) {
+        objectOf = createValidatorWithArguments('objectOf', function(props, propName, componentName, location, propFullName, secret, forceRun) {
           var propValue = props[propName],
               propType = getPropType(propValue),
               typeChecker = this.args[0];
@@ -430,13 +516,13 @@ function factory(isValidElement, throwOnDirectAccess) {
           var keys = Object.keys(propValue);
           for (var i = 0, il = keys.length; i < il; i++) {
             var key = keys[i],
-                error = typeChecker(propValue, key, componentName, location, propFullName + '.' + key, secret);
+                error = typeChecker(propValue, key, componentName, location, propFullName + '.' + key, secret, forceRun);
 
             if (error)
               return error;
           }
         }),
-        exact = createValidatorWithArguments('shape', function(props, propName, componentName, location, propFullName, secret) {
+        exact = createValidatorWithArguments('exact', function(props, propName, componentName, location, propFullName, secret, forceRun) {
           var propValue = props[propName],
               propType = getPropType(propValue),
               shapeObj = this.args[0],
@@ -462,80 +548,106 @@ function factory(isValidElement, throwOnDirectAccess) {
               }
             }
 
-            var error = checker(propValue, key, componentName, location, propFullName + '.' + key, secret);
+            var error = checker(propValue, key, componentName, location, propFullName + '.' + key, secret, forceRun);
             if (error)
               return error;
           }
-        }, (type, args) => {
-          var propType = getPropType(args[0]);
-          if (propType !== 'object') {
+        }, shapeArgumentChecker, shapeMerger),
+        shape = createValidatorWithArguments('shape', function(props, propName, componentName, location, propFullName, secret, forceRun) {
+          var exactChecker = exact(this.args[0], false);
+          return exactChecker(props, propName, componentName, location, propFullName, secret, forceRun);
+        }, shapeArgumentChecker, shapeMerger),
+        mergeTypes = function(...types) {
+          function mergeType(key) {
+            var type, mergedType;
+            for (var i = 0, il = allTypes.length; i < il; i++) {
+              var propType = allTypes[i];
+              if (!propType.hasOwnProperty(key))
+                continue;
+
+              type = propType[key];
+              if (!type)
+                continue;
+
+              if (mergedType) {
+                var mergeHelper = (type._context) ? type._context.mergeHelper : defaultTypeMerge;
+                mergedType = mergeHelper(key, mergedType, type);
+              } else {
+                mergedType = type;
+              }
+            }
+
+            return mergedType;
+          }
+
+          var allTypes = types.filter((type) => !!type),
+              allKeys = Object.keys(Object.assign({}, ...allTypes)),
+              propTypes = {};
+
+          for (var i = 0, il = allKeys.length; i < il; i++) {
+            var key = allKeys[i];
+            propTypes[key] = mergeType(key);
+          }
+
+          return propTypes;
+        },
+        checkPropType = function(typeSpec, props, propName, componentName, location, getStack, forceRun) {
+          var error;
+
+          // Prop type validation may throw. In case they do, we don't want to
+          // fail the render phase where it didn't fail before. So we log it.
+          // After these have been cleaned up, we'll let them throw.
+          try {
+            // This is intentionally an invariant that gets caught. It's the same
+            // behavior as without this statement except with a better message.
+            if (typeof typeSpec !== 'function') {
+              var err = Error([
+                (componentName || 'React class'), ': ', location, ' type `', propName, '` is invalid; ',
+                'it must be a function, usually from the `prop-types` package, but received `', typeof typeSpec, '`.'
+              ].join(''));
+
+              err.name = 'Invariant Violation';
+              throw err;
+            }
+
+            error = typeSpec(props, propName, componentName, location, null, REACT_CREATIVE_SECRET, forceRun);
+          } catch (ex) {
+            error = ex;
+          }
+
+          if (error && !(error instanceof Error)) {
             printWarning([
-              'Invalid argument supplied to shape. Expected an object of check functions, but ',
-              'received ', getPostfixForTypeWarning(args[0]), ' instead.'
+              (componentName || 'React class'),
+              ': type specification of ', location, ' `',
+              propName, '` is invalid; the type checker ',
+              'function must return `null` or an `Error` but returned a ', typeof error, '. ',
+              'You may have forgotten to pass an argument to the type checker ',
+              'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ',
+              'shape all require an argument).'
             ].join(''));
           }
 
-          return [args[0], args[1]];
-        }),
-        shape = createValidatorWithArguments('shape', function(props, propName, componentName, location, propFullName, secret) {
-          var exactChecker = this.args[0];
-          return exactChecker(props, propName, componentName, location, propFullName, secret);
-        }, (type, args) => {
-          return [exact(args[0], false)];
-        }),
-        customProp = createValidatorWithArguments(),
-        customArrayProp = createValidatorWithArguments(),
-        checkPropTypes = function(typeSpecs, props, location, componentName, getStack) {
+          if ((error instanceof Error) && !loggedTypeFailures.hasOwnProperty(error.message)) {
+            // Only monitor this failure once because there tends to be a lot of the
+            // same error.
+            loggedTypeFailures[error.message] = true;
+
+            var stack = getStack ? getStack() : '';
+            printWarning(['Failed ', location, ' type: ', error.message, (stack != null) ? stack : ''].join(''));
+
+            return error;
+          }
+        },
+        checkPropTypes = function(propTypes, props, location, componentName, getStack) {
           if (!IS_DEVELOPMENT)
             return;
 
-          var keys = Object.keys(typeSpecs);
+          var keys = Object.keys(propTypes);
           for (var i = 0, il = keys.length; i < il; i++) {
-            var typeSpecName = keys[i],
-                thisTypeSpec = typeSpecs[typeSpecName],
-                error;
+            var propName = keys[i],
+                typeSpec = propTypes[propName];
 
-            // Prop type validation may throw. In case they do, we don't want to
-            // fail the render phase where it didn't fail before. So we log it.
-            // After these have been cleaned up, we'll let them throw.
-            try {
-              // This is intentionally an invariant that gets caught. It's the same
-              // behavior as without this statement except with a better message.
-              if (typeof thisTypeSpec !== 'function') {
-                var err = Error([
-                  (componentName || 'React class'), ': ', location, ' type `', typeSpecName, '` is invalid; ',
-                  'it must be a function, usually from the `prop-types` package, but received `', typeof thisTypeSpec, '`.'
-                ].join(''));
-
-                err.name = 'Invariant Violation';
-                throw err;
-              }
-
-              error = thisTypeSpec(props, typeSpecName, componentName, location, null, REACT_CREATIVE_SECRET);
-            } catch (ex) {
-              error = ex;
-            }
-
-            if (error && !(error instanceof Error)) {
-              printWarning([
-                (componentName || 'React class'),
-                ': type specification of ', location, ' `',
-                typeSpecName, '` is invalid; the type checker ',
-                'function must return `null` or an `Error` but returned a ', typeof error, '. ',
-                'You may have forgotten to pass an argument to the type checker ',
-                'creator (arrayOf, instanceOf, objectOf, oneOf, oneOfType, and ',
-                'shape all require an argument).'
-              ].join(''));
-            }
-
-            if ((error instanceof Error) && !loggedTypeFailures.hasOwnProperty(error.message)) {
-              // Only monitor this failure once because there tends to be a lot of the
-              // same error.
-              loggedTypeFailures[error.message] = true;
-
-              var stack = getStack ? getStack() : '';
-              printWarning(['Failed ', location, ' type: ', error.message, (stack != null) ? stack : ''].join(''));
-            }
+            checkPropType(typeSpec, props, propName, componentName, location, getStack);
           }
         };
 
@@ -557,8 +669,7 @@ function factory(isValidElement, throwOnDirectAccess) {
     objectOf,
     shape,
     exact,
-    customProp,
-    customArrayProp,
+    mergeTypes,
     checkPropTypes
   };
 }

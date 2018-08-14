@@ -1105,4 +1105,123 @@ describe('PropTypesDevelopmentStandalone', () => {
       typeCheckPass(PropTypes.symbol, CoreSymbol('core-js'));
     });
   });
+
+  describe('Property Merging', () => {
+    it('should be able to merge PropTypes', () => {
+      var a = {
+            a: PropTypes.string,
+            b: PropTypes.bool,
+            c: PropTypes.number,
+            d: PropTypes.oneOf(['a', 'b']),
+            e: PropTypes.exact({
+              common: PropTypes.string,
+              hello: PropTypes.string,
+              world: PropTypes.shape({
+                stuff: PropTypes.number,
+                things: PropTypes.oneOfType([PropTypes.bool, PropTypes.func])
+              })
+            })
+          },
+          b = {
+            a: PropTypes.number,
+            b: PropTypes.string,
+            c: PropTypes.bool,
+            d: PropTypes.oneOf(['c', 'd']),
+            e: PropTypes.shape({
+              common: PropTypes.number,
+              wow: PropTypes.string,
+              world: PropTypes.shape({
+                stuff: PropTypes.number,
+                things: PropTypes.string,
+                other: PropTypes.array
+              })
+            })
+          },
+          c = PropTypes.mergeTypes(a, b);
+
+      typeCheckPass(a.a, 'derp');
+      typeCheckPass(a.b, true);
+      typeCheckPass(a.c, 45.45);
+      typeCheckPass(a.d, 'a');
+      typeCheckPass(a.e, {
+        common: 'str',
+        hello: 'world',
+        world: {
+          stuff: 56,
+          things: true
+        }
+      });
+
+      typeCheckFail(a.e, {
+        common: 'str',
+        hello: 'world',
+        stuff: 'yep',
+        world: {
+          stuff: 56,
+          things: true
+        }
+      }, 'Bad object');
+
+      typeCheckPass(b.a, 45.45);
+      typeCheckPass(b.b, 'derp');
+      typeCheckPass(b.c, true);
+      typeCheckPass(b.d, 'c');
+      typeCheckPass(b.e, {
+        common: 23,
+        wow: 'derp',
+        world: {
+          stuff: 54,
+          things: 'hello',
+          other: ['item'],
+          whatever: true
+        }
+      });
+
+      typeCheckFail(a.d, 'c', 'Warning: Failed prop type: Invalid prop `testProp` of value `c` supplied to `testComponent`, expected one of [\"a\",\"b\"].');
+      typeCheckFail(b.d, 'a', 'Warning: Failed prop type: Invalid prop `testProp` of value `a` supplied to `testComponent`, expected one of [\"c\",\"d\"].');
+
+      typeCheckPass(c.a, 'derp');
+      typeCheckPass(c.a, 45.45);
+
+      typeCheckPass(c.b, 'derp');
+      typeCheckPass(c.b, true);
+
+      typeCheckPass(c.c, 45.45);
+      typeCheckPass(c.c, true);
+
+      typeCheckPass(c.d, 'a');
+      typeCheckPass(c.d, 'b');
+      typeCheckPass(c.d, 'c');
+      typeCheckPass(c.d, 'd');
+
+      typeCheckFail(c.d, 'stuff', 'Failed prop type: Invalid prop `testProp` of value `stuff` supplied to `testComponent`, expected one of [\"a\",\"b\",\"c\",\"d\"].');
+
+      typeCheckPass(c.e, {
+        common: 'test',
+        hello: 'world',
+        wow: 'derp',
+        world: {
+          stuff: 54,
+          things: 'hello',
+          other: ['item']
+        }
+      });
+
+      typeCheckPass(c.e, {
+        common: 43,
+        hello: 'world',
+        wow: 'derp',
+        world: {
+          stuff: 54,
+          things: true,
+          other: ['item']
+        }
+      });
+    });
+
+    it('should not warn for a polyfilled Symbol', () => {
+      const CoreSymbol = require('core-js/library/es6/symbol');
+      typeCheckPass(PropTypes.symbol, CoreSymbol('core-js'));
+    });
+  });
 });
