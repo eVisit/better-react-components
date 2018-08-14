@@ -4,7 +4,7 @@
   "description": "Better React components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/jasmine"
+    "test": "./node_modules/.bin/jest"
   },
   "repository": {
     "type": "git",
@@ -38,7 +38,14 @@
     "eslint-plugin-extra-syntax": "^1.0.0",
     "eslint-plugin-react": "^7.9.1",
     "eslint-plugin-react-native": "^3.2.1",
-    "jasmine": "^3.2.0"
+    "jasmine": "^3.2.0",
+    "babel-jest": "^19.0.0",
+    "babel-preset-react": "^6.24.1",
+    "browserify": "^14.3.0",
+    "bundle-collapser": "^1.2.1",
+    "envify": "^4.0.0",
+    "jest": "^19.0.2",
+    "react": "^15.5.1"
   },
   "dependencies": {
     "evisit-js-utils": "^0.6.6",
