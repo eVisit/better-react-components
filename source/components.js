@@ -1,10 +1,10 @@
 const utils           = require('evisit-js-utils'),
       PropTypes       = require('./prop-types'),
-      { findDOMNode } = require('react-dom'),
       React           = require('react'),
       Base            = require('./base'),
+      StyleSheet      = require('./styles/style-sheet'),
       Theme           = require('./styles/theme'),
-      { Dimensions }  = require('../platform-shims');
+      { Dimensions }  = require('./platform-shims');
 
 const U = utils.utils,
       { Component } = React,
@@ -98,7 +98,7 @@ function exportFactory(options = {}) {
 
   function skipProxyMethods(propName, target, proto) {
     defaultSkipProxyMethods.lastIndex = 0;
-    if (propName.test(defaultSkipProxyMethods))
+    if (defaultSkipProxyMethods.test(propName))
       return true;
 
     if (typeof skipProxyOfComponentMethods === 'function')
@@ -168,13 +168,20 @@ function exportFactory(options = {}) {
       if (domOrder == null)
         domOrder = 1;
 
+      var componentOrder = componentIDCounter++,
+          componentID = props.id;
+
+      if (!componentID)
+        componentID = `Component/${('' + componentIDCounter).padStart(13, '0')}`;
+
       defineROProperty(this, '_domOrder', domOrder);
       defineROProperty(this, '_componentInstanceClass', InstanceClass);
       defineROProperty(this, '_state', sharedState);
       defineRWProperty(this, '_mountState', 0x0);
       defineROProperty(this, 'refs', undefined, () => sharedState._refs, (val) => {});
       defineRWProperty(this, '_propsModificationCounter', 0);
-      defineRWProperty(this, '_componentID', props.id || null);
+      defineRWProperty(this, '_componentID', componentID);
+      defineRWProperty(this, '_componentOrder', componentOrder);
       defineRWProperty(this, '_frozenStateUpdates', []);
 
       var state = { refs: {} };
@@ -241,9 +248,6 @@ function exportFactory(options = {}) {
       this._mountState = MOUNT_STATE.MOUNTED;
       this._state.addComponent(this, this._domOrder);
 
-      if (!this._componentID)
-        this._componentID = `Component/${componentIDCounter++}`;
-
       if (this._domOrder === 1)
         globalComponentReferences[this._componentID] = this._componentInstance;
 
@@ -271,8 +275,6 @@ function exportFactory(options = {}) {
 
       if (this._domOrder === 1)
         delete globalComponentReferences[this._componentID];
-
-      this._componentID = null;
 
       return ret;
     }
@@ -381,6 +383,19 @@ function exportFactory(options = {}) {
       });
     }
 
+    getComponentOrder() {
+      return this._componentOrder;
+    }
+
+    getComponentID() {
+      return this._componentID;
+    }
+
+    // Get top level instance reference
+    getComponentReference() {
+      return this._state.getComponentReference();
+    }
+
     getComponentReferenceByID(id) {
       if (arguments.length === 0)
         return globalComponentReferences;
@@ -464,30 +479,6 @@ function exportFactory(options = {}) {
       return Theme.getScreenInfo();
     }
 
-    measure() {
-      var screenDimensions = this.getScreenInfo();
-
-      var element = findDOMNode(this._reactInstance);
-      if (!element)
-        return Promise.resolve(null);
-
-      var rect = element.getBoundingClientRect();
-      return Promise.resolve({
-        x: rect.x,
-        y: rect.y,
-        top: rect.top,
-        left: rect.left,
-        right: rect.right,
-        bottom: rect.bottom,
-        width: rect.width,
-        height: rect.height,
-        pageX: rect.x,
-        pageY: rect.y,
-        screenWidth: screenDimensions.width,
-        screenHeight: screenDimensions.height
-      });
-    }
-
     getAnimationDuration(_val) {
       var set = parseInt(('' + _val).replace(/[^\d.-]/g, ''), 10);
       if (isNaN(set) || !isFinite(set))
@@ -558,6 +549,15 @@ function exportFactory(options = {}) {
       return this._reactInstance.forceUpdate(...args);
     }
 
+    freezeStateUpdates() {
+      this.setSharedProperty('_stateUpdateFrozen', true);
+    }
+
+    unfreezeStateUpdates() {
+      this.setSharedProperty('_stateUpdateFrozen', false);
+      this.setState({});
+    }
+
     setState(...args) {
       if (this.areStateUpdatesFrozen() || !this.isSetStateSafe()) {
         this._frozenStateUpdates.push(args);
@@ -617,11 +617,11 @@ function exportFactory(options = {}) {
     style(...args) {
       // Get any style overrides from the parent page... if any
       // This is used when a page is built inside a modal
-      var page = this.getParentPage(),
+      var parentContextComponent = this.getParentContextComponent(),
           helperFunc;
 
-      if (page && page.getStyleOverride instanceof Function)
-        helperFunc = page.getStyleOverride.bind(page, this);
+      if (parentContextComponent && parentContextComponent.getStyleOverride instanceof Function)
+        helperFunc = parentContextComponent.getStyleOverride.bind(parentContextComponent, this);
 
       return this.styleSheet.styleWithHelper(helperFunc, ...args);
     }
@@ -645,9 +645,9 @@ function exportFactory(options = {}) {
     }
 
     getTheme(cb) {
-      var theme = this.context.theme;
+      var theme = this.theme || this.context.theme;
       if (!theme)
-        theme = new Theme.Theme({}, this.platform);
+        theme = new Theme.Theme({}, this.props.platform);
 
       if (typeof cb === 'function' && theme)
         return cb.call(this, { theme, properties: theme.getThemeProperties() });
@@ -1184,7 +1184,8 @@ function exportFactory(options = {}) {
     return newComponent;
   }
 
-  return Object.assign({}, Base, {
+  return Object.assign({}, Base, StyleSheet, Theme, {
+    PropTypes,
     displayComponentInheritance,
     getComponentByID,
     getAddressedComponents,

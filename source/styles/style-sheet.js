@@ -127,7 +127,7 @@ class StyleSheetBuilder {
       return;
     }
 
-    var flatStyle = this.flattenStyle(style),
+    var flatStyle = this.flattenInternalStyleSheet(style),
         cssStyle = [selector, '{'],
         keys = Object.keys(flatStyle);
 
@@ -193,7 +193,6 @@ class StyleSheetBuilder {
     }
 
     var sheet = this.getInternalStyleSheet(),
-        sheetName = this.sheetName,
         mergedStyles = [];
 
     resolveAllStyles.call(this, args, mergedStyles);
@@ -201,7 +200,7 @@ class StyleSheetBuilder {
     if (this.platform)
       return (mergedStyles.length > 1) ? mergedStyles : mergedStyles[0];
 
-    return this.flattenStyle((mergedStyles.length > 1) ? mergedStyles : mergedStyles[0]);
+    return this.flattenInternalStyleSheet((mergedStyles.length > 1) ? mergedStyles : mergedStyles[0]);
   }
 
   style(...args) {
