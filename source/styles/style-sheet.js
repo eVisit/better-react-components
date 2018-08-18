@@ -36,8 +36,26 @@ class StyleSheetBuilder {
     return Object.assign({}, (styleObj || {}));
   }
 
-  static flattenInternalStyleSheet(style) {
-    return Object.assign({}, (style || {}));
+  static flattenInternalStyleSheet(style, _finalStyle) {
+    var finalStyle = _finalStyle || {};
+    if (!(style instanceof Array))
+      return Object.assign(finalStyle, (style || {}));
+
+    for (var i = 0, il = style.length; i < il; i++) {
+      var thisStyle = style[i];
+      if (!thisStyle)
+        continue;
+
+      if (thisStyle instanceof Array)
+        finalStyle = StyleSheetBuilder.flattenInternalStyleSheet(thisStyle, finalStyle);
+      else
+        finalStyle = Object.assign(finalStyle, (thisStyle || {}));
+    }
+
+    if (finalStyle.flex === 0)
+      finalStyle.flex = 'none';
+
+    return finalStyle;
   }
 
   static getStyleSheet(props) {
@@ -97,26 +115,44 @@ class StyleSheetBuilder {
     return styleFunction;
   }
 
-  static buildCSSFromStyle(style, selector) {
-    function getRuleName(key) {
-      if (key === 'textDecorationLine')
-        return 'text-decoration';
+  static getCSSRuleName(key) {
+    if (key === 'textDecorationLine')
+      return 'text-decoration';
 
-      return key.replace(/[A-Z]/g, function(m) {
-        return '-' + (m.toLowerCase());
-      });
-    }
+    return key.replace(/[A-Z]/g, function(m) {
+      return '-' + (m.toLowerCase());
+    });
+  }
 
-    function getRuleValue(key, ruleName, ruleValue) {
-      if (ruleName === 'text-decoration')
-        return ruleValue;
-
-      if ((ruleValue instanceof Number) || typeof ruleValue === 'number')
-        return ruleValue + 'px';
-
+  static getCSSRuleValue(ruleName, ruleValue, key) {
+    if (ruleName === 'text-decoration')
       return ruleValue;
+
+    if (ruleName === 'transform') {
+      var axis = ['translateX', 'translateY', 'rotate', 'scaleX', 'scaleY'],
+          transformParts = [];
+
+      for (var i = 0, il = axis.length; i < il; i++) {
+        var currentAxis = axis[i],
+            axisVal = ruleValue[currentAxis];
+
+        if (axisVal !== null && axisVal !== undefined)
+          transformParts.push(currentAxis + '(' + axisVal + 'px)');
+      }
+
+      return transformParts.join(' ');
     }
 
+    if (ruleName === 'opacity')
+      return ('' + ruleValue);
+
+    if ((ruleValue instanceof Number) || typeof ruleValue === 'number')
+      return ruleValue + 'px';
+
+    return ruleValue;
+  }
+
+  static buildCSSFromStyle(style, selector) {
     if (!style) {
       console.warn('Warning: The specified style is empty. Ignoring.');
       return;
@@ -127,14 +163,14 @@ class StyleSheetBuilder {
       return;
     }
 
-    var flatStyle = this.flattenInternalStyleSheet(style),
+    var flatStyle = StyleSheetBuilder.flattenInternalStyleSheet(style),
         cssStyle = [selector, '{'],
         keys = Object.keys(flatStyle);
 
     for (var i = 0, il = keys.length; i < il; i++) {
       var key = keys[i],
-          ruleName = getRuleName(key),
-          ruleValue = getRuleValue(key, ruleName, flatStyle[key]);
+          ruleName = StyleSheetBuilder.getCSSRuleName(key),
+          ruleValue = StyleSheetBuilder.getCSSRuleValue(ruleName, flatStyle[key], key);
 
       cssStyle.push(ruleName);
       cssStyle.push(':');
@@ -168,6 +204,22 @@ class StyleSheetBuilder {
     return css.join(' ');
   }
 
+  getCSSRuleName(...args) {
+    return StyleSheetBuilder.getCSSRuleName(...args);
+  }
+
+  getCSSRuleValue(...args) {
+    return StyleSheetBuilder.getCSSRuleValue(...args);
+  }
+
+  buildCSSFromStyle(...args) {
+    return StyleSheetBuilder.getCSSRuleValue(...args);
+  }
+
+  buildCSSFromStyles(...args) {
+    return StyleSheetBuilder.getCSSRuleValue(...args);
+  }
+
   styleWithHelper(helper, ...args) {
     function resolveAllStyles(styles, finalStyles) {
       for (var i = 0, il = styles.length; i < il; i++) {
@@ -181,14 +233,10 @@ class StyleSheetBuilder {
             style = helper(this, styleName, style, sheet);
         }
 
-        if (style instanceof Array) {
+        if (style instanceof Array)
           resolveAllStyles.call(this, style, finalStyles);
-        } else if (style) {
-          if (U.instanceOf(style, 'object'))
-            style = this.sanitizeProps(style, this.platform);
-
+        else if (style)
           finalStyles.push(style);
-        }
       }
     }
 
@@ -197,10 +245,10 @@ class StyleSheetBuilder {
 
     resolveAllStyles.call(this, args, mergedStyles);
 
-    if (this.platform)
-      return (mergedStyles.length > 1) ? mergedStyles : mergedStyles[0];
+    if (mergedStyles.length < 2)
+      return mergedStyles[0];
 
-    return this.flattenInternalStyleSheet((mergedStyles.length > 1) ? mergedStyles : mergedStyles[0]);
+    return this.flattenInternalStyleSheet(mergedStyles);
   }
 
   style(...args) {

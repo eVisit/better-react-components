@@ -107,38 +107,6 @@ function exportFactory(options = {}) {
     return false;
   }
 
-  var registeredComponents = [],
-      defaultSkipProxyMethods = /^(componentWillMount|componentDidMount|componentWillUnmount|componentWillReceiveProps|shouldComponentUpdate|componentWillUpdate|render|componentDidUpdate|componentDidCatch|constructor|construct|getChildContext|getMountState|measure)$/,
-      globalComponentReferences = {},
-      referenceHooks = {};
-
-  var {
-    generateComponentInstanceBaseClass,
-    generateComponentBaseClass,
-    classNamesPrefix,
-    getDefaultContextTypes,
-    skipProxyOfComponentMethods,
-    componentFactoryCreateHook
-  } = options;
-
-  if (!classNamesPrefix)
-    classNamesPrefix = 'application-';
-
-  if (typeof getDefaultContextTypes !== 'function') {
-    getDefaultContextTypes = () => {
-      return {};
-    };
-  }
-
-  var componentInstanceBaseClass,
-      componentBaseClass;
-
-  if (typeof generateComponentBaseClass === 'function')
-    componentBaseClass = generateComponentBaseClass({ GenericComponentInstanceBase, GenericComponentBase });
-
-  if (typeof generateComponentInstanceBaseClass === 'function')
-    componentInstanceBaseClass = generateComponentInstanceBaseClass({ GenericComponentInstanceBase, GenericComponentBase });
-
   class GenericComponentBase extends Component {
     constructor(InstanceClass, ReactClass, props, ...args) {
       super(props, ...args);
@@ -1178,6 +1146,38 @@ function exportFactory(options = {}) {
     var newComponent = rebaseWithParent(component, component._parentComponent);
     return newComponent;
   }
+
+  var registeredComponents = [],
+      defaultSkipProxyMethods = /^(componentWillMount|componentDidMount|componentWillUnmount|componentWillReceiveProps|shouldComponentUpdate|componentWillUpdate|render|componentDidUpdate|componentDidCatch|constructor|construct|getChildContext|getMountState|measure)$/,
+      globalComponentReferences = {},
+      referenceHooks = {};
+
+  var {
+    generateComponentInstanceBaseClass,
+    generateComponentBaseClass,
+    classNamesPrefix,
+    getDefaultContextTypes,
+    skipProxyOfComponentMethods,
+    componentFactoryCreateHook
+  } = options;
+
+  if (!classNamesPrefix)
+    classNamesPrefix = 'application';
+
+  if (typeof getDefaultContextTypes !== 'function') {
+    getDefaultContextTypes = () => {
+      return {};
+    };
+  }
+
+  var componentInstanceBaseClass,
+      componentBaseClass;
+
+  if (typeof generateComponentBaseClass === 'function')
+    componentBaseClass = generateComponentBaseClass({ GenericComponentInstanceBase, GenericComponentBase });
+
+  if (typeof generateComponentInstanceBaseClass === 'function')
+    componentInstanceBaseClass = generateComponentInstanceBaseClass({ GenericComponentInstanceBase, GenericComponentBase });
 
   return Object.assign({}, Base, StyleSheet, Theme, {
     PropTypes,
