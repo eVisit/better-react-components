@@ -140,12 +140,6 @@ function exportFactory(options = {}) {
     componentInstanceBaseClass = generateComponentInstanceBaseClass({ GenericComponentInstanceBase, GenericComponentBase });
 
   class GenericComponentBase extends Component {
-    static contextTypes = {
-      applicationContext: PropTypes.any,
-      store: PropTypes.any,
-      theme: PropTypes.any
-    };
-
     constructor(InstanceClass, ReactClass, props, ...args) {
       super(props, ...args);
 
@@ -313,6 +307,12 @@ function exportFactory(options = {}) {
 
     }*/
   }
+
+  GenericComponentBase.contextTypes = {
+    applicationContext: PropTypes.any,
+    store: PropTypes.any,
+    theme: PropTypes.any
+  };
 
   class GenericComponentInstanceBase {
     constructor(reactInstance) {
@@ -908,32 +908,18 @@ function exportFactory(options = {}) {
       }
     }
 
-    function mergePropTypes(...types) {
-      function mergeType(key) {
-        var finalType;
-        for (var i = 0, il = allTypes.length; i < il; i++) {
-          var propType = allTypes[i];
-          if (!propType.hasOwnProperty(key))
-            continue;
+    function mergePropTypes(..._types) {
+      var types = _types.filter((type) => !!type);
+      return PropTypes.mergeTypes(...types);
+    }
 
-          finalType = propType[key];
-        }
+    function mergeResolveProps(...allProps) {
+      var allKeys = allProps.map((props) => {
+        var isArray = (props instanceof Array);
+        return Object.keys(props || {}).reduce((obj, key) => ((obj[(isArray) ? props[key] : key] = true) && obj), {});
+      });
 
-        return finalType;
-      }
-
-      var allTypes = types.filter((type) => !!type),
-          allKeys = Object.keys(Object.assign({}, ...allTypes)),
-          propTypes = {};
-
-      const thisPropTypes = PropTypes;
-
-      for (var i = 0, il = allKeys.length; i < il; i++) {
-        var key = allKeys[i];
-        propTypes[key] = mergeType(key);
-      }
-
-      return propTypes;
+      return Object.assign.apply(this, Array.prototype.concat.apply([{}], allKeys));
     }
 
     if (!(definitionFactory instanceof Function))
@@ -959,23 +945,28 @@ function exportFactory(options = {}) {
     // Generate a React component class
     // this goes side-by-side with the instance class
     var Klass = class GenericReactComponent extends ComponentParentClass {
-      static contextTypes = Object.assign({
-        ...(U.get(ParentComponent, 'contextTypes', {})),
-        ...(U.get(InstanceClass, 'contextTypes', {})),
+      constructor(...args) {
+        super(InstanceClass, Klass, ...args);
+      }
+    };
+
+    Klass.contextTypes = Object.assign(
+      {},
+      U.get(ParentComponent, 'contextTypes', {}),
+      U.get(InstanceClass, 'contextTypes', {}),
+      {
         applicationContext: PropTypes.any,
         store: PropTypes.any,
         theme: PropTypes.any,
         parentContextComponent: PropTypes.any,
         stateUpdatesFrozen: PropTypes.bool
-      }, getDefaultContextTypes());
+      },
+      getDefaultContextTypes()
+    );
 
-      constructor(...args) {
-        super(InstanceClass, Klass, ...args);
-      }
-
-      static propTypes = mergePropTypes(ParentClass.propTypes, InstanceClass.propTypes);
-      static defaultProps = { ...(ParentClass.defaultProps || {}), ...(InstanceClass.defaultProps || {}) };
-    };
+    Klass.propTypes = mergePropTypes(ParentClass.propTypes, InstanceClass.propTypes);
+    Klass.defaultProps = Object.assign({}, (ParentClass.defaultProps || {}), (InstanceClass.defaultProps || {}));
+    Klass.resolveProps = mergeResolveProps(ParentClass.resolveProps, InstanceClass.resolveProps);
 
     // Proxy requests to the component to the instance
     copyPrototypeMethods(Klass.prototype, InstanceClass.prototype);
@@ -1013,14 +1004,12 @@ function exportFactory(options = {}) {
 
         // Render parent and child
         var parentProps = this.getParentProps(),
-            allProps = {
-              ...parentProps,
-              ...eventMethodsToProps.call(this),
+            allProps = Object.assign({}, parentProps, eventMethodsToProps.call(this), {
               _sharedComponentState: this._state,
               _domOrder: this._domOrder + 1,
               ParentClass: ParentClass.displayName,
               ClassName: klassDisplayName
-            };
+            });
 
         // Make a ref to every single object to capture the parent
         ((userRef) => {
@@ -1048,10 +1037,11 @@ function exportFactory(options = {}) {
     // We use 'in' here because we WANT to traverse the prototype
     // chain of the child and all parents
     if ('getChildContext' in InstanceClass.prototype) {
-      Klass.childContextTypes = {
-        ...(U.get(ParentComponent, 'childContextTypes', {})),
-        ...(U.get(InstanceClass, 'childContextTypes', {}))
-      };
+      Klass.childContextTypes = Object.assign(
+        {},
+        (U.get(ParentComponent, 'childContextTypes', {})),
+        (U.get(InstanceClass, 'childContextTypes', {}))
+      );
     }
 
     defineROProperty(Klass, 'displayName', klassDisplayName);
