@@ -369,7 +369,7 @@ function exportFactory(options = {}) {
             value = reactProps[key];
 
         if (resolveProps[key] && typeof value === 'function')
-          value = value();
+          value = value.call(this);
 
         formattedProps[key] = value;
       }
