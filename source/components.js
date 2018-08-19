@@ -172,7 +172,12 @@ function exportFactory(options = {}) {
       Object.assign(this.state, resolveStateWithStore.call(instance, resolveState, store, props));
       sharedState.setCurrentState(this.state);
 
-      if (typeof instance.getStore === 'function' && domOrder === 1) {
+      if (domOrder !== 1)
+        return;
+
+      sharedState.setComponentReference(instance);
+
+      if (typeof instance.getStore === 'function') {
         // Only hook the top-level component to the store
         instance.getStore(({ store }) => {
           if (!store || typeof store.subscribe !== 'function' || typeof store.getState !== 'function')

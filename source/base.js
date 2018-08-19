@@ -45,6 +45,14 @@ function factory(options = {}) {
       defineROProperty(this, '_shared', {});
     }
 
+    getComponentReference() {
+      return this._refs.__toplevel;
+    }
+
+    setComponentReference(ref) {
+      this._refs.__toplevel = ref;
+    }
+
     getStaleState() {
       return this._oldState;
     }
