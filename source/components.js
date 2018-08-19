@@ -294,7 +294,7 @@ function exportFactory(options = {}) {
 
       defineROProperty(this, '_reactInstance', reactInstance);
 
-      defineRWProperty(this, 'props', undefined, this.getFormattedComponentProps.bind(this), () => {});
+      defineRWProperty(this, 'props', undefined, () => this.getFormattedComponentProps(this._reactInstance.props), () => {});
       defineROProperty(this, '_resolveProps', undefined, () => this._reactInstance.constructor.resolveProps || {}, () => {});
 
       defineRWProperty(this, '_domOrder', undefined, () => this._reactInstance._domOrder, () => {});
@@ -331,9 +331,8 @@ function exportFactory(options = {}) {
       this.construct();
     }
 
-    getFormattedComponentProps() {
-      var reactProps = this._reactInstance.props,
-          formattedProps = {},
+    getFormattedComponentProps(reactProps) {
+      var formattedProps = {},
           keys = Object.keys(reactProps),
           resolveProps = this._resolveProps;
 
