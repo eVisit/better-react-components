@@ -15,8 +15,8 @@ class StyleSheetBuilder {
     U.defineROProperty(this, 'theme', theme);
     U.defineROProperty(this, 'factory', factory);
     U.defineROProperty(this, '_styleSheetID', thisSheetID);
-    U.defineROProperty(this, '_mergeStyles', mergeStyles);
-    U.defineROProperty(this, '_resolveStyles', resolveStyles);
+    U.defineROProperty(this, '_mergeStyles', (mergeStyles instanceof Array) ? mergeStyles : [mergeStyles]);
+    U.defineROProperty(this, '_resolveStyles', (resolveStyles) ? resolveStyles : [resolveStyles]);
     U.defineROProperty(this, '_onUpdate', onUpdate);
     U.defineRWProperty(this, '_style', null);
     U.defineRWProperty(this, '_rawStyle', null);
@@ -266,6 +266,8 @@ class StyleSheetBuilder {
     // Resolve dependent styles
     for (var i = 0, il = dependencies.length; i < il; i++) {
       var thisStyle = dependencies[i];
+      if (thisStyle == null)
+        continue;
 
       if (thisStyle instanceof StyleSheetBuilder) {
         thisStyle = thisStyle.getRawStyle();

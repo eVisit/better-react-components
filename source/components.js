@@ -1,23 +1,11 @@
 const utils           = require('evisit-js-utils'),
       PropTypes       = require('./prop-types'),
-      React           = require('react'),
       Base            = require('./base'),
       StyleSheet      = require('./styles/style-sheet'),
       Theme           = require('./styles/theme'),
       { Dimensions }  = require('./platform-shims');
 
-const U = utils.utils,
-      { Component } = React,
-      {
-        MOUNT_STATE,
-        SharedState,
-        cloneComponents,
-        connectToStore,
-        disconnectFromStore,
-        getStyleSheetFromFactory,
-        resolveStateWithStore,
-        areObjectsEqualShallow
-      } = Base;
+const U = utils.utils;
 
 const defineROProperty = U.defineROProperty,
       defineRWProperty = U.defineRWProperty;
@@ -106,6 +94,23 @@ function exportFactory(options = {}) {
 
     return false;
   }
+
+  const React = options.React;
+  if (!React)
+    throw new Error('Error: "React" key (React library) must be specified for component factory');
+
+  const Component = React.Component,
+        baseExports = Base({ React }),
+        {
+          MOUNT_STATE,
+          SharedState,
+          cloneComponents,
+          connectToStore,
+          disconnectFromStore,
+          getStyleSheetFromFactory,
+          resolveStateWithStore,
+          areObjectsEqualShallow
+        } = baseExports;
 
   class GenericComponentBase extends Component {
     constructor(InstanceClass, ReactClass, props, ...args) {
@@ -791,8 +796,6 @@ function exportFactory(options = {}) {
     }
   }
 
-  var _componentCreationHook = null;
-
   function setComponentCreationHook(callback) {
     if (typeof callback !== 'function')
       throw new Error('Component instantiation hook must be a function');
@@ -1152,14 +1155,15 @@ function exportFactory(options = {}) {
       globalComponentReferences = {},
       referenceHooks = {};
 
-  var {
-    generateComponentInstanceBaseClass,
-    generateComponentBaseClass,
-    classNamesPrefix,
-    getDefaultContextTypes,
-    skipProxyOfComponentMethods,
-    componentFactoryCreateHook
-  } = options;
+  var _componentCreationHook = null,
+      {
+        generateComponentInstanceBaseClass,
+        generateComponentBaseClass,
+        classNamesPrefix,
+        getDefaultContextTypes,
+        skipProxyOfComponentMethods,
+        componentFactoryCreateHook
+      } = options;
 
   if (!classNamesPrefix)
     classNamesPrefix = 'application';
@@ -1179,7 +1183,7 @@ function exportFactory(options = {}) {
   if (typeof generateComponentInstanceBaseClass === 'function')
     componentInstanceBaseClass = generateComponentInstanceBaseClass({ GenericComponentInstanceBase, GenericComponentBase });
 
-  return Object.assign({}, Base, StyleSheet, Theme, {
+  return Object.assign({}, baseExports, StyleSheet, Theme, {
     PropTypes,
     displayComponentInheritance,
     getComponentByID,

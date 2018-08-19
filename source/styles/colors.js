@@ -86,7 +86,7 @@ const ERROR_COLOR = {
         "l": 100
       };
 
-const DEFAULT_MAIN_COLOR = PALETTE1_COLOR,
+const DEFAULT_MAIN_COLOR = { h: 207, s: 90, l: 54 },
       DEFAULT_ALT1_SATURATION_RATIO = 0.76,
       DEFAULT_ALT1_LUMINOSITY_RATIO = 1,
       DEFAULT_ALT1_LUMINOSITY_MIN_OFFSET = DEFAULT_MAIN_COLOR.l - (DEFAULT_MAIN_COLOR.l * DEFAULT_ALT1_LUMINOSITY_RATIO),
@@ -153,7 +153,7 @@ function rebuildPallette(opts = {}, _colorHelperFactory) {
       textContrastRatio     = options.ACCEPTABLE_TEXT_CONTRAST_RATIO,
       transparencyRatio     = options.TRANSPARENCY_RATIO,
       fadeRatio             = options.FADE_RATIO,
-      thisMainColor = Color(mainColor).hsl().object();
+      thisMainColor         = Color(mainColor).hsl().object();
 
   if (alt1LuminosityOffset == null)
     alt1LuminosityOffset = thisMainColor.l - (thisMainColor.l * alt1LuminosityRatio);
@@ -309,6 +309,7 @@ function rebuildPallette(opts = {}, _colorHelperFactory) {
 }
 
 module.exports = {
+  Color,
   rebuildPallette,
   Constants: {
     DEFAULT_MAIN_COLOR,

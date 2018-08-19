@@ -1,7 +1,9 @@
 const utils               = require('evisit-js-utils'),
       { Dimensions }      = require('../platform-shims'),
-      { rebuildPallette } = require('./colors');
-const U = utils.utils;
+      Colors              = require('./colors');
+
+const U = utils.utils,
+      { rebuildPallette } = Colors;
 
 class ThemeProperties {
   constructor(themeProps, parentTheme) {
@@ -109,7 +111,7 @@ class Theme {
           FADED_LEVELS_STEPS = extraThemeProps.FADED_LEVELS_STEPS || 4,
           FONT_SCALAR = extraThemeProps.FONT_SCALAR || 1;
 
-    var finalBranding = {
+    var finalBranding = Object.assign({
       FONT_REGULAR: 'OpenSans, Open Sans, sans-serif',
       FONT_SEMIBOLD: 'OpenSans-Semibold, Open Sans, sans-serif',
       FONT_SCALAR,
@@ -140,7 +142,7 @@ class Theme {
       FADED_LEVELS_MAX,
       FADED_LEVELS_MIN,
       FADED_LEVELS_STEPS
-    };
+    }, extraThemeProps);
 
     for (var stepSize = (FADED_LEVELS_MAX - FADED_LEVELS_MIN) / FADED_LEVELS_STEPS, j = 0, jl = FADED_LEVELS_STEPS + 1; j < jl; j++)
       finalBranding[`FADED_LEVEL${j + 1}`] = FADED_LEVELS_MAX - (stepSize * j);
@@ -173,8 +175,7 @@ class Theme {
   }
 }
 
-module.exports = {
+module.exports = Object.assign(module.exports, Colors, {
   Theme,
   ThemeProperties
-};
-
+});
