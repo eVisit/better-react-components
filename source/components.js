@@ -345,8 +345,8 @@ function exportFactory(options = {}) {
         var key = keys[i],
             value = reactProps[key];
 
-        if (resolveProps[key] && typeof value === 'function')
-          value = value.call(this);
+        if (resolveProps && resolveProps[key] && typeof value === 'function')
+          value = value.call(this, reactProps);
 
         formattedProps[key] = value;
       }
