@@ -212,7 +212,7 @@ function rebuildPallette(opts = {}, _colorHelperFactory) {
     return contrastColor;
   });
 
-  const blendColors = colorFunctionFactory(function blendColors(topColor, bottomColor, _blendFunc) {
+  const blendColors = colorHelperFactory(function blendColors(topColor, bottomColor, _blendFunc) {
     function defaultBlendFunc(color1, color2, channel, value) {
       function blendChannelsWithAlpha(c1, c2, alpha) {
         var range = c2 - c1;
