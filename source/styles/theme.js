@@ -9,8 +9,21 @@ class ThemeProperties {
   constructor(themeProps, parentTheme) {
     U.defineROProperty(this, '_theme', parentTheme);
 
-    var palletteProps = rebuildPallette(themeProps, parentTheme && parentTheme.getColorHelperFactory());
-    Object.assign(this, this.getDefaultThemeProps(themeProps, palletteProps), palletteProps.pallette, palletteProps.colorHelpers);
+    var palletteProps = rebuildPallette(themeProps, parentTheme && parentTheme.getColorHelperFactory()),
+        colorHelpers = palletteProps.colorHelpers,
+        keys = Object.keys(colorHelpers);
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i],
+          colorHelper = colorHelpers[key];
+
+      if (typeof colorHelper === 'function')
+        this[key] = colorHelper.bind(this);
+      else
+        this[key] = colorHelper;
+    }
+
+    Object.assign(this, this.getDefaultThemeProps(themeProps, palletteProps), palletteProps.pallette);
   }
 
   getTheme() {

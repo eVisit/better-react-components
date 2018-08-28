@@ -194,6 +194,10 @@ function rebuildPallette(opts = {}, _colorHelperFactory) {
     return `hsla(${h},${s}%,${l}%,${alpha})`;
   });
 
+  function clamp(number, min, max) {
+    return Math.min(Math.max(number, min), max);
+  }
+
   const getRelativeColorLuminance = colorHelperFactory(function getRelativeColorLuminance(color) {
     var contrast = color.contrast(Color('black'));
     return (contrast - 1) / 20;
@@ -208,31 +212,45 @@ function rebuildPallette(opts = {}, _colorHelperFactory) {
     return contrastColor;
   });
 
-  const blendedColor = colorHelperFactory(function blendedColor(topColor, bottomColor) {
-    function blendColor(c1, c2, alpha) {
-      var range = c2 - c1;
-      return Math.round((c2 - (range * alpha)) * 255);
+  const blendColors = colorFunctionFactory(function blendColors(topColor, bottomColor, _blendFunc) {
+    function defaultBlendFunc(color1, color2, channel, value) {
+      function blendChannelsWithAlpha(c1, c2, alpha) {
+        var range = c2 - c1;
+        return clamp(Math.round((c1 + (range * alpha)) * 255), 0, 255);
+      }
+
+      var alpha = color2.alpha,
+          keys = ['r', 'g', 'b'],
+          blendedColor = { alpha: 1 };
+
+      for (var i = 0, il = keys.length; i < il; i++) {
+        var key = keys[i];
+        blendedColor[key] = blendChannelsWithAlpha(color1[key], color2[key], alpha);
+      }
+
+      return blendedColor;
     }
 
     function getBlendedColor(color1, color2) {
       var color1 = (new Color(topColor)).unitObject(),
           color2 = (new Color(bottomColor)).unitObject();
 
-      if (color1.alpha >= 1.0)
-        return color1;
-      else if (color1.alpha <= 0.0)
-        return color2;
+      if (!color1.hasOwnProperty('alpha'))
+        color1.alpha = 1;
 
-      var alpha = color1.alpha;
-      return new Color({
-        r: blendColor(color1.r, color2.r, alpha),
-        g: blendColor(color1.g, color2.g, alpha),
-        b: blendColor(color1.b, color2.b, alpha),
-        alpha: 1
-      });
+      if (!color2.hasOwnProperty('alpha'))
+        color2.alpha = 1;
+
+      color1.a = color1.alpha;
+      color2.a = color2.alpha;
+
+      var blendedColor = blendFunc(color1, color2);
+      return new Color(blendedColor);
     }
 
-    var blendedColor = getBlendedColor((new Color(topColor)).unitObject(), (new Color(bottomColor)).unitObject());
+    var blendFunc = _blendFunc || defaultBlendFunc,
+        blendedColor = getBlendedColor((new Color(topColor)).unitObject(), (new Color(bottomColor)).unitObject());
+
     return colorToHSL(blendedColor);
   });
 
@@ -294,7 +312,8 @@ function rebuildPallette(opts = {}, _colorHelperFactory) {
 
   return {
     colorHelpers: {
-      blendedColor,
+      clamp,
+      blendColors,
       transparentColor,
       opaqueColor,
       fadedColor,

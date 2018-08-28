@@ -164,27 +164,26 @@ function exportFactory(options = {}) {
 
       defineROProperty(this, '_componentInstance', instance);
 
-      // Update state with instance resolveState
-      var store = this._componentInstance.store || this.context.store,
-          instance = this._componentInstance,
-          resolveState = instance.resolveState.bind(instance);
+      // Only hook the top-level component to the store
+      if (domOrder === 1) {
+        sharedState.setComponentReference(instance);
 
-      Object.assign(this.state, resolveStateWithStore.call(instance, resolveState, store, props));
-      sharedState.setCurrentState(this.state);
+        // Update state with instance resolveState
+        var store = this._componentInstance.store || this.context.store,
+            resolveState = instance.resolveState.bind(instance);
 
-      if (domOrder !== 1)
-        return;
+        Object.assign(this.state, resolveStateWithStore.call(instance, resolveState, store, props));
+        sharedState.setCurrentState(this.state);
 
-      sharedState.setComponentReference(instance);
+        if (typeof instance.getStore === 'function') {
+          // Only hook the top-level component to the store
+          instance.getStore(({ store }) => {
+            if (!store || typeof store.subscribe !== 'function' || typeof store.getState !== 'function')
+              return;
 
-      if (typeof instance.getStore === 'function') {
-        // Only hook the top-level component to the store
-        instance.getStore(({ store }) => {
-          if (!store || typeof store.subscribe !== 'function' || typeof store.getState !== 'function')
-            return;
-
-          connectToStore.call(instance, resolveState);
-        });
+            connectToStore.call(instance, resolveState);
+          });
+        }
       }
     }
 
