@@ -1,3 +1,5 @@
+/* globals __DEV__ */
+
 import { utils as U, data as D } from 'evisit-js-utils';
 
 var styleSheetID = 1;
@@ -312,7 +314,7 @@ export class StyleSheetBuilder {
   }
 
   getInternalStyleSheet(_theme) {
-    var theme = theme || this.theme,
+    var theme = _theme || this.theme,
         lut = theme.lastUpdateTime();
 
     if (this._style && lut <= this._lastStyleUpdateTime)
@@ -390,11 +392,11 @@ export class StyleSheetBuilder {
         platforms = Object.keys(platformProps);
 
     for (var i = 0, il = platforms.length; i < il; i++) {
-      var platform = platforms[i];
-      if (!this.isCurrentPlatform(platform))
+      var thisPlatform = platforms[i];
+      if (!this.isCurrentPlatform(thisPlatform))
         continue;
 
-      Object.assign(normalProps, platformProps[platform] || {});
+      Object.assign(normalProps, platformProps[thisPlatform] || {});
     }
 
     return normalProps;

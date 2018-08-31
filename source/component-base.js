@@ -6,11 +6,19 @@ import {
 import { utils as U }     from 'evisit-js-utils';
 
 export default class ComponentBase {
-  constructor(reactComponent) {
-    var stateUpdatesFrozen = false;
+  static getClassNamePrefix() {
+    return 'application';
+  }
 
+  constructor(reactComponent, props) {
     Object.defineProperties(this, {
       '_renderCache': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: undefined
+      },
+      '_previousRenderID': {
         writable: true,
         enumerable: false,
         configurable: true,
@@ -28,6 +36,12 @@ export default class ComponentBase {
         configurable: true,
         value: null
       },
+      '_internalProps': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
+      },
       '_staleInternalState': {
         writable: true,
         enumerable: false,
@@ -38,7 +52,7 @@ export default class ComponentBase {
         writable: true,
         enumerable: false,
         configurable: true,
-        value: {}
+        value: Object.assign({}, props)
       },
       '_queuedStateUpdates': {
         writable: true,
@@ -52,19 +66,11 @@ export default class ComponentBase {
         get: () => reactComponent,
         set: () => {}
       },
-      '_stateUpdatesFrozen': {
+      '_updatesFrozenSemaphore': {
+        writable: true,
         enumerable: false,
         configurable: true,
-        get: () => stateUpdatesFrozen,
-        set: (val) => {
-          var oldState = stateUpdatesFrozen;
-          stateUpdatesFrozen = val;
-
-          if (oldState && !val)
-            this.setState({});
-
-          return val;
-        }
+        value: 0
       },
       'state': {
         enumerable: false,
@@ -78,22 +84,80 @@ export default class ComponentBase {
 
           return val;
         }
+      },
+      'context': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
       }
     });
+
+    // Setup the styleSheet getter to build style-sheets when requested
+    this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
   }
 
-  getComponentName() {
-    if (typeof this.constructor.getComponentName !== 'function')
-      return 'unknownComponentName';
+  _getContext() {
+    return this.context;
+  }
 
-    return this.constructor.getComponentName();
+  _setContext(newContext) {
+    this.context = newContext;
+  }
+
+  _getStyleSheetFromFactory(theme, _styleSheetFactory) {
+    if (!theme)
+      return;
+
+    var styleCache = theme._cachedStyles;
+    if (!styleCache) {
+      Object.defineProperty(theme, '_cachedStyles', {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
+      });
+
+      styleCache = theme._cachedStyles;
+    }
+
+    var styleSheetFactory = _styleSheetFactory;
+    if (typeof styleSheetFactory !== 'function') {
+      console.warn('static styleSheet for component is not a proper styleSheet');
+      return;
+    }
+
+    var styleID = styleSheetFactory._styleSheetID,
+        cachedStyle = styleCache[styleID];
+
+    if (!cachedStyle) {
+      cachedStyle = styleSheetFactory(theme);
+      styleCache[styleID] = cachedStyle;
+    }
+
+    return cachedStyle;
+  }
+
+  _defineStyleSheetProperty(name, styleSheetFactory) {
+    Object.defineProperty(this, name, {
+      enumerable: false,
+      configurable: true,
+      get: () => {
+        return this._getStyleSheetFromFactory(this.getTheme(), styleSheetFactory);
+      },
+      set: () => {}
+    });
   }
 
   _forceReactComponentUpdate() {
     this._reactComponent.setState({});
   }
 
-  _renderInterceptor() {
+  _invalidateRenderCache() {
+    this._renderCache = undefined;
+  }
+
+  _renderInterceptor(renderID) {
     const updateRenderState = (elems) => {
       this._staleInternalState = Object.assign({}, this._internalState);
       this._renderCache = elems;
@@ -110,6 +174,11 @@ export default class ComponentBase {
     // Async render
     if (typeof elements.then === 'function' && elements.catch === 'function') {
       elements.then((elems) => {
+        if (renderID !== this._previousRenderID) {
+          console.warn(`Warning: Discarding render ID = ${renderID}... is your render function taking too long?`);
+          return updateRenderState(this._renderCache);
+        }
+
         updateRenderState(elems);
         this._forceReactComponentUpdate();
       }).catch((error) => {
@@ -132,13 +201,13 @@ export default class ComponentBase {
 
     var formattedProps = {},
         keys = Object.keys(reactProps),
-        resolveProps = this._resolvableProps;
+        resolvableProps = this.constructor._resolvableProps;
 
     for (var i = 0, il = keys.length; i < il; i++) {
       var key = keys[i],
           value = reactProps[key];
 
-      if (resolveProps && resolveProps[key] && typeof value === 'function')
+      if (resolvableProps && resolvableProps[key] && typeof value === 'function')
         value = value.call(this, reactProps);
 
       formattedProps[key] = value;
@@ -150,21 +219,59 @@ export default class ComponentBase {
     return formattedProps;
   }
 
-  _initiateResolveState(props, state) {
-    var newState = this.resolveState({ props, state });
+  _invokeResolveState(_props, state, prevProps, prevState) {
+    var props = this._resolveProps(_props, this._internalProps),
+        newState = this.resolveState({
+          props,
+          state,
+          _props: prevProps,
+          _state: prevState
+        });
+
+    this._internalProps = _props;
+
     this.setState(newState);
   }
 
-  freezeUpdates() {
-    this._stateUpdatesFrozen = true;
+  _invokeComponentDidMount() {
+    this.componentDidMount();
   }
 
-  unfreezeUpdates() {
-    this._stateUpdatesFrozen = false;
+  _invokeComponentWillUnmount() {
+    this.componentWillUnmount();
+  }
+
+  componentDidMount() {}
+  componentWillUnmount() {}
+
+  getPlatform() {
+    return 'browser';
+  }
+
+  getTheme() {
+    return this.theme || this.context.theme;
+  }
+
+  freezeUpdates() {
+    this._updatesFrozenSemaphore++;
+  }
+
+  unfreezeUpdates(doUpdate) {
+    var oldState = this._updatesFrozenSemaphore;
+    if (oldState <= 0)
+      return;
+
+    this._updatesFrozenSemaphore--;
+
+    if (doUpdate !== false && this._updatesFrozenSemaphore <= 0)
+      this.setState({});
   }
 
   areUpdatesFrozen() {
-    return this._stateUpdatesFrozen;
+    if (!this.mounted())
+      return true;
+
+    return (this._stateUpdatesFrozen > 0);
   }
 
   setState(_newState, doneCallback) {
@@ -179,9 +286,11 @@ export default class ComponentBase {
         Object.assign(this._internalState, newState);
     }
 
-    if (this._stateUpdatesFrozen)
+    if (this.areUpdatesFrozen())
       return;
 
+    // Tell render that we want to render again
+    this._invalidateRenderCache();
     this._setReactComponentState(newState, doneCallback);
   }
 
@@ -208,8 +317,10 @@ export default class ComponentBase {
     return U.get(currentState, path, defaultValue);
   }
 
-  resolveState() {
-    return {};
+  resolveState({ props }) {
+    return {
+      ...props
+    };
   }
 
   shouldComponentUpdate(newState, oldState) {
@@ -220,13 +331,27 @@ export default class ComponentBase {
     return children || null;
   }
 
-  getClassNamePrefix() {
-    return 'application';
+  getComponentName() {
+    if (typeof this.constructor.getComponentName !== 'function')
+      return 'unknownComponentName';
+
+    return this.constructor.getComponentName();
   }
 
-  getClassName(...args) {
+  mounted() {
+    return this._reactComponent._mounted;
+  }
+
+  getClassNamePrefix() {
+    if (typeof this.constructor.getClassNamePrefix !== 'function')
+      return 'application';
+
+    return this.constructor.getClassNamePrefix();
+  }
+
+  _getClassName(_componentName, ...args) {
     var classNamesPrefix = this.getClassNamePrefix(),
-        componentName = capitalize(this.getComponentName()),
+        componentName = (_componentName) ? _componentName : capitalize(this.getComponentName()),
         thisClassName = `${classNamesPrefix}${componentName}`;
 
     return args.map((elem) => {
@@ -244,13 +369,26 @@ export default class ComponentBase {
     }).filter((elem) => !!elem).join(' ');
   }
 
-  getRootClassName(...args) {
-    var classNames = this.getClassName('', ...args);
+  getClassName(...args) {
+    return this._getClassName(undefined, ...args);
+  }
+
+  getRootClassName(componentName, ...args) {
+    var classNames = this._getClassName(componentName, '', ...args);
 
     var specifiedClassName = this.getState('className');
     if (!U.noe(specifiedClassName))
       classNames = [classNames.trim(), specifiedClassName.trim()].join(' ');
 
     return classNames;
+  }
+
+  style(...args) {
+    return this.styleSheet.styleWithHelper(undefined, ...args);
+  }
+
+  styleProp(...args) {
+    var styleSheet = this.styleSheet;
+    return styleSheet.styleProp(...args);
   }
 }

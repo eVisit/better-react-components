@@ -232,9 +232,6 @@ function rebuildPallette(opts = {}, _colorHelperFactory) {
     }
 
     function getBlendedColor(color1, color2) {
-      var color1 = (new Color(topColor)).unitObject(),
-          color2 = (new Color(bottomColor)).unitObject();
-
       if (!color1.hasOwnProperty('alpha'))
         color1.alpha = 1;
 

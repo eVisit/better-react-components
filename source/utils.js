@@ -1,9 +1,12 @@
-export function bindPrototypeFuncs(obj) {
-  var proto = Object.getPrototypeOf(obj);
-  if (proto)
-    bindPrototypeFuncs.call(this, proto);
+export function bindPrototypeFuncs(source, target, filterFunc) {
+  if (!source)
+    return;
 
-  var names = Object.getOwnPropertyNames(obj);
+  var proto = Object.getPrototypeOf(source);
+  if (proto)
+    bindPrototypeFuncs.call(this, proto, target, filterFunc);
+
+  var names = Object.getOwnPropertyNames(source);
   for (var i = 0, il = names.length; i < il; i++) {
     var propName = names[i],
         prop = this[propName];
@@ -11,7 +14,10 @@ export function bindPrototypeFuncs(obj) {
     if (typeof prop !== 'function' || propName === 'constructor' || Object.prototype[propName] === prop)
       continue;
 
-    Object.defineProperty(this, propName, {
+    if (typeof filterFunc === 'function' && !filterFunc(propName, prop, source))
+      continue;
+
+    Object.defineProperty(target, propName, {
       writable: true,
       enumerable: false,
       configurable: false,
@@ -49,4 +55,33 @@ export function capitalize(name) {
     return name;
 
   return [('' + name).charAt(0).toUpperCase(), name.substring(1)].join('');
+}
+
+export function copyStaticMethods(source, target, filterFunc) {
+  function doStaticAssign(source, target, filterFunc, rebindStaticMethod) {
+    var keys = Object.getOwnPropertyNames(source);
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i];
+
+      if (target.hasOwnProperty(key))
+        continue;
+
+      var val = source[key];
+      if (typeof filterFunc === 'function' && !filterFunc(key, val, source, target))
+        continue;
+
+      if (typeof rebindStaticMethod === 'function')
+        val = rebindStaticMethod(key, val, source, target);
+
+      Object.defineProperty(target, key, {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: val
+      });
+    }
+  }
+
+  // Assign from source
+  doStaticAssign(source, target, filterFunc, source.rebindStaticMethod);
 }
