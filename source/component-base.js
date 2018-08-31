@@ -12,6 +12,12 @@ export default class ComponentBase {
 
   constructor(reactComponent, props) {
     Object.defineProperties(this, {
+      '_renderCacheInvalid': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: false
+      },
       '_renderCache': {
         writable: true,
         enumerable: false,
@@ -154,25 +160,26 @@ export default class ComponentBase {
   }
 
   _invalidateRenderCache() {
-    this._renderCache = undefined;
+    this._renderCacheInvalid = true;
   }
 
   _renderInterceptor(renderID) {
     const updateRenderState = (elems) => {
       this._staleInternalState = Object.assign({}, this._internalState);
+      this._renderCacheInvalid = false;
       this._renderCache = elems;
     };
 
     if (this._stateUpdatesFrozen)
       return (this._renderCache !== undefined) ? this._renderCache : null;
 
-    if (this._renderCache !== undefined)
+    if (this._renderCacheInvalid !== true && this._renderCache !== undefined)
       return this._renderCache;
 
     var elements = this.render();
 
     // Async render
-    if (typeof elements.then === 'function' && elements.catch === 'function') {
+    if (typeof elements.then === 'function' && typeof elements.catch === 'function') {
       elements.then((elems) => {
         if (renderID !== this._previousRenderID) {
           console.warn(`Warning: Discarding render ID = ${renderID}... is your render function taking too long?`);
@@ -185,6 +192,8 @@ export default class ComponentBase {
         updateRenderState(null);
         throw new Error(error);
       });
+
+      return this._renderCache || null;
     } else if (elements !== undefined) {
       updateRenderState(elements);
       return elements;
