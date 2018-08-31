@@ -19,3 +19,34 @@ export function bindPrototypeFuncs(obj) {
     });
   }
 }
+
+export function areObjectsEqualShallow(props, oldProps) {
+  if (props === oldProps)
+    return true;
+
+  if (!props || !oldProps)
+    return (props === oldProps);
+
+  var keys = Object.keys(props);
+  if (keys.length !== Object.keys(oldProps).length)
+    return false;
+
+  for (var i = 0, il = keys.length; i < il; i++) {
+    var key = keys[i];
+
+    if (!oldProps.hasOwnProperty(key))
+      return false;
+
+    if (props[key] !== oldProps[key])
+      return false;
+  }
+
+  return true;
+}
+
+export function capitalize(name) {
+  if (!name)
+    return name;
+
+  return [('' + name).charAt(0).toUpperCase(), name.substring(1)].join('');
+}

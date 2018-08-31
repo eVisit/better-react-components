@@ -1,11 +1,10 @@
-const utils               = require('evisit-js-utils'),
-      { Dimensions }      = require('../platform-shims'),
-      Colors              = require('./colors');
+import { utils as U }       from 'evisit-js-utils';
+import { Dimensions }       from '../platform-shims';
+import { rebuildPallette }  from './colors';
 
-const U = utils.utils,
-      { rebuildPallette } = Colors;
+var themeIDCounter = 1;
 
-class ThemeProperties {
+export class ThemeProperties {
   constructor(themeProps, parentTheme) {
     U.defineROProperty(this, '_theme', parentTheme);
 
@@ -69,11 +68,10 @@ class ThemeProperties {
 
     return finalThemeProps;
   }
-};
+}
 
-var themeIDCounter = 1;
 
-class Theme {
+export class Theme {
   constructor(_extraThemeProps, platform) {
     U.defineROProperty(this, 'platform', undefined, () => platform);
 
@@ -187,8 +185,3 @@ class Theme {
     return currentTheme;
   }
 }
-
-module.exports = Object.assign(module.exports, Colors, {
-  Theme,
-  ThemeProperties
-});

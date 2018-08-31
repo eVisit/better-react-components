@@ -1,1 +1,2 @@
-module.exports = require('./dist/main');
+//module.exports = require('./dist/main');
+export * from './source/main';

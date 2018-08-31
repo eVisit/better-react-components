@@ -1,11 +1,8 @@
-const utils = require('evisit-js-utils');
-
-const D = utils.data,
-      U = utils.utils;
+import { utils as U, data as D } from 'evisit-js-utils';
 
 var styleSheetID = 1;
 
-class StyleSheetBuilder {
+export class StyleSheetBuilder {
   constructor({ thisSheetID, styleExports, sheetName, theme, platform, factory, mergeStyles, resolveStyles, onUpdate }) {
     if (!(factory instanceof Function))
       throw new Error('Theme factory must be a function');
@@ -412,9 +409,12 @@ class StyleSheetBuilder {
   }
 }
 
-module.exports = {
-  StyleSheetBuilder,
-  createStyleSheet: StyleSheetBuilder.createStyleSheet,
-  buildCSSFromStyle: StyleSheetBuilder.buildCSSFromStyle,
-  buildCSSFromStyles: StyleSheetBuilder.buildCSSFromStyles
+const createStyleSheet = StyleSheetBuilder.createStyleSheet,
+      buildCSSFromStyle = StyleSheetBuilder.buildCSSFromStyle,
+      buildCSSFromStyles = StyleSheetBuilder.buildCSSFromStyles;
+
+export {
+  createStyleSheet,
+  buildCSSFromStyle,
+  buildCSSFromStyles
 };
