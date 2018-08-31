@@ -816,7 +816,7 @@ function exportFactory(options = {}) {
       var propName = names[i],
           prop = this[propName];
 
-      if (!(prop instanceof Function) || propName === 'constructor' || Object.prototype[propName] === prop)
+      if (typeof prop !== 'function' || propName === 'constructor' || Object.prototype[propName] === prop)
         continue;
 
       Object.defineProperty(this, propName, {

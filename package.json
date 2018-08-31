@@ -48,7 +48,7 @@
     "eslint-plugin-react-native": "^3.2.1",
     "jasmine": "^3.2.0",
     "jest": "^19.0.2",
-    "react": "^15.5.1"
+    "react": "^16.4.2"
   },
   "dependencies": {
     "evisit-js-utils": "^0.6.6",
