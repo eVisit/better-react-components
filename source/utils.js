@@ -57,31 +57,29 @@ export function capitalize(name) {
   return [('' + name).charAt(0).toUpperCase(), name.substring(1)].join('');
 }
 
-export function copyStaticMethods(source, target, filterFunc) {
-  function doStaticAssign(source, target, filterFunc, rebindStaticMethod) {
-    var keys = Object.getOwnPropertyNames(source);
-    for (var i = 0, il = keys.length; i < il; i++) {
-      var key = keys[i];
+export function copyStaticMethods(source, target, filterFunc, rebindStaticMethod) {
+  var keys = Object.getOwnPropertyNames(source);
+  for (var i = 0, il = keys.length; i < il; i++) {
+    var key = keys[i];
 
-      if (target.hasOwnProperty(key))
-        continue;
+    if (key === 'prototype' || key === 'constructor' && Object.prototype.hasOwnProperty(key))
+      continue;
 
-      var val = source[key];
-      if (typeof filterFunc === 'function' && !filterFunc(key, val, source, target))
-        continue;
+    if (typeof target[key] === 'function')
+      continue;
 
-      if (typeof rebindStaticMethod === 'function')
-        val = rebindStaticMethod(key, val, source, target);
+    var val = source[key];
+    if (typeof filterFunc === 'function' && !filterFunc(key, val, source, target))
+      continue;
 
-      Object.defineProperty(target, key, {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: val
-      });
-    }
+    if (typeof rebindStaticMethod === 'function')
+      val = rebindStaticMethod(key, val, source, target);
+
+    Object.defineProperty(target, key, {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: val
+    });
   }
-
-  // Assign from source
-  doStaticAssign(source, target, filterFunc, source.rebindStaticMethod);
 }

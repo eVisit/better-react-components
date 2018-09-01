@@ -31,36 +31,6 @@ export class StyleSheetBuilder {
     });
   }
 
-  static createInternalStyleSheet(styleObj) {
-    return Object.assign({}, (styleObj || {}));
-  }
-
-  static flattenInternalStyleSheet(style, _finalStyle) {
-    var finalStyle = _finalStyle || {};
-    if (!(style instanceof Array))
-      return Object.assign(finalStyle, (style || {}));
-
-    for (var i = 0, il = style.length; i < il; i++) {
-      var thisStyle = style[i];
-      if (!thisStyle)
-        continue;
-
-      if (thisStyle instanceof Array)
-        finalStyle = StyleSheetBuilder.flattenInternalStyleSheet(thisStyle, finalStyle);
-      else
-        finalStyle = Object.assign(finalStyle, (thisStyle || {}));
-    }
-
-    if (finalStyle.flex === 0)
-      finalStyle.flex = 'none';
-
-    return finalStyle;
-  }
-
-  static getStyleSheet(props) {
-    return new StyleSheetBuilder(props);
-  }
-
   static createStyleSheet(factory, props = {}) {
     function styleSheetName(name) {
       var error = new Error('___TAG___'),
@@ -73,7 +43,8 @@ export class StyleSheetBuilder {
       return callingFunction.replace(/^[^(]+\(/, '').replace(/\)[^)]+$/, '');
     }
 
-    var thisSheetID = styleSheetID++,
+    var builderClass = props.StyleSheetBuilder || StyleSheetBuilder,
+        thisSheetID = styleSheetID++,
         mergeStyles = (props instanceof Array) ? props : props.mergeStyles,
         resolveStyles = props.resolveStyles,
         styleExports = {},
@@ -87,7 +58,7 @@ export class StyleSheetBuilder {
 
     var sheetName = (props.name) ? '' + props.name : styleSheetName(),
         styleFunction = function(theme, platform) {
-          return StyleSheetBuilder.getStyleSheet({ thisSheetID, styleExports, sheetName, theme, platform, factory, mergeStyles, resolveStyles, onUpdate });
+          return new builderClass({ thisSheetID, styleExports, sheetName, theme, platform, factory, mergeStyles, resolveStyles, onUpdate });
         };
 
     Object.defineProperty(styleFunction, '_styleFactory', {
@@ -114,7 +85,63 @@ export class StyleSheetBuilder {
     return styleFunction;
   }
 
-  static getCSSRuleName(key) {
+  createInternalStyleSheet(styleObj) {
+    return Object.assign({}, (styleObj || {}));
+  }
+
+  buildCSSFromStyle(style, selector) {
+    if (!style) {
+      console.warn('Warning: The specified style is empty. Ignoring.');
+      return;
+    }
+
+    if (!selector) {
+      console.warn('Warning: The specified selector is empty. Ignoring.');
+      return;
+    }
+
+    var flatStyle = this.flattenInternalStyleSheet(style),
+        cssStyle = [selector, '{'],
+        keys = Object.keys(flatStyle);
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i],
+          ruleName = this.getCSSRuleName(key),
+          ruleValue = this.getCSSRuleValue(ruleName, flatStyle[key], key);
+
+      cssStyle.push(ruleName);
+      cssStyle.push(':');
+      cssStyle.push(ruleValue);
+      cssStyle.push(';');
+    }
+
+    cssStyle.push('}');
+
+    return cssStyle.join('');
+  }
+
+  buildCSSFromStyles(_styleArray, _uuid) {
+    var styleArray = (_styleArray instanceof Array) ? _styleArray : [_styleArray],
+        css = [],
+        uuid = (_uuid) ? ('.' + _uuid + ' ') : '';
+
+    for (var i = 0, il = styleArray.length; i < il; i++) {
+      var style = styleArray[i],
+          selector = U.get(style, 'selector', '');
+
+      if ((typeof selector === 'string' || selector instanceof String) && selector.match(/,/))
+        selector = selector.split(/\s*,\s*/g).map((s) => s.trim()).filter((s) => !!s);
+
+      if (selector instanceof Array)
+        selector = selector.join(',' + uuid);
+
+      css.push(this.buildCSSFromStyle(style.style, uuid + selector));
+    }
+
+    return css.join(' ');
+  }
+
+  getCSSRuleName(key) {
     if (key === 'textDecorationLine')
       return 'text-decoration';
 
@@ -123,7 +150,7 @@ export class StyleSheetBuilder {
     });
   }
 
-  static getCSSRuleValue(ruleName, ruleValue, key) {
+  getCSSRuleValue(ruleName, ruleValue, key) {
     if (ruleName === 'text-decoration')
       return ruleValue;
 
@@ -149,74 +176,6 @@ export class StyleSheetBuilder {
       return ruleValue + 'px';
 
     return ruleValue;
-  }
-
-  static buildCSSFromStyle(style, selector) {
-    if (!style) {
-      console.warn('Warning: The specified style is empty. Ignoring.');
-      return;
-    }
-
-    if (!selector) {
-      console.warn('Warning: The specified selector is empty. Ignoring.');
-      return;
-    }
-
-    var flatStyle = StyleSheetBuilder.flattenInternalStyleSheet(style),
-        cssStyle = [selector, '{'],
-        keys = Object.keys(flatStyle);
-
-    for (var i = 0, il = keys.length; i < il; i++) {
-      var key = keys[i],
-          ruleName = StyleSheetBuilder.getCSSRuleName(key),
-          ruleValue = StyleSheetBuilder.getCSSRuleValue(ruleName, flatStyle[key], key);
-
-      cssStyle.push(ruleName);
-      cssStyle.push(':');
-      cssStyle.push(ruleValue);
-      cssStyle.push(';');
-    }
-
-    cssStyle.push('}');
-
-    return cssStyle.join('');
-  }
-
-  static buildCSSFromStyles(_styleArray, _uuid) {
-    var styleArray = (_styleArray instanceof Array) ? _styleArray : [_styleArray],
-        css = [],
-        uuid = (_uuid) ? ('.' + _uuid + ' ') : '';
-
-    for (var i = 0, il = styleArray.length; i < il; i++) {
-      var style = styleArray[i],
-          selector = U.get(style, 'selector', '');
-
-      if ((typeof selector === 'string' || selector instanceof String) && selector.match(/,/))
-        selector = selector.split(/\s*,\s*/g).map((s) => s.trim()).filter((s) => !!s);
-
-      if (selector instanceof Array)
-        selector = selector.join(',' + uuid);
-
-      css.push(StyleSheetBuilder.buildCSSFromStyle(style.style, uuid + selector));
-    }
-
-    return css.join(' ');
-  }
-
-  getCSSRuleName(...args) {
-    return StyleSheetBuilder.getCSSRuleName(...args);
-  }
-
-  getCSSRuleValue(...args) {
-    return StyleSheetBuilder.getCSSRuleValue(...args);
-  }
-
-  buildCSSFromStyle(...args) {
-    return StyleSheetBuilder.getCSSRuleValue(...args);
-  }
-
-  buildCSSFromStyles(...args) {
-    return StyleSheetBuilder.getCSSRuleValue(...args);
   }
 
   styleWithHelper(helper, ...args) {
@@ -270,7 +229,7 @@ export class StyleSheetBuilder {
 
       if (thisStyle instanceof StyleSheetBuilder) {
         thisStyle = thisStyle.getRawStyle();
-      } else if (typeof thisStyle === 'function') {
+      } else if (typeof thisStyle === 'function' && this.theme) {
         thisStyle = thisStyle(this.theme, this.platform);
         if (thisStyle instanceof StyleSheetBuilder)
           thisStyle = thisStyle.getRawStyle();
@@ -286,17 +245,17 @@ export class StyleSheetBuilder {
     if (typeof this.factory !== 'function')
       return {};
 
-    return (this.factory(theme, ...args) || {});
+    return (this.factory(theme || {}, ...args) || {});
   }
 
   getRawStyle() {
-    var lut = this.theme.lastUpdateTime();
+    var lut = (this.theme) ? this.theme.lastUpdateTime() : 0;
     if (this._rawStyle && lut <= this._lastRawStyleUpdateTime)
       return this._rawStyle;
 
     this._lastRawStyleUpdateTime = lut;
 
-    var currentTheme = this.theme.getThemeProperties(),
+    var currentTheme = (this.theme) ? this.theme.getThemeProperties() : {},
         mergeStyles = this.resolveDependencies(this._mergeStyles || []),
         nonMergeStyles = this.resolveDependencies(this._resolveStyles || []),
         args = mergeStyles.concat(nonMergeStyles),
@@ -315,7 +274,7 @@ export class StyleSheetBuilder {
 
   getInternalStyleSheet(_theme) {
     var theme = _theme || this.theme,
-        lut = theme.lastUpdateTime();
+        lut = (theme) ? theme.lastUpdateTime() : 0;
 
     if (this._style && lut <= this._lastStyleUpdateTime)
       return this._style;
@@ -402,21 +361,25 @@ export class StyleSheetBuilder {
     return normalProps;
   }
 
-  createInternalStyleSheet(styleObj) {
-    return StyleSheetBuilder.createInternalStyleSheet(styleObj);
-  }
+  flattenInternalStyleSheet(style, _finalStyle) {
+    var finalStyle = _finalStyle || {};
+    if (!(style instanceof Array))
+      return Object.assign(finalStyle, (style || {}));
 
-  flattenInternalStyleSheet(style) {
-    return StyleSheetBuilder.flattenInternalStyleSheet(style);
+    for (var i = 0, il = style.length; i < il; i++) {
+      var thisStyle = style[i];
+      if (!thisStyle)
+        continue;
+
+      if (thisStyle instanceof Array)
+        finalStyle = this.flattenInternalStyleSheet(thisStyle, finalStyle);
+      else
+        finalStyle = Object.assign(finalStyle, (thisStyle || {}));
+    }
+
+    if (finalStyle.flex === 0)
+      finalStyle.flex = 'none';
+
+    return finalStyle;
   }
 }
-
-const createStyleSheet = StyleSheetBuilder.createStyleSheet,
-      buildCSSFromStyle = StyleSheetBuilder.buildCSSFromStyle,
-      buildCSSFromStyles = StyleSheetBuilder.buildCSSFromStyles;
-
-export {
-  createStyleSheet,
-  buildCSSFromStyle,
-  buildCSSFromStyles
-};

@@ -5,13 +5,22 @@ import {
 }                         from './utils';
 import { utils as U }     from 'evisit-js-utils';
 
+var componentIDCounter = 1,
+    logCache = {};
+
 export default class ComponentBase {
   static getClassNamePrefix() {
     return 'application';
   }
 
-  constructor(reactComponent, props) {
+  constructor(props, reactComponent) {
     Object.defineProperties(this, {
+      'id': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: (props.id) ? props.id : `Component_${('' + (componentIDCounter++)).padStart(13, '0')}`
+      },
       '_renderCacheInvalid': {
         writable: true,
         enumerable: false,
@@ -112,8 +121,10 @@ export default class ComponentBase {
   }
 
   _getStyleSheetFromFactory(theme, _styleSheetFactory) {
-    if (!theme)
-      return;
+    if (!theme) {
+      this._logger('warn', 'Warning: "theme" not specified when trying to get style for component @');
+      return { styleWithHelper: () => null };
+    }
 
     var styleCache = theme._cachedStyles;
     if (!styleCache) {
@@ -163,6 +174,25 @@ export default class ComponentBase {
     this._renderCacheInvalid = true;
   }
 
+  _logger(type, _message) {
+    if (!_message)
+      return;
+
+    var componentName = this.getComponentName(),
+        message = ('' + _message).replace(/@/g, componentName);
+
+    var logCacheKey = `${(new Error(componentName))}:${message}`;
+    if (logCache[logCacheKey])
+      return;
+
+    logCache[logCacheKey] = true;
+
+    if (type === 'warn')
+      console.warn(message);
+    else if (type === 'error')
+      console.error(message);
+  }
+
   _renderInterceptor(renderID) {
     const updateRenderState = (elems) => {
       this._staleInternalState = Object.assign({}, this._internalState);
@@ -177,6 +207,13 @@ export default class ComponentBase {
       return this._renderCache;
 
     var elements = this.render();
+    if (elements == null) {
+      if (elements === undefined)
+        this._logger('warn', 'Warning: @ returned a bad value from "render" method');
+
+      updateRenderState(undefined);
+      return null;
+    }
 
     // Async render
     if (typeof elements.then === 'function' && typeof elements.catch === 'function') {
@@ -204,32 +241,8 @@ export default class ComponentBase {
     return this._reactComponent.setState(newState, doneCallback);
   }
 
-  _resolveProps(reactProps) {
-    if (this._resolvedPropsCache && reactProps === this._reactPropsCache)
-      return this._resolvedPropsCache;
-
-    var formattedProps = {},
-        keys = Object.keys(reactProps),
-        resolvableProps = this.constructor._resolvableProps;
-
-    for (var i = 0, il = keys.length; i < il; i++) {
-      var key = keys[i],
-          value = reactProps[key];
-
-      if (resolvableProps && resolvableProps[key] && typeof value === 'function')
-        value = value.call(this, reactProps);
-
-      formattedProps[key] = value;
-    }
-
-    this._resolvedPropsCache = formattedProps;
-    this._reactPropsCache = reactProps;
-
-    return formattedProps;
-  }
-
   _invokeResolveState(_props, state, prevProps, prevState) {
-    var props = this._resolveProps(_props, this._internalProps),
+    var props = this.resolveProps(_props, this._internalProps),
         newState = this.resolveState({
           props,
           state,
@@ -250,6 +263,58 @@ export default class ComponentBase {
     this.componentWillUnmount();
   }
 
+  getChildren(children) {
+    if (children !== undefined)
+      return children;
+
+    var internalChildren = this.getState('children', this._internalProps.children);
+    return (internalChildren === undefined) ? null : internalChildren;
+  }
+
+  getResolvableProps(...args) {
+    return Object.assign({}, this.constructor._resolvableProps || {}, ...(args.filter((val) => (val != null))));
+  }
+
+  resolveProps(props, prevProps, extraProps) {
+    if (this._resolvedPropsCache && props === this._reactPropsCache)
+      return this._resolvedPropsCache;
+
+    var formattedProps = {},
+        keys = Object.keys(props),
+        resolvableProps = this.getResolvableProps(extraProps);
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i],
+          value = props[key];
+
+      if (resolvableProps && typeof value === 'function' && resolvableProps[key])
+        value = value.call(this, props, prevProps);
+
+      formattedProps[key] = value;
+    }
+
+    this._resolvedPropsCache = formattedProps;
+    this._reactPropsCache = props;
+
+    return formattedProps;
+  }
+
+  getProvidedCallback(name) {
+    return this.getState(name, this._internalProps[name]);
+  }
+
+  callProvidedCallback(name, opts) {
+    var callback = this.getProvidedCallback(name, opts);
+    if (typeof callback !== 'function')
+      return;
+
+    return callback.call(this, Object.assign({ ref: this }, opts || {}));
+  }
+
+  getID() {
+    return this.id;
+  }
+
   componentDidMount() {}
   componentWillUnmount() {}
 
@@ -259,6 +324,10 @@ export default class ComponentBase {
 
   getTheme() {
     return this.theme || this.context.theme;
+  }
+
+  forceUpdate(...args) {
+    return this._reactComponent.forceUpdate(...args);
   }
 
   freezeUpdates() {
@@ -332,6 +401,36 @@ export default class ComponentBase {
     };
   }
 
+  delay(func, time, _id) {
+    var id = (!_id) ? ('' + func) : _id;
+    if (!this._componentDelayTimers) {
+      Object.defineProperty(this, '_componentDelayTimers', {
+        writable: true,
+        enumerable: true,
+        configurable: true,
+        value: {}
+      });
+    }
+
+    if (this._componentDelayTimers[id])
+      clearTimeout(this._componentDelayTimers[id]);
+
+    this._componentDelayTimers[id] = setTimeout(() => {
+      this._componentDelayTimers[id] = null;
+      if (func instanceof Function)
+        func.call(this);
+    }, time || 250);
+
+    return id;
+  }
+
+  clearDelay(id) {
+    if (id == null || this._componentDelayTimers[id] == null)
+      return;
+
+    clearTimeout(this._componentDelayTimers[id]);
+  }
+
   shouldComponentUpdate(newState, oldState) {
     return (!areObjectsEqualShallow(newState, oldState));
   }
@@ -358,12 +457,24 @@ export default class ComponentBase {
     return this.constructor.getClassNamePrefix();
   }
 
-  _getClassName(_componentName, ...args) {
+  _getClassNamesFromObject(_componentName, obj) {
+    if (!obj)
+      return;
+
+    if (obj instanceof Array)
+      return this.getClassName(_componentName, ...obj);
+
+    var keys = Object.keys(obj);
+    return this.getClassName(_componentName, ...keys.filter((key) => !!obj[key]));
+  }
+
+  getClassName(_componentName, ...args) {
     var classNamesPrefix = this.getClassNamePrefix(),
         componentName = (_componentName) ? _componentName : capitalize(this.getComponentName()),
         thisClassName = `${classNamesPrefix}${componentName}`;
 
-    return args.map((elem) => {
+    return ([].concat(...args.map((_elem) => {
+      var elem = _elem;
       if (elem === '')
         return thisClassName;
 
@@ -371,19 +482,18 @@ export default class ComponentBase {
       if (U.noe(elem))
         return undefined;
 
+      if (U.instanceOf(elem, 'object', 'array'))
+        return this._getClassNamesFromObject(_componentName, elem);
+
       if (elem.length >= classNamesPrefix.length && elem.substring(0, classNamesPrefix.length) === classNamesPrefix)
         return elem;
 
       return `${classNamesPrefix}${componentName}${capitalize(('' + elem))}`;
-    }).filter((elem) => !!elem).join(' ');
-  }
-
-  getClassName(...args) {
-    return this._getClassName(undefined, ...args);
+    }))).filter((elem) => !!elem).join(' ');
   }
 
   getRootClassName(componentName, ...args) {
-    var classNames = this._getClassName(componentName, '', ...args);
+    var classNames = this.getClassName(componentName, '', ...args);
 
     var specifiedClassName = this.getState('className');
     if (!U.noe(specifiedClassName))

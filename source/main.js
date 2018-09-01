@@ -11,12 +11,7 @@ export {
   areObjectsEqualShallow,
 }                                 from './utils';
 
-export {
-  StyleSheetBuilder,
-  createStyleSheet,
-  buildCSSFromStyle,
-  buildCSSFromStyles
-}                                 from './styles/style-sheet';
+export { StyleSheetBuilder }      from './styles/style-sheet';
 export {
   Color,
   rebuildPallette,
@@ -84,28 +79,28 @@ export function componentFactory(name, definer, _options) {
       ReactBaseComponent = getReactComponentClass(options.reactComponentBaseClass),
       Parent = getComponentClass(options.componentBase || ComponentBase);
 
-  var InstanceClass = definer(Object.assign({}, options, { Parent, componentName: name }));
-  if (typeof InstanceClass !== 'function')
+  var ComponentClass = definer(Object.assign({}, options, { Parent, componentName: name }));
+  if (typeof ComponentClass !== 'function')
     throw new TypeError('"definer" callback must return a class or a function');
 
-  class Component extends ReactBaseComponent {
+  class ReactComponentClass extends ReactBaseComponent {
     constructor(...args) {
-      super(InstanceClass, ...args);
+      super(ComponentClass, ...args);
     }
   }
 
   const parentComponent = Parent,
         parentReactComponent = getReactComponentClass(Parent);
 
-  var propTypes = InstanceClass.propTypes = mergePropTypes(parentComponent.propTypes, InstanceClass.propTypes),
-      defaultProps = Object.assign({}, (parentComponent.defaultProps || {}), (InstanceClass.defaultProps || {})),
+  var propTypes = ComponentClass.propTypes = mergePropTypes(parentComponent.propTypes, ComponentClass.propTypes),
+      defaultProps = Object.assign({}, (parentComponent.defaultProps || {}), (ComponentClass.defaultProps || {})),
       resolvableProps = calculateResolveProps(name, propTypes);
 
-  copyStaticMethods(parentComponent, InstanceClass);
-  copyStaticMethods(InstanceClass, Component, (name) => {
-    return (name !== 'propTypes');
+  copyStaticMethods(parentComponent, ComponentClass, null, parentComponent._rebindStaticMethod);
+  copyStaticMethods(ComponentClass, ReactComponentClass, (name) => {
+    return (name !== 'propTypes' && name !== 'defaultProps');
   });
-  copyStaticMethods(parentReactComponent, Component);
+  copyStaticMethods(parentReactComponent, ReactComponentClass);
 
   const commonStaticProps = {
     '_resolvableProps': {
@@ -142,25 +137,37 @@ export function componentFactory(name, definer, _options) {
       writable: false,
       enumerable: false,
       configurable: false,
-      value: InstanceClass
+      value: ComponentClass
     },
     '_reactComponentClass': {
       writable: false,
       enumerable: false,
       configurable: false,
-      value: Component
+      value: ReactComponentClass
     },
+    'displayName': {
+      writable: true,
+      enumerable: false,
+      configurable: false,
+      value: name
+    }
   };
 
-  Object.defineProperties(InstanceClass, commonStaticProps);
-  Object.defineProperties(Component, commonStaticProps);
+  Object.defineProperties(ComponentClass, commonStaticProps);
+  Object.defineProperties(ReactComponentClass, commonStaticProps);
+
+  if (typeof ComponentClass._componentFactoryHook === 'function') {
+    var classes = ComponentClass._componentFactoryHook(ComponentClass, ReactComponentClass);
+    ComponentClass = classes.ComponentClass;
+    ReactComponentClass = classes.ReactComponentClass;
+  }
 
   if (!global._components)
     global._components = {};
 
-  global._components[name] = Component;
+  global._components[name] = ReactComponentClass;
 
-  return Component;
+  return ReactComponentClass;
 }
 
 export {

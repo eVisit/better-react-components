@@ -1,5 +1,4 @@
 import { utils as U }       from 'evisit-js-utils';
-import { Dimensions }       from '../platform-shims';
 import { rebuildPallette }  from './colors';
 
 var themeIDCounter = 1;
@@ -82,16 +81,29 @@ export class Theme {
     this.rebuildTheme(_extraThemeProps);
   }
 
-  static getScreenInfo() {
+  getScreenInfo() {
     /* globals _getWindowDimensions */
     if (typeof _getWindowDimensions === 'function')
       return _getWindowDimensions('window');
 
-    return Dimensions.get('window');
-  }
+    var devicePixelRatio = 1,
+        width = 1,
+        height = 1;
 
-  getScreenInfo() {
-    return Theme.getScreenInfo();
+    if (typeof window !== 'undefined' && window) {
+      devicePixelRatio = window.devicePixelRatio || 1;
+      width = window.innerWidth;
+      height = window.innerHeight;
+    }
+
+    return {
+      width,
+      height,
+      physicalWidth: width * devicePixelRatio,
+      physicalHeight: height * devicePixelRatio,
+      scale: devicePixelRatio,
+      pixelRatio: 1 / devicePixelRatio
+    };
   }
 
   getColorHelperFactory() {
@@ -164,8 +176,10 @@ export class Theme {
     return finalBranding;
   }
 
-  rebuildTheme(_extraThemeProps = {}) {
-    var extraThemeProps = {},
+  rebuildTheme(_extraThemeProps = {}, _opts) {
+    var opts = _opts || {},
+        ThemePropertiesClass = opts.ThemeProperties || ThemeProperties,
+        extraThemeProps = {},
         keys = Object.keys(_extraThemeProps);
 
     keys.forEach((key) => {
@@ -179,7 +193,7 @@ export class Theme {
       extraThemeProps[key] = value;
     });
 
-    var currentTheme = this._cachedTheme = new ThemeProperties(extraThemeProps, this);
+    var currentTheme = this._cachedTheme = new ThemePropertiesClass(extraThemeProps, this);
     this._lastRebuildTime = (new Date()).valueOf();
 
     return currentTheme;

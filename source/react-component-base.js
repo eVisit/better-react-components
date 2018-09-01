@@ -26,7 +26,7 @@ export default class ReactComponentBase extends React.Component {
 
     super(props, ...args);
 
-    var instance = new InstanceClass(this, props),
+    var instance = new InstanceClass(props, this),
         state = this.state = {};
 
     bindPrototypeFuncs.call(instance, InstanceClass.prototype, instance);
@@ -83,7 +83,7 @@ export default class ReactComponentBase extends React.Component {
     });
 
     if (InstanceClass.propTypes) {
-      var resolvedProps = instance._resolveProps(props);
+      var resolvedProps = instance.resolveProps(props, props);
       PropTypes.checkPropTypes(InstanceClass.propTypes, resolvedProps, 'propType', this.getComponentName(), () => {
         var error = new Error();
         return error.stack;
@@ -144,13 +144,13 @@ export default class ReactComponentBase extends React.Component {
     return true;
   }
 
-  _publishContext(children, _context) {
-    if (!('publishContext' in this._componentInstance))
+  _provideContext(children, _context) {
+    if (!('provideContext' in this._componentInstance))
       return children;
 
     var context = _context || {};
     return React.createElement(ComponentContext.Provider, { value: (instance) => {
-      return Object.assign({}, context, this._componentInstance.publishContext(instance));
+      return Object.assign({}, context, this._componentInstance.provideContext(instance));
     }}, children);
   }
 
@@ -160,7 +160,7 @@ export default class ReactComponentBase extends React.Component {
       this._setContext(context);
 
       var children = this._componentInstance._renderInterceptor(renderID);
-      return this._publishContext((children === undefined) ? null : children, context);
+      return this._provideContext((children === undefined) ? null : children, context);
     });
   }
 
