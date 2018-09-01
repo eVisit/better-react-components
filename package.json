@@ -1,7 +1,7 @@
 {
-  "name": "better-react-components",
+  "name": "react-ameliorate",
   "version": "0.9.0",
-  "description": "Better React components with inheritance, improved state machine, better style sheets, resolving props, etc...",
+  "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "index.js",
   "scripts": {
     "prepublishOnly": "npm run build",
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/eVisit/better-react-components.git"
+    "url": "git+https://github.com/eVisit/react-ameliorate.git"
   },
   "keywords": [
     "react",
@@ -20,9 +20,9 @@
   "author": "eVisit, LLC",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/eVisit/better-react-components/issues"
+    "url": "https://github.com/eVisit/react-ameliorate/issues"
   },
-  "homepage": "https://github.com/eVisit/better-react-components#readme",
+  "homepage": "https://github.com/eVisit/react-ameliorate#readme",
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.54",
     "@babel/core": "^7.0.0-beta.54",
