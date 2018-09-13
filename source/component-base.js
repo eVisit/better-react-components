@@ -4,6 +4,7 @@ import {
   capitalize
 }                         from './utils';
 import { utils as U }     from 'evisit-js-utils';
+import PropTypes  from './prop-types';
 
 var componentIDCounter = 1,
     logCache = {};
@@ -110,6 +111,18 @@ export default class ComponentBase {
 
     // Setup the styleSheet getter to build style-sheets when requested
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
+  }
+
+  _construct(InstanceClass, instance, props, state) {
+    if (InstanceClass.propTypes) {
+      var resolvedProps = instance.resolveProps(props, props);
+      PropTypes.checkPropTypes(InstanceClass.propTypes, resolvedProps, 'propType', this.getComponentName(), () => {
+        var error = new Error();
+        return error.stack;
+      });
+    }
+
+    instance._invokeResolveState(props, state, props, state);
   }
 
   _getContext() {
@@ -241,17 +254,20 @@ export default class ComponentBase {
     return this._reactComponent.setState(newState, doneCallback);
   }
 
-  _invokeResolveState(_props, state, prevProps, prevState) {
+  _resolveState(props, state, _props, _state) {
+    return this.resolveState({
+      props,
+      _props,
+      state,
+      _state
+    });
+  }
+
+  _invokeResolveState(_props, ...args) {
     var props = this.resolveProps(_props, this._internalProps),
-        newState = this.resolveState({
-          props,
-          state,
-          _props: prevProps,
-          _state: prevState
-        });
+        newState = this._resolveState.call(this, props, ...args);
 
     this._internalProps = _props;
-
     this.setState(newState);
   }
 

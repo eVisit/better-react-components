@@ -2,11 +2,11 @@ import PropTypes                  from './prop-types';
 import ComponentBase              from './component-base';
 import ReactComponentBase         from './react-component-base';
 import {
-  copyStaticMethods
+  copyStaticProperties
 }                                 from './utils';
 
 export {
-  copyStaticMethods,
+  copyStaticProperties,
   bindPrototypeFuncs,
   areObjectsEqualShallow,
 }                                 from './utils';
@@ -19,7 +19,7 @@ export {
 }                                 from './styles/colors';
 export { Theme, ThemeProperties } from './styles/theme';
 
-export function componentFactory(name, definer, _options) {
+export function componentFactory(_name, definer, _options) {
   function getComponentClass(component) {
     if (!component)
       return ComponentBase;
@@ -69,6 +69,9 @@ export function componentFactory(name, definer, _options) {
     return resolveProps;
   }
 
+  var name = (_name && _name.name) ? _name.name : _name,
+      displayName = (_name && _name.displayName) ? _name.displayName : _name;
+
   if (!name)
     throw new TypeError('"name" is required to create a component');
 
@@ -79,7 +82,7 @@ export function componentFactory(name, definer, _options) {
       ReactBaseComponent = getReactComponentClass(options.reactComponentBaseClass),
       Parent = getComponentClass(options.componentBase || ComponentBase);
 
-  var ComponentClass = definer(Object.assign({}, options, { Parent, componentName: name }));
+  var ComponentClass = definer(Object.assign({}, options, { Parent, componentName: displayName, componentInternalName: name }));
   if (typeof ComponentClass !== 'function')
     throw new TypeError('"definer" callback must return a class or a function');
 
@@ -94,13 +97,13 @@ export function componentFactory(name, definer, _options) {
 
   var propTypes = ComponentClass.propTypes = mergePropTypes(parentComponent.propTypes, ComponentClass.propTypes),
       defaultProps = Object.assign({}, (parentComponent.defaultProps || {}), (ComponentClass.defaultProps || {})),
-      resolvableProps = calculateResolveProps(name, propTypes);
+      resolvableProps = calculateResolveProps(displayName, propTypes);
 
-  copyStaticMethods(parentComponent, ComponentClass, null, parentComponent._rebindStaticMethod);
-  copyStaticMethods(ComponentClass, ReactComponentClass, (name) => {
+  copyStaticProperties(parentComponent, ComponentClass, null, parentComponent._rebindStaticMethod);
+  copyStaticProperties(ComponentClass, ReactComponentClass, (name) => {
     return (name !== 'propTypes' && name !== 'defaultProps');
   });
-  copyStaticMethods(parentReactComponent, ReactComponentClass);
+  copyStaticProperties(parentReactComponent, ReactComponentClass);
 
   const commonStaticProps = {
     '_resolvableProps': {
@@ -119,7 +122,7 @@ export function componentFactory(name, definer, _options) {
       writable: true,
       enumerable: false,
       configurable: true,
-      value: () => name
+      value: () => displayName
     },
     '_parentComponent': {
       writable: false,
@@ -145,19 +148,26 @@ export function componentFactory(name, definer, _options) {
       configurable: false,
       value: ReactComponentClass
     },
-    'displayName': {
+    'internalName': {
       writable: true,
       enumerable: false,
       configurable: false,
       value: name
+    },
+    'displayName': {
+      writable: true,
+      enumerable: false,
+      configurable: false,
+      value: displayName
     }
   };
 
   Object.defineProperties(ComponentClass, commonStaticProps);
   Object.defineProperties(ReactComponentClass, commonStaticProps);
 
-  if (typeof ComponentClass._componentFactoryHook === 'function') {
-    var classes = ComponentClass._componentFactoryHook(ComponentClass, ReactComponentClass);
+  var componentFactoryHook = options.componentFactoryHook || ComponentClass._componentFactoryHook;
+  if (typeof componentFactoryHook === 'function') {
+    var classes = componentFactoryHook(ComponentClass, ReactComponentClass);
     ComponentClass = classes.ComponentClass;
     ReactComponentClass = classes.ReactComponentClass;
   }

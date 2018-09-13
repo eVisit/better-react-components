@@ -1,5 +1,4 @@
 import React      from 'react';
-import PropTypes  from './prop-types';
 import {
   bindPrototypeFuncs,
   areObjectsEqualShallow
@@ -17,7 +16,7 @@ export default class ReactComponentBase extends React.Component {
     if (propName in ReactComponentBase.prototype)
       return false;
 
-    return !(/^(componentWillMount|componentDidMount|componentWillUnmount|componentWillReceiveProps|shouldComponentUpdate|componentWillUpdate|render|componentDidUpdate|componentDidCatch|constructor|construct|getChildContext|getMountState|measure)$/).test(propName);
+    return !(/^(componentWillMount|componentDidMount|componentWillUnmount|componentWillReceiveProps|shouldComponentUpdate|componentWillUpdate|render|componentDidUpdate|componentDidCatch|constructor|construct|getMountState|measure)$/).test(propName);
   }
 
   constructor(InstanceClass, props, ...args) {
@@ -82,15 +81,7 @@ export default class ReactComponentBase extends React.Component {
       }
     });
 
-    if (InstanceClass.propTypes) {
-      var resolvedProps = instance.resolveProps(props, props);
-      PropTypes.checkPropTypes(InstanceClass.propTypes, resolvedProps, 'propType', this.getComponentName(), () => {
-        var error = new Error();
-        return error.stack;
-      });
-    }
-
-    instance._invokeResolveState(props, state, props, state);
+    instance._construct(InstanceClass, instance, props, state);
   }
 
   shouldComponentUpdate(prevProps, prevState) {
