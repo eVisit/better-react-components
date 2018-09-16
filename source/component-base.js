@@ -1,10 +1,11 @@
 
 import {
   areObjectsEqualShallow,
-  capitalize
+  capitalize,
+  cloneComponents
 }                         from './utils';
 import { utils as U }     from 'evisit-js-utils';
-import PropTypes  from './prop-types';
+import PropTypes          from './prop-types';
 
 var componentIDCounter = 1,
     logCache = {};
@@ -102,15 +103,71 @@ export default class ComponentBase {
         }
       },
       'context': {
-        writable: true,
         enumerable: false,
         configurable: true,
-        value: {}
+        get: () => {
+          var props = this._internalProps,
+              fetchContext = props['_ameliorateContextProvider'];
+
+          if (typeof fetchContext === 'function')
+            return fetchContext();
+
+          return {};
+        },
+        set: () => {}
       }
     });
 
     // Setup the styleSheet getter to build style-sheets when requested
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
+  }
+
+  _contextFetcher() {
+    var props = this._internalProps,
+        myProvider = this['provideContext'],
+        parentProvider = props['_ameliorateContextProvider'],
+        context = {};
+
+    if (typeof parentProvider === 'function')
+      context = (parentProvider() || {});
+
+    if (typeof myProvider === 'function')
+      context = Object.assign(context, (myProvider() || {}));
+
+    return context;
+  }
+
+  _mutateComponentProps(child, childProps) {
+    var reactComponentClass = (child && child.type);
+    if (!reactComponentClass || !reactComponentClass._ameliorateComponent)
+      return;
+
+    return {
+      '_ameliorateContextProvider': this._contextFetcher,
+      '_ameliorateMutated': true
+    };
+  }
+
+  _shouldMutateChildren(child, childProps) {
+    if (!child || !child.props)
+      return false;
+
+    var props = child.props,
+        should = !props['_ameliorateMutated'];
+
+    if (!should)
+      console.log('Skipping mutate!');
+
+    return should;
+  }
+
+  // Here we deep clone all components returned from a render
+  _mutateComponents(children, recursive) {
+    if (children == null || children === false)
+      return null;
+
+    var newChildren = cloneComponents(children, this._mutateComponentProps, undefined, recursive);
+    return newChildren;
   }
 
   _construct(InstanceClass, instance, props, state) {
@@ -123,14 +180,6 @@ export default class ComponentBase {
     }
 
     instance._invokeResolveState(props, state, props, state);
-  }
-
-  _getContext() {
-    return this.context;
-  }
-
-  _setContext(newContext) {
-    this.context = newContext;
   }
 
   _getStyleSheetFromFactory(theme, _styleSheetFactory) {
@@ -207,10 +256,11 @@ export default class ComponentBase {
   }
 
   _renderInterceptor(renderID) {
-    const updateRenderState = (elems) => {
+    const updateRenderState = (elems, skipMutate) => {
       this._staleInternalState = Object.assign({}, this._internalState);
       this._renderCacheInvalid = false;
-      this._renderCache = elems;
+      var newElems = this._renderCache = (skipMutate) ? elems : this._mutateComponents(elems, this._shouldMutateChildren);
+      return newElems;
     };
 
     if (this._stateUpdatesFrozen)
@@ -224,8 +274,7 @@ export default class ComponentBase {
       if (elements === undefined)
         this._logger('warn', 'Warning: @ returned a bad value from "render" method');
 
-      updateRenderState(undefined);
-      return null;
+      return updateRenderState(undefined);
     }
 
     // Async render
@@ -233,7 +282,7 @@ export default class ComponentBase {
       elements.then((elems) => {
         if (renderID !== this._previousRenderID) {
           console.warn(`Warning: Discarding render ID = ${renderID}... is your render function taking too long?`);
-          return updateRenderState(this._renderCache);
+          return updateRenderState(this._renderCache, true);
         }
 
         updateRenderState(elems);
@@ -243,10 +292,9 @@ export default class ComponentBase {
         throw new Error(error);
       });
 
-      return this._renderCache || null;
+      return this._renderCache;
     } else if (elements !== undefined) {
-      updateRenderState(elements);
-      return elements;
+      return updateRenderState(elements);
     }
   }
 
@@ -283,7 +331,7 @@ export default class ComponentBase {
     if (children !== undefined)
       return children;
 
-    var internalChildren = this.getState('children', this._internalProps.children);
+    var internalChildren = this.getState('children');
     return (internalChildren === undefined) ? null : internalChildren;
   }
 

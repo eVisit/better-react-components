@@ -4,10 +4,6 @@ import {
   areObjectsEqualShallow
 }                 from './utils';
 
-const ComponentContext = React.createContext(() => {
-  return {};
-});
-
 export default class ReactComponentBase extends React.Component {
   static proxyComponentInstanceMethod(propName) {
     if (propName in React.Component.prototype)
@@ -125,39 +121,9 @@ export default class ReactComponentBase extends React.Component {
     this._componentInstance._invokeComponentWillUnmount();
   }
 
-  _setContext(context) {
-    var currentContext = this._componentInstance._getContext();
-    if (areObjectsEqualShallow(context, currentContext))
-      return false;
-
-    this._componentInstance._setContext(context);
-
-    return true;
-  }
-
-  _provideContext(children, _context) {
-    if (!('provideContext' in this._componentInstance))
-      return children;
-
-    var context = _context || {};
-    return React.createElement(ComponentContext.Provider, { value: (instance) => {
-      return Object.assign({}, context, this._componentInstance.provideContext(instance));
-    }}, children);
-  }
-
-  _captureContext(renderID) {
-    return React.createElement(ComponentContext.Consumer, {}, (contextFunc) => {
-      var context = contextFunc(this._componentInstance) || {};
-      this._setContext(context);
-
-      var children = this._componentInstance._renderInterceptor(renderID);
-      return this._provideContext((children === undefined) ? null : children, context);
-    });
-  }
-
   render() {
     var renderID = `${this._propUpdateCounter}/${this._stateUpdateCounter}`,
-        elems = this._captureContext(renderID);
+        elems = this._componentInstance._renderInterceptor(renderID);
 
     this._componentInstance._previousRenderID = renderID;
     this._renderCount++;

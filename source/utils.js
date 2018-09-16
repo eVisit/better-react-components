@@ -1,3 +1,5 @@
+import React from 'react';
+
 export function bindPrototypeFuncs(source, target, filterFunc) {
   if (!source)
     return;
@@ -81,4 +83,45 @@ export function copyStaticProperties(source, target, filterFunc, rebindStaticMet
       value: val
     });
   }
+}
+
+export function cloneElement(child, childProps) {
+  return React.cloneElement(child, childProps, childProps.children);
+}
+
+export function cloneComponents(children, propsHelper, cloneHelper, recurseHelper, _depth) {
+  const cloneChild = (child, index) => {
+    if (!child)
+      return child;
+
+    var key = ('' + index),
+        childProps = { key };
+
+    if (React.isValidElement(child)) {
+      childProps = Object.assign(childProps, ((child && child.props) || {}));
+
+      var extraProps = (typeof propsHelper === 'function') ? propsHelper.call(this, child, childProps, index, depth) : {};
+      if (extraProps)
+        childProps = Object.assign(childProps, extraProps);
+
+      if (childProps.children) {
+        var shouldRecurse = recurseHelper;
+        if (typeof shouldRecurse === 'function')
+          shouldRecurse = recurseHelper.call(this, child, childProps, index, depth);
+
+        if (shouldRecurse)
+          childProps.children = cloneComponents.call(this, childProps.children, propsHelper, cloneHelper, recurseHelper, depth + 1);
+      }
+
+      return (typeof cloneHelper === 'function') ? cloneHelper.call(this, child, childProps, index, depth, true) : React.cloneElement(child, childProps, childProps.children);
+    }
+
+    return (typeof cloneHelper === 'function') ? cloneHelper.call(this, child, childProps, index, depth, false) : child;
+  };
+
+  var depth = _depth || 0;
+  if (!(children instanceof Array))
+    return cloneChild(children, 0);
+
+  return children.map(cloneChild).filter((c) => (c != null && c !== false));
 }
