@@ -100,23 +100,23 @@ export function cloneComponents(children, propsHelper, cloneHelper, recurseHelpe
     if (React.isValidElement(child)) {
       childProps = Object.assign(childProps, ((child && child.props) || {}));
 
-      var extraProps = (typeof propsHelper === 'function') ? propsHelper.call(this, child, childProps, index, depth) : {};
+      var extraProps = (typeof propsHelper === 'function') ? propsHelper.call(this, { child, childProps, index, depth }) : {};
       if (extraProps)
         childProps = Object.assign(childProps, extraProps);
 
       if (childProps.children) {
         var shouldRecurse = recurseHelper;
         if (typeof shouldRecurse === 'function')
-          shouldRecurse = recurseHelper.call(this, child, childProps, index, depth);
+          shouldRecurse = recurseHelper.call(this, { child, childProps, index, depth });
 
         if (shouldRecurse)
           childProps.children = cloneComponents.call(this, childProps.children, propsHelper, cloneHelper, recurseHelper, depth + 1);
       }
 
-      return (typeof cloneHelper === 'function') ? cloneHelper.call(this, child, childProps, index, depth, true) : React.cloneElement(child, childProps, childProps.children);
+      return (typeof cloneHelper === 'function') ? cloneHelper.call(this, { child, childProps, index, depth, validElement: true, defaultCloneElement: React.cloneElement }) : React.cloneElement(child, childProps, childProps.children);
     }
 
-    return (typeof cloneHelper === 'function') ? cloneHelper.call(this, child, childProps, index, depth, false) : child;
+    return (typeof cloneHelper === 'function') ? cloneHelper.call(this, { child, childProps, index, depth, validElement: false, defaultCloneElement: React.cloneElement }) : child;
   };
 
   var depth = _depth || 0;

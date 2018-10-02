@@ -134,40 +134,10 @@ export default class ComponentBase {
     if (typeof myProvider === 'function')
       context = Object.assign(context, (myProvider() || {}));
 
+    if (Object.keys(context || {}).length === 0)
+      debugger;
+
     return context;
-  }
-
-  _mutateComponentProps(child, childProps) {
-    var reactComponentClass = (child && child.type);
-    if (!reactComponentClass || !reactComponentClass._ameliorateComponent)
-      return;
-
-    return {
-      '_ameliorateContextProvider': this._contextFetcher,
-      '_ameliorateMutated': true
-    };
-  }
-
-  _shouldMutateChildren(child, childProps) {
-    if (!child || !child.props)
-      return false;
-
-    var props = child.props,
-        should = !props['_ameliorateMutated'];
-
-    if (!should)
-      console.log('Skipping mutate!');
-
-    return should;
-  }
-
-  // Here we deep clone all components returned from a render
-  _mutateComponents(children, recursive) {
-    if (children == null || children === false)
-      return null;
-
-    var newChildren = cloneComponents(children, this._mutateComponentProps, undefined, recursive);
-    return newChildren;
   }
 
   _construct(InstanceClass, instance, props, state) {
@@ -259,7 +229,13 @@ export default class ComponentBase {
     const updateRenderState = (elems, skipMutate) => {
       this._staleInternalState = Object.assign({}, this._internalState);
       this._renderCacheInvalid = false;
-      var newElems = this._renderCache = (skipMutate) ? elems : this._mutateComponents(elems, this._shouldMutateChildren);
+      var newElems = this._renderCache = (skipMutate) ? elems : this.postRenderProcessElements({
+        elements: elems,
+        onProps: this.postRenderProcessChildProps,
+        onProcess: this.postRenderProcessChild,
+        onShouldProcess: this.postRenderShouldProcessChildren
+      });
+
       return newElems;
     };
 
@@ -312,10 +288,10 @@ export default class ComponentBase {
   }
 
   _invokeResolveState(_props, ...args) {
-    var props = this.resolveProps(_props, this._internalProps),
-        newState = this._resolveState.call(this, props, ...args);
-
+    var props = this.resolveProps(_props, this._internalProps);
     this._internalProps = _props;
+
+    var newState = this._resolveState.call(this, props, ...args);
     this.setState(newState);
   }
 
@@ -325,6 +301,85 @@ export default class ComponentBase {
 
   _invokeComponentWillUnmount() {
     this.componentWillUnmount();
+  }
+
+  getProps(filter) {
+    var props = this._internalProps;
+    if (!filter || (typeof filter !== 'function' && !(filter instanceof RegExp)))
+      return props;
+
+    var keys = Object.keys(props),
+        isFunc = (typeof filter === 'function'),
+        filteredProps = {};
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i],
+          value = props[key];
+
+      if (isFunc) {
+        if (!filter.call(this, value, key))
+          continue;
+      } else {
+        filter.lastIndex = 0;
+        if (filter.test(key))
+          continue;
+      }
+
+      filteredProps[key] = value;
+    }
+
+    return filteredProps;
+  }
+
+  postRenderProcessChildProps(args) {
+    var { child } = args,
+        reactComponentClass = (child && child.type);
+
+    if (!reactComponentClass || !reactComponentClass._ameliorateComponent)
+      return;
+
+    return {
+      '_ameliorateContextProvider': this._contextFetcher,
+      '_ameliorateMutated': true
+    };
+  }
+
+  postRenderProcessChild({ child, childProps, validElement, defaultCloneElement }) {
+    if (!validElement)
+      return child;
+
+    return defaultCloneElement(child, childProps, childProps.children);
+  }
+
+  postRenderShouldProcessChildren({ child }) {
+    if (!child || !child.props)
+      return child;
+
+    var props = child.props,
+        should = !props['_ameliorateMutated'];
+
+    return should;
+  }
+
+  processElements({ elements, onProps, onProcess, onShouldProcess }) {
+    if (elements == null || elements === false)
+      return null;
+
+    if (typeof onProps !== 'function')
+      onProps = () => {};
+
+    if (typeof onProcess !== 'function')
+      onProcess = ({ child }) => child;
+
+    if (typeof onShouldProcess !== 'function')
+      onShouldProcess = () => false;
+
+    var newChildren = cloneComponents(elements, onProps, onProcess, onShouldProcess);
+    return newChildren;
+  }
+
+  postRenderProcessElements(args) {
+    return this.processElements(args);
   }
 
   getChildren(children) {
@@ -438,7 +493,7 @@ export default class ComponentBase {
 
   getState(path, defaultValue) {
     var currentState = this._internalState;
-    if (U.noe(path))
+    if (!arguments.length)
       return currentState;
 
     if (U.instanceOf(path, 'object')) {
