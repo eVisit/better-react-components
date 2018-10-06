@@ -153,6 +153,8 @@ export class StyleSheetBuilder {
   getCSSRuleValue(ruleName, ruleValue, key) {
     if (ruleName === 'text-decoration')
       return ruleValue;
+    else if (ruleName === 'content')
+      return `'${ruleValue}'`;
 
     if (ruleName === 'transform') {
       var axis = ['translateX', 'translateY', 'rotate', 'scaleX', 'scaleY'],

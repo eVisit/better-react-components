@@ -104,6 +104,12 @@ export function componentFactory(_name, definer, _options) {
   copyStaticProperties(parentReactComponent, ReactComponentClass);
 
   const commonStaticProps = {
+    '_ameliorateComponent': {
+      writable: false,
+      enumerable: false,
+      configurable: false,
+      value: true
+    },
     '_resolvableProps': {
       writable: true,
       enumerable: false,
