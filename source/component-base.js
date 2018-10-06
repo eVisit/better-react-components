@@ -1,10 +1,6 @@
-
-import {
-  areObjectsEqualShallow,
-  capitalize
-}                         from './utils';
-import { utils as U }     from 'evisit-js-utils';
-import PropTypes  from './prop-types';
+import { utils as U }                         from 'evisit-js-utils';
+import PropTypes                              from './prop-types';
+import { areObjectsEqualShallow, capitalize } from './utils';
 
 var componentIDCounter = 1,
     logCache = {};
@@ -113,7 +109,9 @@ export default class ComponentBase {
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
   }
 
-  _construct(InstanceClass, instance, props, state) {
+  _construct(InstanceClass, instance, props, state, context) {
+    this.context = context || {};
+
     if (InstanceClass.propTypes) {
       var resolvedProps = instance.resolveProps(props, props);
       PropTypes.checkPropTypes(InstanceClass.propTypes, resolvedProps, 'propType', this.getComponentName(), () => {

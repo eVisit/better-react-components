@@ -1,8 +1,5 @@
-import React      from 'react';
-import {
-  bindPrototypeFuncs,
-  areObjectsEqualShallow
-}                 from './utils';
+import React                                          from 'react';
+import { areObjectsEqualShallow, bindPrototypeFuncs } from './utils';
 
 const ComponentContext = React.createContext(() => {
   return {};
@@ -81,7 +78,12 @@ export default class ReactComponentBase extends React.Component {
       }
     });
 
-    instance._construct(InstanceClass, instance, props, state);
+    var context;
+    this._getContext((_context) => {
+      context = _context;
+    });
+
+    instance._construct(InstanceClass, instance, props, state, context);
   }
 
   shouldComponentUpdate(prevProps, prevState) {
@@ -125,6 +127,13 @@ export default class ReactComponentBase extends React.Component {
     this._componentInstance._invokeComponentWillUnmount();
   }
 
+  _getContext(callback) {
+    return React.createElement(ComponentContext.Consumer, {}, (contextFunc) => {
+      var context = contextFunc(this._componentInstance) || {};
+      return callback.call(this, context);
+    });
+  }
+
   _setContext(context) {
     var currentContext = this._componentInstance._getContext();
     if (areObjectsEqualShallow(context, currentContext))
@@ -146,8 +155,7 @@ export default class ReactComponentBase extends React.Component {
   }
 
   _captureContext(renderID) {
-    return React.createElement(ComponentContext.Consumer, {}, (contextFunc) => {
-      var context = contextFunc(this._componentInstance) || {};
+    return this._getContext((context) => {
       this._setContext(context);
 
       var children = this._componentInstance._renderInterceptor(renderID);

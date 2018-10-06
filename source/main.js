@@ -1,9 +1,7 @@
-import PropTypes                  from './prop-types';
-import ComponentBase              from './component-base';
-import ReactComponentBase         from './react-component-base';
-import {
-  copyStaticProperties
-}                                 from './utils';
+import ComponentBase            from './component-base';
+import PropTypes                from './prop-types';
+import ReactComponentBase       from './react-component-base';
+import { copyStaticProperties } from './utils';
 
 export {
   copyStaticProperties,
@@ -14,7 +12,7 @@ export {
 export { StyleSheetBuilder }      from './styles/style-sheet';
 export {
   Color,
-  rebuildPallette,
+  buildPalette,
   Constants
 }                                 from './styles/colors';
 export { Theme, ThemeProperties } from './styles/theme';

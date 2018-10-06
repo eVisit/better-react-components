@@ -1,6 +1,6 @@
 /* globals __DEV__ */
 
-import { utils as U, data as D } from 'evisit-js-utils';
+import { data as D, utils as U }  from 'evisit-js-utils';
 
 var styleSheetID = 1;
 
