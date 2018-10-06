@@ -3,6 +3,31 @@ import { buildPalette, Color, Constants }  from './colors';
 
 var themeIDCounter = 1;
 
+function getScreenInfo() {
+  /* globals _getWindowDimensions */
+  if (typeof _getWindowDimensions === 'function')
+    return _getWindowDimensions('window');
+
+  var devicePixelRatio = 1,
+      width = 1,
+      height = 1;
+
+  if (typeof window !== 'undefined' && window) {
+    devicePixelRatio = window.devicePixelRatio || 1;
+    width = window.innerWidth;
+    height = window.innerHeight;
+  }
+
+  return {
+    width,
+    height,
+    physicalWidth: width * devicePixelRatio,
+    physicalHeight: height * devicePixelRatio,
+    scale: devicePixelRatio,
+    pixelRatio: 1 / devicePixelRatio
+  };
+}
+
 export class ThemeProperties {
   static Constants = Constants;
   static Color = Color;
@@ -133,8 +158,9 @@ export class ThemeProperties {
   }
 }
 
-
 export class Theme {
+  static getScreenInfo = getScreenInfo;
+
   constructor(_extraThemeProps, platform) {
     U.defineROProperty(this, 'platform', undefined, () => platform);
 
@@ -146,28 +172,7 @@ export class Theme {
   }
 
   getScreenInfo() {
-    /* globals _getWindowDimensions */
-    if (typeof _getWindowDimensions === 'function')
-      return _getWindowDimensions('window');
-
-    var devicePixelRatio = 1,
-        width = 1,
-        height = 1;
-
-    if (typeof window !== 'undefined' && window) {
-      devicePixelRatio = window.devicePixelRatio || 1;
-      width = window.innerWidth;
-      height = window.innerHeight;
-    }
-
-    return {
-      width,
-      height,
-      physicalWidth: width * devicePixelRatio,
-      physicalHeight: height * devicePixelRatio,
-      scale: devicePixelRatio,
-      pixelRatio: 1 / devicePixelRatio
-    };
+    return getScreenInfo();
   }
 
   getColorHelperFactory() {

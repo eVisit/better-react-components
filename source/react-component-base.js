@@ -74,12 +74,7 @@ export default class ReactComponentBase extends React.Component {
       }
     });
 
-    var context;
-    this._getContext((_context) => {
-      context = _context;
-    });
-
-    instance._construct(InstanceClass, instance, props, state, context);
+    instance._construct(InstanceClass, instance, props, state);
   }
 
   shouldComponentUpdate(prevProps, prevState) {
