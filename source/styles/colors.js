@@ -1,141 +1,149 @@
 import Color  from 'color';
 
 const BLACK = {
-        "h": 0,
-        "s": 100,
-        "l": 100
+        h: 0,
+        s: 100,
+        l: 100
       },
       WHITE = {
-        "h": 0,
-        "s": 100,
-        "l": 100
+        h: 0,
+        s: 100,
+        l: 100
       },
       DEFAULT_PALETTE = {
         BLACK,
         WHITE,
+        MAIN: {
+          color: {
+            h: 207,
+            s: 90,
+            l: 54
+          },
+          textColor: WHITE
+        },
         ERROR: {
           color: {
-            "h": 355.531914893617,
-            "s": 83.92857142857143,
-            "l": 56.07843137254902
+            h: 355.531914893617,
+            s: 83.92857142857143,
+            l: 56.07843137254902
           },
           textColor: WHITE
         },
         ISSUE: {
           color: {
-            "h": 25.555555555555543,
-            "s": 68.0672268907563,
-            "l": 53.333333333333336
+            h: 25.555555555555543,
+            s: 68.0672268907563,
+            l: 53.333333333333336
           },
           textColor: WHITE
         },
         SUCCESS: {
           color: {
-            "h": 150,
-            "s": 46.15384615384615,
-            "l": 54.11764705882353
+            h: 150,
+            s: 46.15384615384615,
+            l: 54.11764705882353
           },
           textColor: WHITE
         },
         PALETTE1: {
           color: {
-            "h": 33.438735177865624,
-            "s": 100,
-            "l": 49.6078431372549
+            h: 33.438735177865624,
+            s: 100,
+            l: 49.6078431372549
           },
           textColor: WHITE
         },
         PALETTE2: {
           color: {
-            "h": 43.80530973451329,
-            "s": 96.58119658119656,
-            "l": 45.88235294117647
+            h: 43.80530973451329,
+            s: 96.58119658119656,
+            l: 45.88235294117647
           },
           textColor: WHITE
         },
         PALETTE3: {
           color: {
-            "h": 48.81355932203388,
-            "s": 95.9349593495935,
-            "l": 51.764705882352935
+            h: 48.81355932203388,
+            s: 95.9349593495935,
+            l: 51.764705882352935
           },
           textColor: WHITE
         },
         PALETTE4: {
           color: {
-            "h": 50.35294117647061,
-            "s": 100,
-            "l": 50
+            h: 50.35294117647061,
+            s: 100,
+            l: 50
           },
           textColor: WHITE
         },
         PALETTE5: {
           color: {
-            "h": 144.3529411764706,
-            "s": 67.46031746031747,
-            "l": 50.588235294117645
+            h: 144.3529411764706,
+            s: 67.46031746031747,
+            l: 50.588235294117645
           },
           textColor: WHITE
         },
         PALETTE6: {
           color: {
-            "h": 150,
-            "s": 46.15384615384615,
-            "l": 54.11764705882353
+            h: 150,
+            s: 46.15384615384615,
+            l: 54.11764705882353
           },
           textColor: WHITE
         },
         PALETTE7: {
           color: {
-            "h": 160.30303030303025,
-            "s": 83.89830508474577,
-            "l": 53.72549019607843
+            h: 160.30303030303025,
+            s: 83.89830508474577,
+            l: 53.72549019607843
           },
           textColor: WHITE
         },
         PALETTE8: {
           color: {
-            "h": 197.39999999999998,
-            "s": 50.000000000000014,
-            "l": 60.7843137254902
+            h: 197.39999999999998,
+            s: 50.000000000000014,
+            l: 60.7843137254902
           },
           textColor: WHITE
         },
         PALETTE9: {
           color: {
-            "h": 267.3529411764706,
-            "s": 82.92682926829268,
-            "l": 67.84313725490196
+            h: 267.3529411764706,
+            s: 82.92682926829268,
+            l: 67.84313725490196
           },
           textColor: WHITE
         },
         PALETTE10: {
           color: {
-            "h": 303.6923076923076,
-            "s": 46.09929078014185,
-            "l": 72.35294117647058
+            h: 303.6923076923076,
+            s: 46.09929078014185,
+            l: 72.35294117647058
           },
           textColor: WHITE
         },
         PALETTE11: {
           color: {
-            "h": 309.2307692307693,
-            "s": 84.5528455284553,
-            "l": 51.76470588235295
+            h: 309.2307692307693,
+            s: 84.5528455284553,
+            l: 51.76470588235295
           },
           textColor: WHITE
         },
         PALETTE12: {
           color: {
-            "h": 355.531914893617,
-            "s": 83.92857142857143,
-            "l": 56.07843137254902
+            h: 355.531914893617,
+            s: 83.92857142857143,
+            l: 56.07843137254902
           },
           textColor: WHITE
         }
       };
 
-const DEFAULT_MAIN_COLOR = { h: 207, s: 90, l: 54 },
+const DEFAULT_MAIN_COLOR = DEFAULT_PALETTE.MAIN.color,
       DEFAULT_ALT1_SATURATION_RATIO = 0.76,
       DEFAULT_ALT1_LUMINOSITY_RATIO = 1,
       DEFAULT_ALT1_LUMINOSITY_MIN_OFFSET = DEFAULT_MAIN_COLOR.l - (DEFAULT_MAIN_COLOR.l * DEFAULT_ALT1_LUMINOSITY_RATIO),
@@ -193,7 +201,7 @@ function buildPalette(opts = {}, _colorHelperFactory) {
       }, (opts || {})),
       // default properties
       palette               = opts.PALETTE || DEFAULT_PALETTE,
-      mainColor             = palette.MAIN || DEFAULT_MAIN_COLOR,
+      mainColor             = palette.MAIN || DEFAULT_PALETTE.MAIN,
       alt1SaturationRatio   = options.ALT1_SATURATION_RATIO,
       alt1LuminosityRatio   = options.ALT1_LUMINOSITY_RATIO,
       alt1LuminosityOffset  = options.ALT1_LUMINOSITY_OFFSET,
@@ -203,7 +211,7 @@ function buildPalette(opts = {}, _colorHelperFactory) {
       textContrastRatio     = options.ACCEPTABLE_TEXT_CONTRAST_RATIO,
       transparencyRatio     = options.TRANSPARENCY_RATIO,
       fadeRatio             = options.FADE_RATIO,
-      thisMainColor         = Color(mainColor).hsl().object();
+      thisMainColor         = Color(mainColor.color || mainColor).hsl().object();
 
   if (alt1LuminosityOffset == null)
     alt1LuminosityOffset = thisMainColor.l - (thisMainColor.l * alt1LuminosityRatio);
@@ -348,8 +356,10 @@ function buildPalette(opts = {}, _colorHelperFactory) {
     addToPalette(colorKey, color);
 
     if (!thisTextColor) {
-      var relativeLuminance = getRelativeColorLuminance(color);
-      thisTextColor = new Color({ h: (color.h + 180) % 360, s: color.s, l: (relativeLuminance < textContrastRatio) ? 100 : 0 });
+      var relativeLuminance = getRelativeColorLuminance(color),
+          c = color.hsl().object();
+
+      thisTextColor = new Color({ h: (c.h + 180) % 360, s: c.s, l: (relativeLuminance < textContrastRatio) ? 100 : 0 });
     } else {
       thisTextColor = new Color(thisTextColor);
     }
@@ -371,7 +381,7 @@ function buildPalette(opts = {}, _colorHelperFactory) {
       getColorNameFromStrings,
       getColorContrastRatio
     },
-    finalPalette
+    palette: finalPalette
   };
 }
 

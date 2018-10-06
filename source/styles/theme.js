@@ -161,8 +161,12 @@ export class ThemeProperties {
 export class Theme {
   static getScreenInfo = getScreenInfo;
 
-  constructor(_extraThemeProps, platform) {
-    U.defineROProperty(this, 'platform', undefined, () => platform);
+  constructor(_extraThemeProps, _opts) {
+    var opts = Object.assign({}, _opts || {});
+
+    U.defineROProperty(this, '_options', undefined, () => opts);
+    U.defineROProperty(this, 'ThemePropertiesClass', undefined, () => opts.ThemeProperties);
+    U.defineROProperty(this, 'platform', undefined, () => opts.platform);
 
     U.defineRWProperty(this, '_cachedTheme', null);
     U.defineRWProperty(this, '_lastRebuildTime', 0);
@@ -199,7 +203,7 @@ export class Theme {
 
   rebuildTheme(_extraThemeProps = {}, _opts) {
     var opts = _opts || {},
-        ThemePropertiesClass = opts.ThemeProperties || ThemeProperties,
+        ThemePropertiesClass = opts.ThemeProperties || this.ThemePropertiesClass || ThemeProperties,
         extraThemeProps = {},
         keys = Object.keys(_extraThemeProps);
 
