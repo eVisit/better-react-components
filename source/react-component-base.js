@@ -103,9 +103,8 @@ export default class ReactComponentBase extends React.Component {
       this._componentInstance._invokeResolveState(this.props, this.state, prevProps, prevState);
     }
 
-    if (statesDiffer) {
+    if (statesDiffer)
       this._cachedStateUpdateCounter = this._stateUpdateCounter;
-    }
   }
 
   componentDidMount() {

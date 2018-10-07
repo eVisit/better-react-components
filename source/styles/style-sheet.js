@@ -15,7 +15,7 @@ export class StyleSheetBuilder {
     U.defineROProperty(this, 'factory', factory);
     U.defineROProperty(this, '_styleSheetID', thisSheetID);
     U.defineROProperty(this, '_mergeStyles', (mergeStyles instanceof Array) ? mergeStyles : [mergeStyles]);
-    U.defineROProperty(this, '_resolveStyles', (resolveStyles) ? resolveStyles : [resolveStyles]);
+    U.defineROProperty(this, '_resolveStyles', (resolveStyles instanceof Array) ? resolveStyles : [resolveStyles]);
     U.defineROProperty(this, '_onUpdate', onUpdate);
     U.defineRWProperty(this, '_style', null);
     U.defineRWProperty(this, '_rawStyle', null);
@@ -164,14 +164,21 @@ export class StyleSheetBuilder {
         var currentAxis = axis[i],
             axisVal = ruleValue[currentAxis];
 
-        if (axisVal !== null && axisVal !== undefined)
-          transformParts.push(currentAxis + '(' + axisVal + 'px)');
+        if (axisVal != null) {
+          if (typeof axisVal.valueOf === 'function')
+            axisVal = axisVal.valueOf();
+
+          if (typeof axisVal === 'number')
+            axisVal = `${axisVal}px`;
+
+          transformParts.push(`${currentAxis}(${axisVal})`);
+        }
       }
 
       return transformParts.join(' ');
     }
 
-    if (ruleName === 'opacity')
+    if (ruleName.match(/^(opacity|z-index|flex)/))
       return ('' + ruleValue);
 
     if ((ruleValue instanceof Number) || typeof ruleValue === 'number')
@@ -264,8 +271,7 @@ export class StyleSheetBuilder {
         rawStyle = this.sanitizeProps(this.invokeFactoryCallback(currentTheme, args), this.platform);
 
     // Now merge all style sheets
-    args.push(rawStyle);
-    rawStyle = this._rawStyle = D.extend(true, this.styleExports, ...args);
+    rawStyle = this._rawStyle = D.extend(true, this.styleExports, ...[rawStyle].concat(mergeStyles));
 
     return rawStyle;
   }

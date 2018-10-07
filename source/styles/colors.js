@@ -3,7 +3,7 @@ import Color  from 'color';
 const BLACK = {
         h: 0,
         s: 100,
-        l: 100
+        l: 0
       },
       WHITE = {
         h: 0,
@@ -45,7 +45,7 @@ const BLACK = {
           },
           textColor: WHITE
         },
-        PALETTE1: {
+        PALETTE001: {
           color: {
             h: 33.438735177865624,
             s: 100,
@@ -53,7 +53,7 @@ const BLACK = {
           },
           textColor: WHITE
         },
-        PALETTE2: {
+        PALETTE002: {
           color: {
             h: 43.80530973451329,
             s: 96.58119658119656,
@@ -61,7 +61,7 @@ const BLACK = {
           },
           textColor: WHITE
         },
-        PALETTE3: {
+        PALETTE003: {
           color: {
             h: 48.81355932203388,
             s: 95.9349593495935,
@@ -69,7 +69,7 @@ const BLACK = {
           },
           textColor: WHITE
         },
-        PALETTE4: {
+        PALETTE004: {
           color: {
             h: 50.35294117647061,
             s: 100,
@@ -77,7 +77,7 @@ const BLACK = {
           },
           textColor: WHITE
         },
-        PALETTE5: {
+        PALETTE005: {
           color: {
             h: 144.3529411764706,
             s: 67.46031746031747,
@@ -85,7 +85,7 @@ const BLACK = {
           },
           textColor: WHITE
         },
-        PALETTE6: {
+        PALETTE006: {
           color: {
             h: 150,
             s: 46.15384615384615,
@@ -93,7 +93,7 @@ const BLACK = {
           },
           textColor: WHITE
         },
-        PALETTE7: {
+        PALETTE007: {
           color: {
             h: 160.30303030303025,
             s: 83.89830508474577,
@@ -101,7 +101,7 @@ const BLACK = {
           },
           textColor: WHITE
         },
-        PALETTE8: {
+        PALETTE008: {
           color: {
             h: 197.39999999999998,
             s: 50.000000000000014,
@@ -109,7 +109,7 @@ const BLACK = {
           },
           textColor: WHITE
         },
-        PALETTE9: {
+        PALETTE009: {
           color: {
             h: 267.3529411764706,
             s: 82.92682926829268,
@@ -117,7 +117,7 @@ const BLACK = {
           },
           textColor: WHITE
         },
-        PALETTE10: {
+        PALETTE010: {
           color: {
             h: 303.6923076923076,
             s: 46.09929078014185,
@@ -125,7 +125,7 @@ const BLACK = {
           },
           textColor: WHITE
         },
-        PALETTE11: {
+        PALETTE011: {
           color: {
             h: 309.2307692307693,
             s: 84.5528455284553,
@@ -133,7 +133,7 @@ const BLACK = {
           },
           textColor: WHITE
         },
-        PALETTE12: {
+        PALETTE012: {
           color: {
             h: 355.531914893617,
             s: 83.92857142857143,
@@ -326,7 +326,8 @@ function buildPalette(opts = {}, _colorHelperFactory) {
           return (!item) ? 0 : ('' + item).charCodeAt(0);
         }) : 0;
 
-    return `${paletteKeys[(finalNumber % paletteKeys.length)]}_COLOR`;
+    var num = (`000${(finalNumber % paletteKeys.length)}`).slice(-1);
+    return `${paletteKeys[num]}_COLOR`;
   });
 
   const getColorContrastRatio = colorHelperFactory(function(c1, c2) {

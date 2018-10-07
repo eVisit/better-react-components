@@ -165,7 +165,7 @@ export class Theme {
     var opts = Object.assign({}, _opts || {});
 
     U.defineROProperty(this, '_options', undefined, () => opts);
-    U.defineROProperty(this, 'ThemePropertiesClass', undefined, () => opts.ThemeProperties);
+    U.defineROProperty(this, 'ThemePropertiesClass', undefined, () => this._options.ThemePropertiesClass);
     U.defineROProperty(this, 'platform', undefined, () => opts.platform);
 
     U.defineRWProperty(this, '_cachedTheme', null);
