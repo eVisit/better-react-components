@@ -383,11 +383,11 @@ export default class ComponentBase {
   }
 
   getChildren(children) {
-    if (children !== undefined)
-      return children;
+    function filterChildren(_children) {
+      return ((_children instanceof Array) ? _children : [_children]).filter((child) => (child !== false && child != null));
+    }
 
-    var internalChildren = this.getState('children');
-    return (internalChildren === undefined) ? null : internalChildren;
+    return filterChildren((children !== undefined) ? children : this.getState('children'));
   }
 
   getResolvableProps(...args) {
