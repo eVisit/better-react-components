@@ -53,7 +53,7 @@ export default class ComponentBase {
         configurable: true,
         value: null
       },
-      '_internalProps': {
+      'props': {
         writable: true,
         enumerable: false,
         configurable: true,
@@ -106,7 +106,7 @@ export default class ComponentBase {
         enumerable: false,
         configurable: true,
         get: () => {
-          var props = this._internalProps,
+          var props = this.props,
               fetchContext = props['_ameliorateContextProvider'];
 
           if (typeof fetchContext === 'function')
@@ -123,7 +123,7 @@ export default class ComponentBase {
   }
 
   _contextFetcher() {
-    var props = this._internalProps,
+    var props = this.props,
         myProvider = this['provideContext'],
         parentProvider = props['_ameliorateContextProvider'],
         context = {};
@@ -149,7 +149,7 @@ export default class ComponentBase {
       });
     }
 
-    instance._invokeResolveState(props, state, props, state);
+    instance._invokeResolveState(true, props, state, props, state);
   }
 
   _getStyleSheetFromFactory(theme, _styleSheetFactory) {
@@ -278,8 +278,9 @@ export default class ComponentBase {
     return this._reactComponent.setState(newState, doneCallback);
   }
 
-  _resolveState(props, state, _props, _state) {
+  _resolveState(initial, props, state, _props, _state) {
     return this.resolveState({
+      initial,
       props,
       _props,
       state,
@@ -287,11 +288,11 @@ export default class ComponentBase {
     });
   }
 
-  _invokeResolveState(_props, ...args) {
-    var props = this.resolveProps(_props, this._internalProps);
-    this._internalProps = _props;
+  _invokeResolveState(initial, _props, ...args) {
+    var props = this.resolveProps(_props, this.props);
+    this.props = _props;
 
-    var newState = this._resolveState.call(this, props, ...args);
+    var newState = this._resolveState.call(this, initial, props, ...args);
     this.setState(newState);
   }
 
@@ -304,7 +305,7 @@ export default class ComponentBase {
   }
 
   getProps(filter) {
-    var props = this._internalProps;
+    var props = this.props;
     if (!filter || (typeof filter !== 'function' && !(filter instanceof RegExp)))
       return props;
 
@@ -387,7 +388,7 @@ export default class ComponentBase {
       return ((_children instanceof Array) ? _children : [_children]).filter((child) => (child !== false && child != null));
     }
 
-    return filterChildren((children !== undefined) ? children : this.getState('children'));
+    return filterChildren((children !== undefined) ? children : this.props.children);
   }
 
   getResolvableProps(...args) {
@@ -419,7 +420,7 @@ export default class ComponentBase {
   }
 
   getProvidedCallback(name) {
-    return this.getState(name, this._internalProps[name]);
+    return this.getState(name, this.props[name]);
   }
 
   callProvidedCallback(name, opts) {
@@ -514,10 +515,8 @@ export default class ComponentBase {
     return U.get(currentState, path, defaultValue);
   }
 
-  resolveState({ props }) {
-    return {
-      ...props
-    };
+  resolveState() {
+    return {};
   }
 
   delay(func, time, _id) {

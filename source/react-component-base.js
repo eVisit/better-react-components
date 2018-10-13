@@ -100,7 +100,7 @@ export default class ReactComponentBase extends React.Component {
 
     if (propsDiffer) {
       this._cachedPropUpdateCounter = this._propUpdateCounter;
-      this._componentInstance._invokeResolveState(this.props, this.state, prevProps, prevState);
+      this._componentInstance._invokeResolveState(false, this.props, this.state, prevProps, prevState);
     }
 
     if (statesDiffer)
