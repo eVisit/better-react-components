@@ -99,16 +99,16 @@ export function cloneComponents(children, propsHelper, cloneHelper, recurseHelpe
       return thisShouldRecurse;
     };
 
-    if (!child)
+    if (child === false || child == null)
       return child;
 
-    var key = ('' + index),
-        childProps = { key };
-
     if (React.isValidElement(child)) {
+      var key = ('' + index),
+          childProps = { key };
+
       childProps = Object.assign(childProps, ((child && child.props) || {}));
 
-      var extraProps = (typeof propsHelper === 'function') ? propsHelper.call(this, { child, childProps, index, depth }) : {};
+      var extraProps = (typeof propsHelper === 'function') ? propsHelper.call(this, { child, childProps, index, depth }) : null;
       if (extraProps)
         childProps = Object.assign(childProps, extraProps);
 

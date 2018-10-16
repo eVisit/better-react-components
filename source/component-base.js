@@ -288,9 +288,9 @@ export default class ComponentBase {
     });
   }
 
-  _invokeResolveState(initial, _props, ...args) {
-    var props = this.resolveProps(_props, this.props);
-    this.props = _props;
+  _invokeResolveState(initial, newProps, newState, oldProps, ...args) {
+    var props = this.resolveProps(newProps, oldProps);
+    this.props = newProps;
 
     var newState = this._resolveState.call(this, initial, props, ...args);
     this.setState(newState);
@@ -388,7 +388,13 @@ export default class ComponentBase {
       return ((_children instanceof Array) ? _children : [_children]).filter((child) => (child !== false && child != null));
     }
 
-    return filterChildren((children !== undefined) ? children : this.props.children);
+    if (children === undefined)
+      return this.props.children;
+
+    if (!(children instanceof Array))
+      return children;
+
+    return filterChildren(children);
   }
 
   getResolvableProps(...args) {

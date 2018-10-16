@@ -59,52 +59,32 @@ export default class ReactComponentBase extends React.Component {
         enumerable: false,
         configurable: true,
         value: 0
-      },
-      '_cachedPropUpdateCounter': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: 0
-      },
-      '_cachedStateUpdateCounter': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: 0
       }
     });
 
     instance._construct(InstanceClass, instance, props, state);
   }
 
-  shouldComponentUpdate(prevProps, prevState) {
+  _updateInstanceProps(newProps, newState) {
+    this._propUpdateCounter++;
+    this._componentInstance._invokeResolveState(false, newProps, newState, this.props, this.state);
+  }
+
+  shouldComponentUpdate(nextProps, nextState) {
     // Props have changed... update componentInstance
-    var propsDiffer = !areObjectsEqualShallow(prevProps, this.props),
-        statesDiffer = !areObjectsEqualShallow(prevState, this.state);
+    var propsDiffer = !areObjectsEqualShallow(nextProps, this.props),
+        statesDiffer = !areObjectsEqualShallow(nextState, this.state);
 
     if (!propsDiffer && !statesDiffer)
       return false;
 
     if (propsDiffer)
-      this._propUpdateCounter++;
+      this._updateInstanceProps(nextProps, nextState);
 
     if (statesDiffer)
       this._stateUpdateCounter++;
 
     return true;
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    var propsDiffer = (this._propUpdateCounter !== this._cachedPropUpdateCounter),
-        statesDiffer = (this._stateUpdateCounter !== this._cachedStateUpdateCounter);
-
-    if (propsDiffer) {
-      this._cachedPropUpdateCounter = this._propUpdateCounter;
-      this._componentInstance._invokeResolveState(false, this.props, this.state, prevProps, prevState);
-    }
-
-    if (statesDiffer)
-      this._cachedStateUpdateCounter = this._stateUpdateCounter;
   }
 
   componentDidMount() {
@@ -118,8 +98,11 @@ export default class ReactComponentBase extends React.Component {
   }
 
   render() {
-    var renderID = `${this._propUpdateCounter}/${this._stateUpdateCounter}`,
-        elems = this._componentInstance._renderInterceptor(renderID);
+    var renderID = `${this._propUpdateCounter}/${this._stateUpdateCounter}`;
+
+    this._componentInstance._invalidateRenderCache();
+
+    var elems = this._componentInstance._renderInterceptor(renderID);
 
     this._componentInstance._previousRenderID = renderID;
     this._renderCount++;
