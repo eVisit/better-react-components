@@ -271,7 +271,7 @@ export class StyleSheetBuilder {
         rawStyle = this.sanitizeProps(this.invokeFactoryCallback(currentTheme, args), this.platform);
 
     // Now merge all style sheets
-    rawStyle = this._rawStyle = D.extend(true, this.styleExports, ...[rawStyle].concat(mergeStyles));
+    rawStyle = this._rawStyle = D.extend(true, this.styleExports, ...[rawStyle].concat(currentTheme, mergeStyles));
 
     return rawStyle;
   }
