@@ -229,13 +229,7 @@ export default class ComponentBase {
     const updateRenderState = (elems, skipMutate) => {
       this._staleInternalState = Object.assign({}, this._internalState);
       this._renderCacheInvalid = false;
-      var newElems = this._renderCache = (skipMutate) ? elems : this.postRenderProcessElements({
-        elements: elems,
-        onProps: this._postRenderProcessChildProps,
-        onProcess: this._postRenderProcessChild,
-        onShouldProcess: this._postRenderShouldProcessChildren
-      });
-
+      var newElems = this._renderCache = (skipMutate) ? elems : this.postRenderProcessElements(elems);
       return newElems;
     };
 
@@ -319,7 +313,7 @@ export default class ComponentBase {
         continue;
 
       var keys = Object.keys(arg);
-      for (var j = 0, jl = arguments.length; j < jl; j++) {
+      for (var j = 0, jl = keys.length; j < jl; j++) {
         var key = keys[j],
             value = arg[key];
 
@@ -339,7 +333,7 @@ export default class ComponentBase {
     return newProps;
   }
 
-  _postRenderProcessChildProps({ child, childProps, context, index }) {
+  _postRenderProcessChildProps({ parent, child, childProps, context, index }) {
     var newProps = childProps,
         extraProps,
         reactComponentClass = (child && child.type);
@@ -364,7 +358,26 @@ export default class ComponentBase {
         // WIP: Add to layouts for layout engine
         // needs to be able to fetch a layout
         // and remove a fetched layout
-        //namedLayout.push();
+        Object.defineProperty(child, 'removeFromCurrentLayout', {
+          writable: true,
+          enumerable: false,
+          configurable: true,
+          value: () => {
+            var props = (parent && parent.props);
+
+            if (props.children instanceof Array) {
+              var index = props.children.indexOf(child);
+              if (index >= 0)
+                props.children.splice(index, 1);
+            } else if (props.children === child) {
+              props.children = null;
+            }
+
+            return child;
+          }
+        });
+
+        namedLayout.push(child);
 
         return false;
       }
@@ -420,9 +433,17 @@ export default class ComponentBase {
     return { context, elements: newChildren };
   }
 
-  postRenderProcessElements(args) {
-    var ret = this._processElements(args);
-    return ret.elements;
+  processElements(elements) {
+    return this._processElements({
+      elements,
+      onProps: this._postRenderProcessChildProps,
+      onProcess: this._postRenderProcessChild,
+      onShouldProcess: this._postRenderShouldProcessChildren
+    });
+  }
+
+  postRenderProcessElements(elements) {
+    return this.processElements(elements).elements;
   }
 
   getChildren(children) {
