@@ -3,9 +3,9 @@ import {
   areObjectsEqualShallow,
   capitalize,
   cloneComponents
-}                         from './utils';
-import { utils as U }     from 'evisit-js-utils';
-import PropTypes          from './prop-types';
+}                                 from './utils';
+import { utils as U, data as D }  from 'evisit-js-utils';
+import PropTypes                  from './prop-types';
 
 var componentIDCounter = 1,
     logCache = {};
@@ -231,9 +231,9 @@ export default class ComponentBase {
       this._renderCacheInvalid = false;
       var newElems = this._renderCache = (skipMutate) ? elems : this.postRenderProcessElements({
         elements: elems,
-        onProps: this.postRenderProcessChildProps,
-        onProcess: this.postRenderProcessChild,
-        onShouldProcess: this.postRenderShouldProcessChildren
+        onProps: this._postRenderProcessChildProps,
+        onProcess: this._postRenderProcessChild,
+        onShouldProcess: this._postRenderShouldProcessChildren
       });
 
       return newElems;
@@ -304,55 +304,94 @@ export default class ComponentBase {
     this.componentWillUnmount();
   }
 
-  getProps(filter) {
-    var props = this.props;
-    if (!filter || (typeof filter !== 'function' && !(filter instanceof RegExp)))
-      return props;
+  getProps(filter, ...args) {
+    return this._filterProps(filter, this.props, ...args);
+  }
 
-    var keys = Object.keys(props),
-        isFunc = (typeof filter === 'function'),
-        filteredProps = {};
+  _filterProps(filter) {
+    var newProps = {},
+        filterIsRE = (filter instanceof RegExp),
+        filterIsFunc = (typeof filter === 'function');
 
-    for (var i = 0, il = keys.length; i < il; i++) {
-      var key = keys[i],
-          value = props[key];
+    for (var i = 1, il = arguments.length; i < il; i++) {
+      var arg = arguments[i];
+      if (!arg)
+        continue;
 
-      if (isFunc) {
-        if (!filter.call(this, value, key))
-          continue;
-      } else {
-        filter.lastIndex = 0;
-        if (filter.test(key))
-          continue;
+      var keys = Object.keys(arg);
+      for (var j = 0, jl = arguments.length; j < jl; j++) {
+        var key = keys[j],
+            value = arg[key];
+
+        if (filterIsRE) {
+          filter.lastIndex = 0;
+          if (filter.test(key))
+            continue;
+        } else if (filterIsFunc) {
+          if (!filter(key, value))
+            continue;
+        }
+
+        newProps[key] = value;
       }
-
-      filteredProps[key] = value;
     }
 
-    return filteredProps;
+    return newProps;
   }
 
-  postRenderProcessChildProps(args) {
-    var { child } = args,
+  _postRenderProcessChildProps({ child, childProps, context, index }) {
+    var newProps = childProps,
+        extraProps,
         reactComponentClass = (child && child.type);
 
-    if (!reactComponentClass || !reactComponentClass._ameliorateComponent)
-      return;
+    if (reactComponentClass && reactComponentClass._ameliorateComponent) {
+      extraProps = {
+        '_ameliorateContextProvider': this._contextFetcher,
+        '_ameliorateMutated': true
+      };
+    }
 
-    return {
-      '_ameliorateContextProvider': this._contextFetcher,
-      '_ameliorateMutated': true
-    };
+    return this._filterProps((key, value) => {
+      if (key === 'layoutContext') {
+        var layout = context.layout;
+        if (!layout)
+          layout = context.layout = {};
+
+        var namedLayout = layout[value];
+        if (!namedLayout)
+          namedLayout = layout[value] = [];
+
+        // WIP: Add to layouts for layout engine
+        // needs to be able to fetch a layout
+        // and remove a fetched layout
+        //namedLayout.push();
+
+        return false;
+      }
+
+      return true;
+    }, newProps, extraProps, { 'key': ('' + index) });
   }
 
-  postRenderProcessChild({ child, childProps, validElement, defaultCloneElement }) {
+  _postRenderProcessChild({ child, childProps, validElement }) {
+    const cloneComponent = (child, childProps) => {
+      if (!child)
+        return child;
+
+      child.props = childProps;
+      return child;
+    };
+
     if (!validElement)
       return child;
 
-    return defaultCloneElement(child, childProps, childProps.children);
+    if (!child)
+      return child;
+
+    return cloneComponent(child, childProps);
   }
 
-  postRenderShouldProcessChildren({ child }) {
+  _postRenderShouldProcessChildren({ child }) {
     if (!child || !child.props)
       return child;
 
@@ -362,9 +401,11 @@ export default class ComponentBase {
     return should;
   }
 
-  processElements({ elements, onProps, onProcess, onShouldProcess }) {
+  _processElements({ elements, onProps, onProcess, onShouldProcess }) {
+    var context = {};
+
     if (elements == null || elements === false)
-      return null;
+      return { context, elements: null };
 
     if (typeof onProps !== 'function')
       onProps = () => {};
@@ -375,12 +416,13 @@ export default class ComponentBase {
     if (typeof onShouldProcess !== 'function')
       onShouldProcess = () => false;
 
-    var newChildren = cloneComponents(elements, onProps, onProcess, onShouldProcess);
-    return newChildren;
+    var newChildren = cloneComponents(elements, onProps, onProcess, onShouldProcess, context);
+    return { context, elements: newChildren };
   }
 
   postRenderProcessElements(args) {
-    return this.processElements(args);
+    var ret = this._processElements(args);
+    return ret.elements;
   }
 
   getChildren(children) {
