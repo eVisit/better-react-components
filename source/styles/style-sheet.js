@@ -4,6 +4,22 @@ import { data as D, utils as U }  from 'evisit-js-utils';
 
 var styleSheetID = 1;
 
+const transformAxis = [
+  'translateX',
+  'translateY',
+  'translateZ',
+  'rotate',
+  'rotateX',
+  'rotateY',
+  'rotateZ',
+  'scaleX',
+  'scaleY',
+  'scaleZ',
+  'skewX',
+  'skewY',
+  'perspective'
+];
+
 export class StyleSheetBuilder {
   constructor({ thisSheetID, styleExports, sheetName, theme, platform, factory, mergeStyles, resolveStyles, onUpdate }) {
     if (!(factory instanceof Function))
@@ -154,25 +170,27 @@ export class StyleSheetBuilder {
     if (ruleName === 'text-decoration')
       return ruleValue;
     else if (ruleName === 'content')
-      return `'${ruleValue}'`;
+      return ruleValue;
 
     if (ruleName === 'transform') {
-      var axis = ['translateX', 'translateY', 'rotate', 'scaleX', 'scaleY'],
-          transformParts = [];
+      if (typeof ruleValue === 'string')
+        return ruleValue;
 
-      for (var i = 0, il = axis.length; i < il; i++) {
-        var currentAxis = axis[i],
+      var transformParts = [];
+      for (var i = 0, il = transformAxis.length; i < il; i++) {
+        var currentAxis = transformAxis[i],
             axisVal = ruleValue[currentAxis];
 
-        if (axisVal != null) {
-          if (typeof axisVal.valueOf === 'function')
-            axisVal = axisVal.valueOf();
+        if (axisVal == null)
+          continue;
 
-          if (typeof axisVal === 'number')
-            axisVal = `${axisVal}px`;
+        if (typeof axisVal.valueOf === 'function')
+          axisVal = axisVal.valueOf();
 
-          transformParts.push(`${currentAxis}(${axisVal})`);
-        }
+        if (typeof axisVal === 'number')
+          axisVal = `${axisVal}px`;
+
+        transformParts.push(`${currentAxis}(${axisVal})`);
       }
 
       return transformParts.join(' ');
@@ -389,5 +407,9 @@ export class StyleSheetBuilder {
       finalStyle.flex = 'none';
 
     return finalStyle;
+  }
+
+  static getTransformAxis() {
+    return transformAxis;
   }
 }

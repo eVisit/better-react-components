@@ -57,7 +57,7 @@ export default class ComponentBase {
         writable: true,
         enumerable: false,
         configurable: true,
-        value: {}
+        value: Object.assign({}, props || {})
       },
       '_staleInternalState': {
         writable: true,
@@ -134,13 +134,10 @@ export default class ComponentBase {
     if (typeof myProvider === 'function')
       context = Object.assign(context, (myProvider() || {}));
 
-    if (Object.keys(context || {}).length === 0)
-      debugger;
-
     return context;
   }
 
-  _construct(InstanceClass, instance, props, state) {
+  _construct(InstanceClass, instance, props) {
     if (InstanceClass.propTypes) {
       var resolvedProps = instance.resolveProps(props, props);
       PropTypes.checkPropTypes(InstanceClass.propTypes, resolvedProps, 'propType', this.getComponentName(), () => {
@@ -149,7 +146,13 @@ export default class ComponentBase {
       });
     }
 
-    instance._invokeResolveState(true, props, state, props, state);
+    this.construct();
+
+    instance._invokeResolveState(true, props);
+  }
+
+  construct() {
+
   }
 
   _getStyleSheetFromFactory(theme, _styleSheetFactory) {
@@ -272,22 +275,41 @@ export default class ComponentBase {
     return this._reactComponent.setState(newState, doneCallback);
   }
 
-  _resolveState(initial, props, state, _props, _state) {
+  _resolveState(initial, props, _props) {
     return this.resolveState({
       initial,
       props,
-      _props,
-      state,
-      _state
+      _props
     });
   }
 
-  _invokeResolveState(initial, newProps, newState, oldProps, ...args) {
-    var props = this.resolveProps(newProps, oldProps);
-    this.props = newProps;
+  _invokeResolveState(initial, newProps, ...args) {
+    var oldProps = this.props,
+        props = this.props = (initial || (newProps !== oldProps)) ? this.resolveProps(newProps, oldProps) : oldProps;
 
-    var newState = this._resolveState.call(this, initial, props, ...args);
+    var newState = this._resolveState.call(this, initial, props, oldProps, ...args);
     this.setState(newState);
+
+    if (initial || (newProps !== oldProps))
+      this._invokePropUpdates(initial, props, oldProps, ...args);
+  }
+
+  _invokePropUpdates(initial, _props, _oldProps) {
+    var props = _props || {},
+        oldProps = _oldProps || {},
+        keys = Object.keys(props);
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i],
+          value1 = props[key],
+          value2 = oldProps[key];
+
+      if (value1 !== value2) {
+        var updateFunc = this[`onPropUpdate_${key}`];
+        if (typeof updateFunc === 'function')
+          updateFunc.call(this, value1, value2);
+      }
+    }
   }
 
   _invokeComponentDidMount() {
@@ -300,6 +322,28 @@ export default class ComponentBase {
 
   getProps(filter, ...args) {
     return this._filterProps(filter, this.props, ...args);
+  }
+
+  getPropsSafe(filter, _props) {
+    var props = _props || this.props,
+        filterIsRE = (filter instanceof RegExp),
+        filterIsFunc = (typeof filter === 'function');
+
+    return this._filterProps((key, value) => {
+      if (key.match(/^(id|ref|key|onLayout)$/))
+        return false;
+
+      if (filterIsRE) {
+        filter.lastIndex = 0;
+        if (filter.test(key))
+          return false;
+      } else if (filterIsFunc) {
+        if (!filter(key, value))
+          return false;
+      }
+
+      return true;
+    }, props);
   }
 
   _filterProps(filter) {
@@ -488,12 +532,13 @@ export default class ComponentBase {
     return formattedProps;
   }
 
-  getProvidedCallback(name) {
-    return this.getState(name, this.props[name]);
+  getProvidedCallback(name, defaultValue) {
+    var func = this.getState(name, this.props[name]);
+    return (typeof func !== 'function') ? defaultValue : func;
   }
 
-  callProvidedCallback(name, opts) {
-    var callback = this.getProvidedCallback(name, opts);
+  callProvidedCallback(name, opts, defaultValue) {
+    var callback = this.getProvidedCallback(name, defaultValue);
     if (typeof callback !== 'function')
       return;
 

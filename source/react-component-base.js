@@ -62,12 +62,12 @@ export default class ReactComponentBase extends React.Component {
       }
     });
 
-    instance._construct(InstanceClass, instance, props, state);
+    instance._construct(InstanceClass, instance, props);
   }
 
   _updateInstanceProps(newProps, newState) {
     this._propUpdateCounter++;
-    this._componentInstance._invokeResolveState(false, newProps, newState, this.props, this.state);
+    this._componentInstance._invokeResolveState(false, newProps, this.props);
   }
 
   shouldComponentUpdate(nextProps, nextState) {

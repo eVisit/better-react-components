@@ -200,7 +200,7 @@ function buildPalette(opts = {}, _colorHelperFactory) {
         FADE_RATIO: DEFAULT_FADE_RATIO
       }, (opts || {})),
       // default properties
-      palette               = opts.PALETTE || DEFAULT_PALETTE,
+      palette               = Object.assign({}, DEFAULT_PALETTE, opts.PALETTE || {}),
       mainColor             = palette.MAIN || DEFAULT_PALETTE.MAIN,
       alt1SaturationRatio   = options.ALT1_SATURATION_RATIO,
       alt1LuminosityRatio   = options.ALT1_LUMINOSITY_RATIO,
