@@ -10,6 +10,17 @@ import PropTypes                  from './prop-types';
 var componentIDCounter = 1,
     logCache = {};
 
+function removeDuplicates(array) {
+  return Object.keys((array || {}).reduce((obj, item) => {
+    obj[('' + item)] = true;
+    return obj;
+  }, {}));
+}
+
+function removeEmpty(array) {
+  return (array || []).filter((item) => !U.noe(item));
+}
+
 export default class ComponentBase {
   static getClassNamePrefix() {
     return 'application';
@@ -69,7 +80,7 @@ export default class ComponentBase {
         writable: true,
         enumerable: false,
         configurable: true,
-        value: Object.assign({}, props)
+        value: {}
       },
       '_queuedStateUpdates': {
         writable: true,
@@ -304,7 +315,7 @@ export default class ComponentBase {
           value1 = props[key],
           value2 = oldProps[key];
 
-      if (value1 !== value2) {
+      if (initial || value1 !== value2) {
         var updateFunc = this[`onPropUpdate_${key}`];
         if (typeof updateFunc === 'function')
           updateFunc.call(this, value1, value2);
@@ -533,7 +544,7 @@ export default class ComponentBase {
   }
 
   getProvidedCallback(name, defaultValue) {
-    var func = this.getState(name, this.props[name]);
+    var func = this.props[name];
     return (typeof func !== 'function') ? defaultValue : func;
   }
 
@@ -705,7 +716,7 @@ export default class ComponentBase {
         componentName = (_componentName) ? _componentName : capitalize(this.getComponentName()),
         thisClassName = `${classNamesPrefix}${componentName}`;
 
-    return ([].concat(...args.map((_elem) => {
+    var classNames = ([].concat(...args.map((_elem) => {
       var elem = _elem;
       if (elem === '')
         return thisClassName;
@@ -721,15 +732,17 @@ export default class ComponentBase {
         return elem;
 
       return `${classNamesPrefix}${componentName}${capitalize(('' + elem))}`;
-    }))).filter((elem) => !!elem).join(' ');
+    })));
+
+    return removeDuplicates(removeEmpty(classNames)).join(' ');
   }
 
   getRootClassName(componentName, ...args) {
     var classNames = this.getClassName(componentName, '', ...args);
 
-    var specifiedClassName = this.getState('className');
+    var specifiedClassName = this.props['className'];
     if (!U.noe(specifiedClassName))
-      classNames = [classNames.trim(), specifiedClassName.trim()].join(' ');
+      classNames = removeDuplicates(removeEmpty(([classNames.trim(), specifiedClassName.trim()].join(' ')).split(/\s+/g))).join(' ');
 
     return classNames;
   }
