@@ -100,7 +100,7 @@ export class ThemeProperties {
         IS_MOBILE = (this.getPlatform() !== 'browser'),
         FONT_SCALAR = themeProps.FONT_SCALAR || 1;
 
-    var finalThemeProps = Object.assign(themeProps, {
+    var finalThemeProps = {
       SCREEN_WIDTH: width,
       SCREEN_HEIGHT: height,
       SCREEN_RATIO: (height) ? (width / height) : 1,
@@ -149,12 +149,12 @@ export class ThemeProperties {
         WebkitUserSelect: 'none',
         msUserSelect: 'none',
       }
-    });
+    };
 
     finalThemeProps.DEFAULT_FONT_SIZE = finalThemeProps.FONT_SIZE_SMALL;
     finalThemeProps.REM = finalThemeProps.DEFAULT_FONT_SIZE;
 
-    return finalThemeProps;
+    return Object.assign(finalThemeProps, themeProps);
   }
 }
 

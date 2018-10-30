@@ -154,6 +154,14 @@ const DEFAULT_MAIN_COLOR = DEFAULT_PALETTE.MAIN.color,
       DEFAULT_TRANSPARENCY_RATIO = 0.2,
       DEFAULT_FADE_RATIO = 0.05;
 
+function prefixPad(_str, size = 0, char = '0') {
+  var str = ('' + _str);
+  if (str.length >= size)
+    return str;
+
+  return (new Array((size - str.length) + 1).join(char)) + str;
+}
+
 function buildPalette(opts = {}, _colorHelperFactory) {
   function getAlt1Color({ h, s, l }) {
     var altL = l - alt1LuminosityOffset;
@@ -227,6 +235,7 @@ function buildPalette(opts = {}, _colorHelperFactory) {
         MAIN: thisMainColor,
       }),
       colorKeys = Object.keys(colorTable),
+      greyKeys = [],
       paletteKeys = colorKeys.filter((key) => !!key.match(/^PALETTE/));
 
   // Color helper functions
@@ -317,7 +326,28 @@ function buildPalette(opts = {}, _colorHelperFactory) {
     return `hsla(${invContrastColor.h},${invContrastColor.s}%,${invContrastColor.l}%,${contrastColor.alpha})`;
   });
 
-  const textColor = colorHelperFactory(function textColor(color, acceptableContrastRatio) {
+  const textColor = colorHelperFactory(function textColor(color, _greyHue, acceptableContrastRatio = textContrastRatio) {
+    var greyHue = _greyHue;
+    if (greyHue != null && greyHue) {
+      var relativeLuminance = getRelativeColorLuminance(new Color(color)),
+          doColorInversion = (relativeLuminance < textContrastRatio);
+
+      if (greyHue <= 0)
+        greyHue = 1;
+
+      if ((greyHue - 1) > greyKeys.length)
+        greyHue = greyKeys.length;
+
+      if (doColorInversion)
+        greyHue = ((greyKeys.length + 1) - greyHue);
+      else
+        greyHue = greyHue;
+
+      var greyColor = this[`GREY${prefixPad(greyHue, 2)}_COLOR`];
+      if (greyColor)
+        return greyColor;
+    }
+
     return contrastColor(color, acceptableContrastRatio);
   });
 
@@ -345,6 +375,9 @@ function buildPalette(opts = {}, _colorHelperFactory) {
     if (!color)
       continue;
 
+    if (colorKey.match(/^GREY/))
+      greyKeys.push(colorKey);
+
     if (color.textColor)
       thisTextColor = color.thisTextColor;
 
@@ -368,6 +401,8 @@ function buildPalette(opts = {}, _colorHelperFactory) {
     // text color
     addToPalette(`${colorKey}_TEXT`, thisTextColor);
   }
+
+  greyKeys = greyKeys.sort();
 
   return {
     colorHelpers: {

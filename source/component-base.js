@@ -194,7 +194,7 @@ export default class ComponentBase {
         cachedStyle = styleCache[styleID];
 
     if (!cachedStyle) {
-      cachedStyle = styleSheetFactory(theme);
+      cachedStyle = styleSheetFactory(theme, theme.platform);
       styleCache[styleID] = cachedStyle;
     }
 
@@ -388,6 +388,10 @@ export default class ComponentBase {
     return newProps;
   }
 
+  _getLayoutContextName(layoutContext) {
+    return layoutContext;
+  }
+
   _postRenderProcessChildProps({ parent, child, childProps, context, index }) {
     var newProps = childProps,
         extraProps,
@@ -400,8 +404,13 @@ export default class ComponentBase {
       };
     }
 
-    return this._filterProps((key, value) => {
+    return this._filterProps((key, _value) => {
+      var value = _value;
       if (key === 'layoutContext') {
+        value = this._getLayoutContextName(value);
+        if (!value)
+          return false;
+
         var layout = context.layout;
         if (!layout)
           layout = context.layout = {};
@@ -470,10 +479,10 @@ export default class ComponentBase {
   }
 
   _processElements({ elements, onProps, onProcess, onShouldProcess }) {
-    var context = {};
+    var contexts = {};
 
     if (elements == null || elements === false)
-      return { context, elements: null };
+      return { contexts, elements: null };
 
     if (typeof onProps !== 'function')
       onProps = () => {};
@@ -484,8 +493,8 @@ export default class ComponentBase {
     if (typeof onShouldProcess !== 'function')
       onShouldProcess = () => false;
 
-    var newChildren = cloneComponents(elements, onProps, onProcess, onShouldProcess, context);
-    return { context, elements: newChildren };
+    var newChildren = cloneComponents(elements, onProps, onProcess, onShouldProcess, undefined, contexts);
+    return { contexts, elements: newChildren };
   }
 
   processElements(elements) {
@@ -754,5 +763,9 @@ export default class ComponentBase {
   styleProp(...args) {
     var styleSheet = this.styleSheet;
     return styleSheet.styleProp(...args);
+  }
+
+  static cloneComponents(...args) {
+    return cloneComponents(...args);
   }
 }

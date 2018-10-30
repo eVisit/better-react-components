@@ -286,7 +286,7 @@ export class StyleSheetBuilder {
         mergeStyles = this.resolveDependencies(this._mergeStyles || []),
         nonMergeStyles = this.resolveDependencies(this._resolveStyles || []),
         args = mergeStyles.concat(nonMergeStyles),
-        rawStyle = this.sanitizeProps(this.invokeFactoryCallback(currentTheme, args), this.platform);
+        rawStyle = this.sanitizeProps(null, this.invokeFactoryCallback(currentTheme, args));
 
     // Now merge all style sheets
     rawStyle = this._rawStyle = D.extend(true, this.styleExports, ...[rawStyle].concat(currentTheme, mergeStyles));
@@ -337,54 +337,96 @@ export class StyleSheetBuilder {
   }
 
   getAllPlatforms() {
-    return ['android', 'ios', 'microsoft', 'browser'];
+    return {
+      'mobile': ['android', 'ios', 'microsoft'],
+      'android': ['mobile'],
+      'ios': ['mobile'],
+      'microsoft': ['mobile'],
+      'browser': ['browser']
+    };
   }
 
-  isCurrentPlatform(platform) {
-    return (this.platform === platform);
+  isPlatform(platform, _allPlatforms) {
+    var allPlatforms = _allPlatforms;
+    if (!allPlatforms)
+      allPlatforms = this.getAllPlatforms();
+
+    if (!allPlatforms)
+      return false;
+
+    if (allPlatforms instanceof Array)
+      return (allPlatforms.indexOf(platform) >= 0);
+    else
+      return !!allPlatforms[platform];
+  }
+
+  isCurrentPlatform(platform, _allPlatforms) {
+    const isAlias = (platform1, platform2) => {
+      var alias = allPlatforms[platform1];
+      if (!alias)
+        return (platform1 === platform2);
+
+      if (alias instanceof Array && alias.indexOf(platform2) >= 0)
+        return true;
+      else if (alias[platform2])
+        return true;
+      else if (alias === platform2)
+        return true;
+
+      return false;
+    };
+
+    if (!platform)
+      return false;
+
+    var allPlatforms = _allPlatforms;
+    if (!allPlatforms)
+      allPlatforms = this.getAllPlatforms();
+
+    if (!allPlatforms || allPlatforms instanceof Array)
+      return (this.platform === platform);
+    else if (isAlias(this.platform, platform) || isAlias(platform, this.platform))
+      return true;
+
+    return false;
+  }
+
+  _getPlatformTypeProps(parentName, props, alreadyVisited = []) {
+    var keys = Object.keys(props),
+        finalProps = {},
+        platformProps = {},
+        allPlatforms = this.getAllPlatforms();
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i],
+          value = props[key];
+
+      if (value && value.constructor === Object)
+        value = this.sanitizeProps((parentName) ? ([parentName, key].join('.')) : key, value, alreadyVisited);
+
+      if (value && (value instanceof Array || value.constructor === Object) && this.isCurrentPlatform(key, allPlatforms))
+        platformProps[key] = value;
+      else
+        finalProps[key] = value;
+    }
+
+    return Object.keys(platformProps).reduce((obj, key) => {
+      return Object.assign(obj, platformProps[key]);
+    }, {});
   }
 
   // Here we sanitize the style... meaning we take the platform styles
   // and either strip them on the non-matching platforms, or override with the correct platform
-  sanitizeProps(props, platform, alreadyVisited = []) {
-    const filterObjectKeys = (_props) => {
-      var props = (_props) ? _props : {},
-          keys = Object.keys(props),
-          platformProps = {},
-          normalProps = {},
-          platforms = this.getAllPlatforms().reduce((obj, platform) => obj[platform] = obj, {});
+  sanitizeProps(parentName, props, alreadyVisited = []) {
+    if (!props)
+      return props;
 
-      alreadyVisited.push(props);
+    if (alreadyVisited.indexOf(props) >= 0)
+      return props;
 
-      for (var i = 0, il = keys.length; i < il; i++) {
-        var key = keys[i],
-            value = props[key];
+    alreadyVisited.push(props);
 
-        if (platforms.hasOwnProperty(key)) {
-          platformProps[key] = value;
-        } else {
-          if (value && U.instanceOf(value, 'object') && alreadyVisited.indexOf(value) < 0)
-            normalProps[key] = this.sanitizeProps(value, platform, alreadyVisited);
-          else
-            normalProps[key] = value;
-        }
-      }
-
-      return { platformProps, normalProps };
-    };
-
-    var { platformProps, normalProps } = filterObjectKeys(props),
-        platforms = Object.keys(platformProps);
-
-    for (var i = 0, il = platforms.length; i < il; i++) {
-      var thisPlatform = platforms[i];
-      if (!this.isCurrentPlatform(thisPlatform))
-        continue;
-
-      Object.assign(normalProps, platformProps[thisPlatform] || {});
-    }
-
-    return normalProps;
+    return this._getPlatformTypeProps(parentName, props, alreadyVisited);
   }
 
   flattenInternalStyleSheet(style, _finalStyle) {
