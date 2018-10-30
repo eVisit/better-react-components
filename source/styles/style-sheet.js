@@ -412,7 +412,7 @@ export class StyleSheetBuilder {
 
     return Object.keys(platformProps).reduce((obj, key) => {
       return Object.assign(obj, platformProps[key]);
-    }, {});
+    }, finalProps);
   }
 
   // Here we sanitize the style... meaning we take the platform styles

@@ -47,16 +47,22 @@ export class ThemeProperties {
       var key = keys[i],
           colorHelper = colorHelpers[key];
 
-      if (typeof colorHelper === 'function')
-        this[key] = colorHelper.bind(this);
-      else
+      if (typeof colorHelper === 'function') {
+        Object.defineProperty(this, key, {
+          writable: true,
+          enumerable: false,
+          configurable: true,
+          value: colorHelper.bind(this)
+        });
+      } else {
         this[key] = colorHelper;
+      }
     }
 
     Object.assign(this, this.getThemeProps(themeProps, paletteProps), paletteProps.palette);
   }
 
-  pixels = (count = 1) => {
+  pixels(count = 1) {
     var screenInfo = (this.getScreenInfo() || {}),
         pixelRatio = screenInfo.pixelRatio || 1;
 
