@@ -43,30 +43,6 @@ export function componentFactory(_name, definer, _options) {
     return PropTypes.mergeTypes(...types);
   }
 
-  function calculateResolveProps(componentName, _propTypes) {
-    var propTypes = _propTypes || {},
-        keys = Object.keys(propTypes),
-        resolveProps = {};
-
-    for (var i = 0, il = keys.length; i < il; i++) {
-      var propName = keys[i],
-          typeSpec = propTypes[propName],
-          testProps = {};
-
-      // Test if a function is a valid prop type
-      testProps[propName] = () => {};
-      var error = PropTypes.checkPropType(typeSpec, testProps, propName, componentName, null, null, { forceRun: true });
-
-      // There was an error, meaning function is invalid
-      // so we can automatically resolve the prop using
-      // a function callback
-      if (error)
-        resolveProps[propName] = true;
-    }
-
-    return resolveProps;
-  }
-
   var name = (_name && _name.name) ? _name.name : _name,
       displayName = (_name && _name.displayName) ? _name.displayName : _name;
 
@@ -93,9 +69,9 @@ export function componentFactory(_name, definer, _options) {
   const parentComponent = Parent,
         parentReactComponent = getReactComponentClass(Parent);
 
-  var propTypes = ComponentClass.propTypes = mergePropTypes(parentComponent.propTypes, ComponentClass.propTypes),
+  var propTypes = mergePropTypes(parentComponent.propTypes, ComponentClass.propTypes),
       defaultProps = Object.assign({}, (parentComponent.defaultProps || {}), (ComponentClass.defaultProps || {})),
-      resolvableProps = calculateResolveProps(displayName, propTypes);
+      resolvableProps = ComponentClass.resolvableProps;
 
   copyStaticProperties(parentComponent, ComponentClass, null, parentComponent._rebindStaticMethod);
   copyStaticProperties(ComponentClass, ReactComponentClass, (name) => {
@@ -110,11 +86,17 @@ export function componentFactory(_name, definer, _options) {
       configurable: false,
       value: true
     },
-    '_resolvableProps': {
+    'resolvableProps': {
       writable: true,
       enumerable: false,
       configurable: true,
       value: resolvableProps
+    },
+    'propTypes': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: propTypes
     },
     'defaultProps': {
       writable: true,

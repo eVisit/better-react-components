@@ -68,7 +68,7 @@ export default class ComponentBase {
         writable: true,
         enumerable: false,
         configurable: true,
-        value: Object.assign({}, props || {})
+        value: props
       },
       '_staleInternalState': {
         writable: true,
@@ -135,6 +135,8 @@ export default class ComponentBase {
       }
     });
 
+    this.props = this.resolveProps(props, props);
+
     // Setup the styleSheet getter to build style-sheets when requested
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
   }
@@ -154,18 +156,25 @@ export default class ComponentBase {
     return context;
   }
 
-  _construct(InstanceClass, instance, props) {
+  _construct() {
+    const InstanceClass = this.constructor;
     if (InstanceClass.propTypes) {
-      var resolvedProps = instance.resolveProps(props, props);
-      PropTypes.checkPropTypes(InstanceClass.propTypes, resolvedProps, 'propType', this.getComponentName(), () => {
-        var error = new Error();
-        return error.stack;
-      });
+      try {
+        PropTypes.checkPropTypes(InstanceClass.propTypes, this.props, 'propType', this.getComponentName(), () => {
+          var propTypes = InstanceClass.PropTypes,
+              props = this.props;
+
+          var error = new Error();
+          return error.stack;
+        });
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     this.construct();
 
-    instance._invokeResolveState(true, props);
+    this._invokeResolveState(true, this.props);
   }
 
   construct() {
@@ -415,7 +424,7 @@ export default class ComponentBase {
       };
     }
 
-    return this._filterProps((key, _value) => {
+    var finalProps = this._filterProps((key, _value) => {
       var value = _value;
       if (key === 'layoutContext') {
         value = this._getLayoutContextName(value);
@@ -459,6 +468,8 @@ export default class ComponentBase {
 
       return true;
     }, newProps, extraProps, { 'key': ('' + index) });
+
+    return finalProps;
   }
 
   _postRenderProcessChild({ child, childProps, validElement }) {
@@ -536,7 +547,24 @@ export default class ComponentBase {
   }
 
   getResolvableProps(...args) {
-    return Object.assign({}, this.constructor._resolvableProps || {}, ...(args.filter((val) => (val != null))));
+    function convertArrayToObj(_props) {
+      var props = _props;
+
+      if (props instanceof Array) {
+        props = props.reduce((obj, item) => {
+          obj[('' + item)] = true;
+          return obj;
+        }, {});
+      }
+
+      return props;
+    };
+
+    return Object.assign(
+      {},
+      convertArrayToObj(this.constructor.resolvableProps) || {},
+      ...(args.filter((val) => (val != null)).map(convertArrayToObj))
+    );
   }
 
   resolveProps(props, prevProps, extraProps) {

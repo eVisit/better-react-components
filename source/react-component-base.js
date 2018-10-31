@@ -62,7 +62,7 @@ export default class ReactComponentBase extends React.Component {
       }
     });
 
-    instance._construct(InstanceClass, instance, props);
+    instance._construct();
   }
 
   _updateInstanceProps(newProps, newState) {
