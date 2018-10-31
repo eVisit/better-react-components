@@ -126,6 +126,12 @@ export default class ComponentBase {
           return {};
         },
         set: () => {}
+      },
+      '_referenceCaptureHookCache': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
       }
     });
 
@@ -296,13 +302,18 @@ export default class ComponentBase {
 
   _invokeResolveState(initial, newProps, ...args) {
     var oldProps = this.props,
-        props = this.props = (initial || (newProps !== oldProps)) ? this.resolveProps(newProps, oldProps) : oldProps;
+        props = (initial || (newProps !== oldProps)) ? this.resolveProps(newProps, oldProps) : oldProps;
+
+    if (!props)
+      props = {};
 
     var newState = this._resolveState.call(this, initial, props, oldProps, ...args);
     this.setState(newState);
 
     if (initial || (newProps !== oldProps))
       this._invokePropUpdates(initial, props, oldProps, ...args);
+
+    this.props = props;
   }
 
   _invokePropUpdates(initial, _props, _oldProps) {
@@ -335,7 +346,7 @@ export default class ComponentBase {
     return this._filterProps(filter, this.props, ...args);
   }
 
-  getPropsSafe(filter, _props) {
+  getPropsSafe(_props, filter) {
     var props = _props || this.props,
         filterIsRE = (filter instanceof RegExp),
         filterIsFunc = (typeof filter === 'function');
@@ -763,6 +774,39 @@ export default class ComponentBase {
   styleProp(...args) {
     var styleSheet = this.styleSheet;
     return styleSheet.styleProp(...args);
+  }
+
+  setReference(name, ref) {
+    var refs = this._refs;
+    if (!refs)
+      return;
+
+    refs[name] = ref;
+  }
+
+  getReference(name, cb) {
+    var refs = this._refs;
+    if (!refs)
+      return;
+
+    var ref = refs[name];
+
+    if (typeof cb === 'function' && ref)
+      return cb.call(this, ref);
+
+    return ref;
+  }
+
+  captureReference(name) {
+    var func = this._referenceCaptureHookCache[name];
+    if (func)
+      return func;
+
+    func = this._referenceCaptureHookCache[name] = (elem) => {
+      this.setReference(name, elem);
+    };
+
+    return func;
   }
 
   static cloneComponents(...args) {
