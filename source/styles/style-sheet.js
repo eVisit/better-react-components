@@ -289,7 +289,7 @@ export class StyleSheetBuilder {
         rawStyle = this.sanitizeProps(null, this.invokeFactoryCallback(currentTheme, args));
 
     // Now merge all style sheets
-    rawStyle = this._rawStyle = D.extend(true, this.styleExports, ...[rawStyle].concat(currentTheme, mergeStyles));
+    rawStyle = this._rawStyle = D.extend(true, this.styleExports, ...[currentTheme, ...mergeStyles, rawStyle]);
 
     return rawStyle;
   }

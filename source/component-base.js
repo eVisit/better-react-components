@@ -519,7 +519,7 @@ export default class ComponentBase {
     if (typeof onShouldProcess !== 'function')
       onShouldProcess = () => false;
 
-    var newChildren = cloneComponents(elements, onProps, onProcess, onShouldProcess, undefined, contexts);
+    var newChildren = cloneComponents.call(this, elements, onProps, onProcess, onShouldProcess, undefined, contexts);
     return { contexts, elements: newChildren };
   }
 
