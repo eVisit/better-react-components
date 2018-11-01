@@ -135,8 +135,6 @@ export default class ComponentBase {
       }
     });
 
-    this.props = this.resolveProps(props, props);
-
     // Setup the styleSheet getter to build style-sheets when requested
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
   }
