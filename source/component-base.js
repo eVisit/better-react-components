@@ -258,7 +258,7 @@ export default class ComponentBase {
     const updateRenderState = (elems, skipMutate) => {
       this._staleInternalState = Object.assign({}, this._internalState);
       this._renderCacheInvalid = false;
-      var newElems = this._renderCache = (skipMutate) ? elems : this.postRenderProcessElements(elems);
+      var newElems = this._renderCache = (skipMutate) ? elems : this._postRenderProcessElements(elems);
       return newElems;
     };
 
@@ -467,7 +467,7 @@ export default class ComponentBase {
       }
 
       return true;
-    }, newProps, extraProps, { 'key': ('' + index) });
+    }, newProps, extraProps);
 
     return finalProps;
   }
@@ -491,8 +491,14 @@ export default class ComponentBase {
   }
 
   _postRenderShouldProcessChildren({ child }) {
-    if (!child || !child.props)
-      return child;
+    if (!child)
+      return false;
+
+    if (child instanceof Array)
+      return true;
+
+    if (!child.props)
+      return false;
 
     var props = child.props,
         should = !props['_ameliorateMutated'];
@@ -526,6 +532,10 @@ export default class ComponentBase {
       onProcess: this._postRenderProcessChild,
       onShouldProcess: this._postRenderShouldProcessChildren
     });
+  }
+
+  _postRenderProcessElements(elements) {
+    return this.processElements(elements).elements;
   }
 
   postRenderProcessElements(elements) {
