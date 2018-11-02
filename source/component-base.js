@@ -701,6 +701,13 @@ export default class ComponentBase {
   }
 
   delay(func, time, _id) {
+    const clearPendingTimeout = () => {
+      if (pendingTimer && pendingTimer.timeout) {
+        clearTimeout(pendingTimer.timeout);
+        pendingTimer.timeout = null;
+      }
+    };
+
     var id = (!_id) ? ('' + func) : _id;
     if (!this._componentDelayTimers) {
       Object.defineProperty(this, '_componentDelayTimers', {
@@ -711,16 +718,47 @@ export default class ComponentBase {
       });
     }
 
-    if (this._componentDelayTimers[id])
-      clearTimeout(this._componentDelayTimers[id]);
+    var pendingTimer = this._componentDelayTimers[id];
+    if (!pendingTimer)
+      pendingTimer = this._componentDelayTimers[id] = {};
 
-    this._componentDelayTimers[id] = setTimeout(() => {
-      this._componentDelayTimers[id] = null;
-      if (func instanceof Function)
-        func.call(this);
+    pendingTimer.func = func;
+    clearPendingTimeout();
+
+    var promise = pendingTimer.promise;
+    if (!promise || !promise.pending()) {
+      let status = 'pending',
+          resolve;
+
+      promise = pendingTimer.promise = new Promise((_resolve) => {
+        resolve = _resolve;
+      });
+
+      promise.then(() => {
+        if (typeof pendingTimer.func === 'function')
+          pendingTimer.func.call(this);
+      });
+
+      promise.resolve = () => {
+        if (status !== 'pending')
+          return;
+
+        status = 'fulfilled';
+        clearPendingTimeout();
+        this._componentDelayTimers[id] = null;
+        resolve(true);
+      };
+
+      promise.pending = () => {
+        return (status === 'pending');
+      };
+    }
+
+    pendingTimer.timeout = setTimeout(() => {
+      promise.resolve();
     }, time || 250);
 
-    return id;
+    return promise;
   }
 
   clearDelay(id) {
@@ -789,6 +827,9 @@ export default class ComponentBase {
 
       return `${classNamesPrefix}${componentName}${capitalize(('' + elem))}`;
     })));
+
+    if (!args.length)
+      classNames.push(thisClassName);
 
     return removeDuplicates(removeEmpty(classNames)).join(' ');
   }

@@ -236,7 +236,7 @@ function buildPalette(opts = {}, _colorHelperFactory) {
       }),
       colorKeys = Object.keys(colorTable),
       greyKeys = [],
-      paletteKeys = colorKeys.filter((key) => !!key.match(/^PALETTE/));
+      paletteKeys = [];
 
   // Color helper functions
   const colorHelperFactory = (typeof _colorHelperFactory === 'function') ? _colorHelperFactory : ((cb) => cb);
@@ -377,9 +377,11 @@ function buildPalette(opts = {}, _colorHelperFactory) {
 
     if (colorKey.match(/^GREY/))
       greyKeys.push(colorKey);
+    else if (colorKey.match(/^PALETTE/))
+      paletteKeys.push(colorKey);
 
     if (color.textColor)
-      thisTextColor = color.thisTextColor;
+      thisTextColor = color.textColor;
 
     if (color.color)
       color = color.color;
