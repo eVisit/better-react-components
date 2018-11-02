@@ -86,30 +86,6 @@ export function componentFactory(_name, definer, _options) {
       configurable: false,
       value: true
     },
-    'resolvableProps': {
-      writable: true,
-      enumerable: false,
-      configurable: true,
-      value: resolvableProps
-    },
-    'propTypes': {
-      writable: true,
-      enumerable: false,
-      configurable: true,
-      value: propTypes
-    },
-    'defaultProps': {
-      writable: true,
-      enumerable: false,
-      configurable: true,
-      value: defaultProps
-    },
-    'getComponentName': {
-      writable: true,
-      enumerable: false,
-      configurable: true,
-      value: () => displayName
-    },
     '_parentComponent': {
       writable: false,
       enumerable: false,
@@ -134,6 +110,12 @@ export function componentFactory(_name, definer, _options) {
       configurable: false,
       value: ReactComponentClass
     },
+    '_componentFactory': {
+      writable: true,
+      enumerable: false,
+      configurable: false,
+      value: definer
+    },
     'internalName': {
       writable: true,
       enumerable: false,
@@ -145,6 +127,30 @@ export function componentFactory(_name, definer, _options) {
       enumerable: false,
       configurable: false,
       value: displayName
+    },
+    'resolvableProps': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: resolvableProps
+    },
+    'propTypes': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: propTypes
+    },
+    'defaultProps': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: defaultProps
+    },
+    'getComponentName': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: () => displayName
     }
   };
 

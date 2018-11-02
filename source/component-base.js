@@ -317,10 +317,10 @@ export default class ComponentBase {
     var newState = this._resolveState.call(this, initial, props, oldProps, ...args);
     this.setState(newState);
 
-    if (initial || (newProps !== oldProps))
+    if (initial || (newProps !== oldProps)) {
       this._invokePropUpdates(initial, props, oldProps, ...args);
-
-    this.props = props;
+      this.props = props;
+    }
   }
 
   _invokePropUpdates(initial, _props, _oldProps) {
@@ -460,8 +460,6 @@ export default class ComponentBase {
         });
 
         namedLayout.push(child);
-
-        return false;
       }
 
       return true;
