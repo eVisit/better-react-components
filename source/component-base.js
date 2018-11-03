@@ -849,7 +849,7 @@ export default class ComponentBase {
         return thisClassName;
 
       // Filter out bad class names
-      if (U.noe(elem))
+      if (U.noe(elem) || elem == null || elem === false)
         return undefined;
 
       if (U.instanceOf(elem, 'object', 'array'))
