@@ -127,11 +127,29 @@ export default class ComponentBase {
         },
         set: () => {}
       },
+      '_referenceRetrieveHookCache': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
+      },
       '_referenceCaptureHookCache': {
         writable: true,
         enumerable: false,
         configurable: true,
         value: {}
+      },
+      '_refs': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
+      },
+      '_isMounted': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: false
       }
     });
 
@@ -326,7 +344,11 @@ export default class ComponentBase {
   _invokePropUpdates(initial, _props, _oldProps) {
     var props = _props || {},
         oldProps = _oldProps || {},
-        keys = Object.keys(props);
+        keys = Object.keys(props),
+        onPropsUpdated = this.onPropsUpdated;
+
+    if (typeof onPropsUpdated === 'function')
+      onPropsUpdated.call(this, initial, props, oldProps);
 
     for (var i = 0, il = keys.length; i < il; i++) {
       var key = keys[i],
@@ -359,7 +381,7 @@ export default class ComponentBase {
         filterIsFunc = (typeof filter === 'function');
 
     return this._filterProps((key, value) => {
-      if (key.match(/^(id|ref|key|onLayout)$/))
+      if (key.match(/^(id|ref|key)$/))
         return false;
 
       if (filterIsRE) {
@@ -511,31 +533,31 @@ export default class ComponentBase {
     if (typeof onProps !== 'function')
       onProps = () => {};
 
-    if (typeof onProcess !== 'function')
-      onProcess = ({ child }) => child;
-
-    if (typeof onShouldProcess !== 'function')
-      onShouldProcess = () => false;
-
     var newChildren = cloneComponents.call(this, elements, onProps, onProcess, onShouldProcess, undefined, contexts);
     return { contexts, elements: newChildren };
   }
 
-  processElements(elements) {
-    return this._processElements({
-      elements,
-      onProps: this._postRenderProcessChildProps,
-      onProcess: this._postRenderProcessChild,
-      onShouldProcess: this._postRenderShouldProcessChildren
-    });
+  processElements(elements, _opts) {
+    var opts = _opts,
+        defaultOpts = {
+          elements,
+          onProps: this._postRenderProcessChildProps,
+          onProcess: this._postRenderProcessChild,
+          onShouldProcess: this._postRenderShouldProcessChildren
+        };
+
+    if (opts === true)
+      opts = { onShouldProcess: true, onProcess: null };
+
+    return this._processElements((opts) ? Object.assign(defaultOpts, opts) : defaultOpts);
   }
 
-  _postRenderProcessElements(elements) {
-    return this.processElements(elements).elements;
+  _postRenderProcessElements(elements, opts) {
+    return this.processElements(elements, opts).elements;
   }
 
-  postRenderProcessElements(elements) {
-    return this.processElements(elements).elements;
+  postRenderProcessElements(elements, opts) {
+    return this.processElements(elements, opts).elements;
   }
 
   getChildren(children) {
@@ -614,8 +636,17 @@ export default class ComponentBase {
     return this.id;
   }
 
-  componentDidMount() {}
-  componentWillUnmount() {}
+  componentDidMount() {
+    this._isMounted = true;
+  }
+
+  componentWillUnmount() {
+    this._isMounted = true;
+  }
+
+  isMounted() {
+    return this._isMounted;
+  }
 
   getPlatform() {
     return 'browser';
@@ -659,8 +690,12 @@ export default class ComponentBase {
       if (typeof newState === 'function')
         newState = newState.call(this, this._internalState);
 
-      if (newState)
+      if (newState) {
+        if (typeof this._debugStateUpdates === 'function')
+          this._debugStateUpdates(newState, this._internalState);
+
         Object.assign(this._internalState, newState);
+      }
     }
 
     if (this.areUpdatesFrozen())
@@ -872,16 +907,40 @@ export default class ComponentBase {
     return ref;
   }
 
-  captureReference(name) {
-    var func = this._referenceCaptureHookCache[name];
-    if (func)
-      return func;
+  retrieveReference(name, transformer) {
+    var hook = this._referenceRetrieveHookCache[name];
+    if (hook && hook.transformer === transformer)
+      return hook.callback;
 
-    func = this._referenceCaptureHookCache[name] = (elem) => {
+    var callback = () => {
+      var _elem = this.getReference(name);
+      return (typeof transformer === 'function') ? transformer(_elem) : _elem;
+    };
+
+    this._referenceRetrieveHookCache[name] = {
+      callback,
+      transformer
+    };
+
+    return callback;
+  }
+
+  captureReference(name, transformer) {
+    var hook = this._referenceCaptureHookCache[name];
+    if (hook && hook.transformer === transformer)
+      return hook.callback;
+
+    var callback = (_elem) => {
+      var elem = (typeof transformer === 'function') ? transformer(_elem) : _elem;
       this.setReference(name, elem);
     };
 
-    return func;
+    this._referenceCaptureHookCache[name] = {
+      callback,
+      transformer
+    };
+
+    return callback;
   }
 
   static cloneComponents(...args) {
