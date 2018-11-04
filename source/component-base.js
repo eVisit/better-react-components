@@ -767,11 +767,6 @@ export default class ComponentBase {
         resolve = _resolve;
       });
 
-      promise.then(() => {
-        if (typeof pendingTimer.func === 'function')
-          pendingTimer.func.call(this);
-      });
-
       promise.resolve = () => {
         if (status !== 'pending')
           return;
@@ -779,7 +774,16 @@ export default class ComponentBase {
         status = 'fulfilled';
         clearPendingTimeout();
         this._componentDelayTimers[id] = null;
-        resolve(true);
+
+        if (typeof pendingTimer.func === 'function') {
+          var ret = pendingTimer.func.call(this);
+          if (ret instanceof Promise || (ret && typeof ret.then === 'function'))
+            ret.then((value) => resolve(value));
+          else
+            resolve(ret);
+        } else {
+          resolve();
+        }
       };
 
       promise.pending = () => {
