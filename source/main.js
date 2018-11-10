@@ -17,6 +17,33 @@ export {
 }                                 from './styles/colors';
 export { Theme, ThemeProperties } from './styles/theme';
 
+function mixinClasses(args) {
+    var objProto = Object.prototype;
+
+    for (var i = 0, il = args.length; i < il; i++) {
+      var arg = args[i];
+      if (typeof arg !== 'function')
+        continue;
+
+      var argProto = arg.prototype,
+          keys = Object.getOwnPropertyNames(argProto);
+
+      for (var j = 0, jl = keys.length; j < jl; j++) {
+        var key = keys[j];
+
+        if (objProto.hasOwnProperty(key))
+          continue;
+
+        Object.defineProperty(this, key, {
+          writable: true,
+          enumerable: false,
+          configurable: true,
+          value: argProto[key]
+        });
+      }
+    }
+  }
+
 export function componentFactory(_name, definer, _options) {
   function getComponentClass(component) {
     if (!component)
@@ -54,7 +81,15 @@ export function componentFactory(_name, definer, _options) {
 
   var options = (typeof _options === 'function') ? { componentBase: _options } : (_options || {}),
       ReactBaseComponent = getReactComponentClass(options.reactComponentBaseClass),
-      Parent = getComponentClass(options.componentBase || ComponentBase);
+      Parent = getComponentClass(options.componentBase || ComponentBase),
+      mixins = ([].concat(Parent._mixins, options.mixins)).filter((mixin) => mixin);
+
+  if (mixins && mixins.length) {
+    const MixinParent = class InterstitialMixinClass extends Parent {};
+    copyStaticProperties(Parent, MixinParent);
+    mixinClasses.call(MixinParent.prototype, mixins);
+    Parent = MixinParent;
+  }
 
   var ComponentClass = definer(Object.assign({}, options, { Parent, componentName: displayName, componentInternalName: name }));
   if (typeof ComponentClass !== 'function')
@@ -151,6 +186,12 @@ export function componentFactory(_name, definer, _options) {
       enumerable: false,
       configurable: true,
       value: () => displayName
+    },
+    '_mixins': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: mixins
     }
   };
 

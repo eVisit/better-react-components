@@ -415,6 +415,47 @@ export class StyleSheetBuilder {
     }, finalProps);
   }
 
+  _expandStyleProps(parentName, props) {
+    var finalProps = Object.assign({}, props || {}),
+        mutators = this._getStylePropMutators(parentName, props, finalProps);
+
+    for (var i = 0, il = mutators.length; i < il; i++) {
+      var mutator = mutators[i];
+      if (typeof mutator !== 'function')
+        continue;
+
+      mutator.call(this, props, finalProps);
+    }
+
+    return finalProps;
+  }
+
+  _getStylePropMutators() {
+    const mutateFourWay = (testKey, props, finalProps) => {
+      var value = props[testKey];
+
+      if (finalProps.hasOwnProperty(testKey))
+        delete finalProps[testKey];
+
+      if (value == null)
+        return;
+
+      for (var i = 0, il = sides.length; i < il; i++) {
+        var side = sides[i],
+            keyName = (testKey === 'borderWidth') ? `border${side}Width` : `${testKey}${side}`;
+
+        finalProps[keyName] = value;
+      }
+    };
+
+    var sides = ['Top', 'Left', 'Right', 'Bottom'];
+    return [
+      mutateFourWay.bind(this, 'margin'),
+      mutateFourWay.bind(this, 'padding'),
+      mutateFourWay.bind(this, 'borderWidth')
+    ];
+  }
+
   // Here we sanitize the style... meaning we take the platform styles
   // and either strip them on the non-matching platforms, or override with the correct platform
   sanitizeProps(parentName, props, alreadyVisited = []) {
@@ -426,7 +467,8 @@ export class StyleSheetBuilder {
 
     alreadyVisited.push(props);
 
-    return this._getPlatformTypeProps(parentName, props, alreadyVisited);
+    var finalStyle = this._getPlatformTypeProps(parentName, props, alreadyVisited);
+    return this._expandStyleProps(parentName, finalStyle);
   }
 
   flattenInternalStyleSheet(style, _finalStyle) {

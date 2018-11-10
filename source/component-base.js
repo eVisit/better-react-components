@@ -10,6 +10,14 @@ import PropTypes                  from './prop-types';
 var componentIDCounter = 1,
     logCache = {};
 
+const COMPONENT_FLAGS = {
+  FOCUS:    0x01,
+  HOVER:    0x02,
+  DISABLE:  0x04,
+  ERROR:    0x08,
+  WARNING:  0x10
+};
+
 function removeDuplicates(array) {
   return Object.keys((array || {}).reduce((obj, item) => {
     obj[('' + item)] = true;
@@ -139,6 +147,12 @@ export default class ComponentBase {
         configurable: true,
         value: {}
       },
+      '_compponentFlagsCache': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: null
+      },
       '_refs': {
         writable: true,
         enumerable: false,
@@ -189,6 +203,18 @@ export default class ComponentBase {
     }
 
     this.construct();
+
+    // Call mixin "construct" initializers
+    var mixins = InstanceClass._mixins;
+    if (mixins && mixins.length) {
+      for (var i = 0, il = mixins.length; i < il; i++) {
+        var mixin = mixins[i],
+            constructFunc = mixin.prototype['construct'];
+
+        if (typeof constructFunc === 'function')
+          constructFunc.call(this);
+      }
+    }
 
     this._invokeResolveState(true, this.props);
   }
@@ -730,7 +756,9 @@ export default class ComponentBase {
   }
 
   resolveState() {
-    return {};
+    return {
+      _componentFlags: 0x0,
+    };
   }
 
   delay(func, time, _id) {
@@ -786,6 +814,12 @@ export default class ComponentBase {
         }
       };
 
+      promise.cancel = () => {
+        status = 'rejected';
+        clearPendingTimeout();
+        this._componentDelayTimers[id] = null;
+      };
+
       promise.pending = () => {
         return (status === 'pending');
       };
@@ -793,7 +827,7 @@ export default class ComponentBase {
 
     pendingTimer.timeout = setTimeout(() => {
       promise.resolve();
-    }, time || 250);
+    }, (time == null) ? 250 : time);
 
     return promise;
   }
@@ -885,6 +919,27 @@ export default class ComponentBase {
     return this.styleSheet.styleWithHelper(undefined, ...args);
   }
 
+  themedStyle(_theme, ...args) {
+    const convertArgToThemeArgs = (arg) => {
+      return [('' + arg)].concat(theme.map((themePart) => `${themePart}${capitalize(arg)}`));
+    };
+
+    const convertArgs = (args) => {
+      return ([].concat(...(args.map((arg) => {
+        if (arg instanceof Array)
+          return convertArgs(arg);
+
+        return (typeof arg === 'string' || (arg instanceof String)) ? convertArgToThemeArgs(arg) : arg;
+      }))));
+    };
+
+    var theme = ((_theme instanceof Array) ? _theme : [_theme]).filter((themePart) => themePart),
+        convertedArgs = convertArgs(args);
+
+    //console.log('THEMED ARGS: ', theme, convertedArgs);
+    return this.style(...convertedArgs);
+  }
+
   styleProp(...args) {
     var styleSheet = this.styleSheet;
     return styleSheet.styleProp(...args);
@@ -945,6 +1000,103 @@ export default class ComponentBase {
     };
 
     return callback;
+  }
+
+  _getFlags() {
+    var cache = this._compponentFlagsCache;
+    if (!cache)
+      cache = this._compponentFlagsCache = this.getFlags();
+
+    return cache;
+  }
+
+  getFlags() {
+    return COMPONENT_FLAGS;
+  }
+
+  getComponentFlags(mergeStates) {
+    var currentState = (this.props.hasOwnProperty('componentFlags')) ? this.props.componentFlags : this.getState('_componentFlags', 0),
+        allFlags = this._getFlags();
+
+    Object.keys(mergeStates || {}).forEach((_key) => {
+      var key = _key;
+      if (!key)
+        return;
+
+      key = ('' + key).toUpperCase();
+      if (!allFlags.hasOwnProperty(key))
+        return;
+
+      var thisState = allFlags[key],
+          doMerge = mergeStates[_key];
+
+      if (doMerge)
+        currentState |= thisState;
+      else
+        currentState = currentState &~ thisState;
+    });
+
+    return currentState;
+  }
+
+  getComponentFlagsAsObject() {
+    var currentState = this.getComponentFlags(),
+        allFlags = this._getFlags(),
+        keys = Object.keys(allFlags),
+        states = {};
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i],
+          state = allFlags[key];
+
+      states[key.toLowerCase()] = !!(currentState & state);
+    }
+
+    return states;
+  }
+
+  setComponentFlags(newState) {
+    if (this.props.hasOwnProperty('componentFlags'))
+      return;
+
+    this.setState({ _componentFlags: newState });
+    return newState;
+  }
+
+  setComponentFlagsFromObject(stateProps) {
+    if (this.props.hasOwnProperty('componentFlags'))
+      return;
+
+    var newState = this.getComponentFlags(stateProps);
+    this.setState({ _componentFlags: newState });
+
+    return newState;
+  }
+
+  isComponentFlag(...args) {
+    var currentState = (this.props.hasOwnProperty('componentFlags')) ? this.props.componentFlags : this.getState('_componentFlags', 0),
+        allFlags = this._getFlags();
+
+    for (var i = 0, il = args.length; i < il; i++) {
+      var arg = args[i];
+      if (!arg)
+        continue;
+
+      if (typeof arg === 'number' || arg instanceof Number) {
+        arg = arg.valueOf();
+      } else {
+        arg = ('' + arg).toUpperCase();
+        if (!allFlags.hasOwnProperty(arg))
+          continue;
+
+        arg = allFlags[arg];
+      }
+
+      if (!(arg & currentState))
+        return false;
+    }
+
+    return true;
   }
 
   static cloneComponents(...args) {
