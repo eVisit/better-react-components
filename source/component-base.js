@@ -15,7 +15,9 @@ const COMPONENT_FLAGS = {
   HOVER:    0x02,
   DISABLE:  0x04,
   ERROR:    0x08,
-  WARNING:  0x10
+  WARNING:  0x10,
+  DRAGGING: 0x20,
+  DROPPING: 0x40
 };
 
 function removeDuplicates(array) {
