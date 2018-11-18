@@ -181,6 +181,12 @@ export function componentFactory(_name, definer, _options) {
       configurable: true,
       value: defaultProps
     },
+    'getComponentInternalName': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: () => name
+    },
     'getComponentName': {
       writable: true,
       enumerable: false,

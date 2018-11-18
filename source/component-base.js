@@ -173,6 +173,14 @@ export default class ComponentBase {
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
   }
 
+  getComponentInternalName() {
+    return this.constructor.getComponentInternalName();
+  }
+
+  getComponentName() {
+    return this.constructor.getComponentName();
+  }
+
   _contextFetcher() {
     var props = this.props,
         myProvider = this['provideContext'],
@@ -648,16 +656,23 @@ export default class ComponentBase {
   }
 
   getProvidedCallback(name, defaultValue) {
+    if (typeof name === 'function')
+      return name;
+
     var func = this.props[name];
     return (typeof func !== 'function') ? defaultValue : func;
   }
 
-  callProvidedCallback(name, opts, defaultValue) {
-    var callback = this.getProvidedCallback(name, defaultValue);
-    if (typeof callback !== 'function')
-      return;
+  callProvidedCallback(_names, opts, defaultValue) {
+    var names = (_names instanceof Array) ? _names : [_names];
 
-    return callback.call(this, Object.assign({ ref: this }, opts || {}));
+    for (var i = 0, il = names.length; i < il; i++) {
+      var callback = this.getProvidedCallback(names[i]);
+      if (typeof callback === 'function')
+        return callback.call(this, Object.assign({ ref: this }, opts || {}));
+    }
+
+    return defaultValue;
   }
 
   getID() {
