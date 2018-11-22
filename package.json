@@ -56,6 +56,7 @@
     "color": "^3.0.0"
   },
   "peerDependencies": {
-    "react": ">=15.0.0"
+    "react": ">=15.0.0",
+    "babel-preset-react-ameliorate": ">=0.49.2"
   }
 }

@@ -3,9 +3,10 @@ import {
   areObjectsEqualShallow,
   capitalize,
   cloneComponents
-}                                 from './utils';
-import { utils as U, data as D }  from 'evisit-js-utils';
-import PropTypes                  from './prop-types';
+}                                     from './utils';
+import { utils as U, data as D }      from 'evisit-js-utils';
+import PropTypes                      from './prop-types';
+import { RAC_KEY }                    from './context';
 
 var componentIDCounter = 1,
     logCache = {};
@@ -37,6 +38,10 @@ export default class ComponentBase {
   }
 
   constructor(props, reactComponent) {
+    var rac = props[RAC_KEY];
+    if (rac)
+      rac.onInstantiate(this);
+
     Object.defineProperties(this, {
       'id': {
         writable: true,
@@ -231,6 +236,10 @@ export default class ComponentBase {
 
   construct() {
 
+  }
+
+  _mutateChildJSXProps(props) {
+    return props;
   }
 
   _getStyleSheetFromFactory(theme, _styleSheetFactory) {
