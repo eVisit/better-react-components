@@ -210,7 +210,14 @@ export class StyleSheetBuilder {
       for (var i = 0, il = styles.length; i < il; i++) {
         var style = styles[i];
 
-        if (typeof style === 'string' || (style instanceof String)) {
+        if (style == null || style === false)
+          continue;
+
+        if (typeof style.valueOf === 'function')
+          style = style.valueOf();
+
+        var styleType = typeof style;
+        if (['string', 'boolean', 'number'].indexOf(styleType) > -1) {
           var styleName = style;
           style = sheet[style];
 
@@ -220,8 +227,14 @@ export class StyleSheetBuilder {
 
         if (style instanceof Array)
           resolveAllStyles.call(this, style, finalStyles);
-        else if (style)
-          finalStyles.push(style);
+        else if (style) {
+          var sanitizedStyle = this.sanitizeProps(null, style);
+
+          if (style.browser)
+            console.log('Sanitized style: ', sanitizedStyle);
+
+          finalStyles.push(sanitizedStyle);
+        }
       }
     }
 

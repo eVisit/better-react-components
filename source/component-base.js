@@ -178,6 +178,10 @@ export default class ComponentBase {
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
   }
 
+  getComponentID() {
+    return this.id;
+  }
+
   getComponentInternalName() {
     return this.constructor.getComponentInternalName();
   }
@@ -381,8 +385,8 @@ export default class ComponentBase {
     this.setState(newState);
 
     if (initial || (newProps !== oldProps)) {
-      this._invokePropUpdates(initial, props, oldProps, ...args);
       this.props = props;
+      this._invokePropUpdates(initial, props, oldProps, ...args);
     }
   }
 
@@ -408,6 +412,10 @@ export default class ComponentBase {
     }
   }
 
+  onPropsUpdated() {
+    // do nothing
+  }
+
   _invokeComponentDidMount() {
     this.componentDidMount();
   }
@@ -420,7 +428,7 @@ export default class ComponentBase {
     return this._filterProps(filter, this.props, ...args);
   }
 
-  getPropsSafe(_props, filter) {
+  passProps(_props, filter) {
     var props = _props || this.props,
         filterIsRE = (filter instanceof RegExp),
         filterIsFunc = (typeof filter === 'function');
