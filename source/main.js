@@ -1,12 +1,19 @@
+import React                    from 'react';
 import ComponentBase            from './component-base';
 import PropTypes                from './prop-types';
 import ReactComponentBase       from './react-component-base';
-import { copyStaticProperties } from './utils';
 
-export {
+import {
+  CONTEXT_PROVIDER_KEY,
   copyStaticProperties,
-  bindPrototypeFuncs,
+  copyPrototypeFuncs,
   areObjectsEqualShallow,
+  processRenderedElements,
+  getComponentReference,
+  getParentComponentContext,
+  getUniqueComponentID,
+  addComponentReference,
+  removeComponentReference,
 }                                 from './utils';
 
 export { StyleSheetBuilder }      from './styles/style-sheet';
@@ -17,34 +24,26 @@ export {
 }                                 from './styles/colors';
 export { Theme, ThemeProperties } from './styles/theme';
 
+export {
+  copyStaticProperties,
+  copyPrototypeFuncs,
+  areObjectsEqualShallow
+};
+
+// This needs to be smarter and needs to stack classes intelligently so that super properly works
 function mixinClasses(args) {
-    var objProto = Object.prototype;
+  for (var i = 0, il = args.length; i < il; i++) {
+    var arg = args[i];
+    if (typeof arg !== 'function')
+      continue;
 
-    for (var i = 0, il = args.length; i < il; i++) {
-      var arg = args[i];
-      if (typeof arg !== 'function')
-        continue;
-
-      var argProto = arg.prototype,
-          keys = Object.getOwnPropertyNames(argProto);
-
-      for (var j = 0, jl = keys.length; j < jl; j++) {
-        var key = keys[j];
-
-        if (objProto.hasOwnProperty(key))
-          continue;
-
-        Object.defineProperty(this, key, {
-          writable: true,
-          enumerable: false,
-          configurable: true,
-          value: argProto[key]
-        });
-      }
-    }
+    copyPrototypeFuncs(arg.prototype, this, (propName, prop, source) => {
+      return !source.hasOwnProperty('isReactComponent');
+    });
   }
+}
 
-export function componentFactory(_name, definer, _options) {
+function _componentFactory(_name, definer, _options) {
   function getComponentClass(component) {
     if (!component)
       return ComponentBase;
@@ -217,6 +216,117 @@ export function componentFactory(_name, definer, _options) {
   global._components[name] = ReactComponentClass;
 
   return ReactComponentClass;
+}
+
+export function componentFactory(name, ...args) {
+  const updateProperty = (obj, propName, value) => {
+    var desc = Object.getOwnPropertyDescriptor(obj, propName);
+    if (!desc)
+      return;
+
+    if (desc.configurable) {
+      Object.defineProperty(obj, propName, {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: value
+      });
+
+      Object.defineProperty(obj, propName, Object.assign({}, desc, { value }));
+    } else if (desc.writable) {
+      obj[propName] = value;
+    }
+  };
+
+  const functionalToReactComponent = (component, componentName) => {
+    class ReactAmeliorateWrappedFunctionalComponent extends React.Component {
+      render() {
+        return component.call(this, this.props);
+      }
+    }
+
+    updateProperty(ReactAmeliorateWrappedFunctionalComponent, 'name', componentName);
+    updateProperty(ReactAmeliorateWrappedFunctionalComponent, 'displayName', componentName);
+
+    return ReactAmeliorateWrappedFunctionalComponent;
+  };
+
+  if (typeof name === 'function') {
+    var component = name,
+        componentName = component.displayName || component.name;
+
+    if (component._ameliorateComponent)
+      return component;
+
+    if (!('render' in component.prototype))
+      component = functionalToReactComponent(component, componentName);
+
+    class ReactAmeliorateWrappedComponent extends component {
+      constructor(props, ...args) {
+        super(props, ...args);
+
+        Object.defineProperties(this, {
+          '__id': {
+            writable: true,
+            enumerable: false,
+            configurable: true,
+            value: getUniqueComponentID('React')
+          },
+          'context': {
+            enumerable: false,
+            configurable: true,
+            get: () => {
+              return getParentComponentContext.call(this);
+            },
+            set: () => {}
+          }
+        });
+
+        addComponentReference(this);
+      }
+
+      componentWillUnmount() {
+        try {
+          return (typeof super.componentWillUnmount === 'function') ? super.componentWillUnmount.apply(this, arguments) : undefined;
+        } finally {
+          removeComponentReference(this);
+        }
+      }
+
+      getComponentID() {
+        return this.__id;
+      }
+
+      render(...args) {
+        var renderResult = super.render(...args);
+        return processRenderedElements.call(this, renderResult).elements;
+      }
+
+      _contextFetcher() {
+        var props = this.props,
+            myProvider = this['getChildContext'],
+            parent = getComponentReference(props[CONTEXT_PROVIDER_KEY]),
+            context = {};
+
+        if (parent && typeof parent._contextFetcher === 'function')
+          context = (parent._contextFetcher.call(parent) || {});
+
+        if (typeof myProvider === 'function')
+          context = Object.assign(context, (myProvider() || {}));
+
+        return context;
+      }
+    }
+
+    updateProperty(ReactAmeliorateWrappedComponent, 'name', componentName);
+    updateProperty(ReactAmeliorateWrappedComponent, 'displayName', componentName);
+
+    copyStaticProperties(component, ReactAmeliorateWrappedComponent);
+
+    return ReactAmeliorateWrappedComponent;
+  } else {
+    return _componentFactory.apply(this, arguments);
+  }
 }
 
 export {

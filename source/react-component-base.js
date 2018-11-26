@@ -1,9 +1,8 @@
 import React                          from 'react';
 import {
   areObjectsEqualShallow,
-  bindPrototypeFuncs
+  copyPrototypeFuncs
 }                                     from './utils';
-import { RAC_KEY, AmeliorateContext } from './context';
 
 export default class ReactComponentBase extends React.Component {
   static proxyComponentInstanceMethod(propName) {
@@ -21,17 +20,17 @@ export default class ReactComponentBase extends React.Component {
       throw new TypeError('ReactComponentBase expected a class/function as the last constructor argument but didn\'t receive one');
 
     super(props, ...args);
+    this.state = {};
 
-    var instance = new InstanceClass(props, this),
-        state = this.state = {};
+    var instance = new InstanceClass(props, this);
 
-    bindPrototypeFuncs.call(instance, InstanceClass.prototype, instance);
-    bindPrototypeFuncs.call(instance, InstanceClass.prototype, this, (...args) => {
+    copyPrototypeFuncs.call(instance, InstanceClass.prototype, instance, undefined, true);
+    copyPrototypeFuncs.call(instance, InstanceClass.prototype, this, (...args) => {
       if (typeof this.constructor.proxyComponentInstanceMethod === 'function')
         return this.constructor.proxyComponentInstanceMethod(...args);
 
       return true;
-    });
+    }, true);
 
     Object.defineProperties(this, {
       '_renderCount': {
@@ -99,10 +98,6 @@ export default class ReactComponentBase extends React.Component {
   componentWillUnmount() {
     this._mounted = false;
     this._componentInstance._invokeComponentWillUnmount();
-
-    // var rac = this.props[RAC_KEY];
-    // if (rac)
-    //   rac.onDestroy(this._componentInstance);
   }
 
   render() {
@@ -118,66 +113,3 @@ export default class ReactComponentBase extends React.Component {
     return elems;
   }
 }
-
-const createReactElement = (function(context) {
-  return context['createElement'];
-})(React);
-
-function jsxCreateElement(component, _props, ...children) {
-  const createDefaultRACContext = (props) => {
-    var rac = new AmeliorateContext({
-      creatorScope: this
-    });
-
-    props[RAC_KEY] = rac;
-
-    return rac;
-  };
-
-  var props = _props;
-
-  if (typeof this._mutateChildJSXProps === 'function')
-    props = this._mutateChildJSXProps.call(this, props);
-
-  var thisRAC = props[RAC_KEY];
-  if (!thisRAC)
-    thisRAC = createDefaultRACContext(props);
-
-  if (this.props)
-  thisRAC.parent = this.props[RAC_KEY];
-
-  // This may need to be recursive
-  var directChildren = [].concat(children);
-  for (var i = 0, il = directChildren.length; i < il; i++) {
-    var child = directChildren[i];
-    if (child == null || child === false)
-      continue;
-
-    var childProps = child.props;
-    if (!childProps)
-      continue;
-
-    var rac = childProps[RAC_KEY];
-    if (!rac)
-      rac = createDefaultRACContext(childProps);
-
-    Object.defineProperty(rac, 'parent', {
-      writable: false,
-      enumerable: true,
-      configurable: true,
-      value: thisRAC
-    });
-    //rac.parent = thisRAC;
-  }
-
-  return createReactElement(component, props, ...children);
-}
-
-function __JSXCreateElement(scope) {
-  return jsxCreateElement.bind(scope);
-}
-
-(function(root) {
-  if (typeof root.__JSXCreateElement !== 'function')
-    root.__JSXCreateElement = __JSXCreateElement;
-})((typeof global !== 'undefined') ? global : window);

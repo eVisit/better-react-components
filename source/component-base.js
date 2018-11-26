@@ -1,15 +1,28 @@
 
 import {
+  CONTEXT_PROVIDER_KEY,
   areObjectsEqualShallow,
   capitalize,
-  cloneComponents
+  cloneComponents,
+  filterProps,
+  getComponentReferenceMap,
+  addComponentReference,
+  removeComponentReference,
+  getComponentReference,
+  removeDuplicates,
+  removeEmpty,
+  postRenderProcessChildProps,
+  postRenderProcessChild,
+  postRenderShouldProcessChildren,
+  processElements,
+  processRenderedElements,
+  getParentComponentContext,
+  getUniqueComponentID
 }                                     from './utils';
-import { utils as U, data as D }      from 'evisit-js-utils';
+import { utils as U }                 from 'evisit-js-utils';
 import PropTypes                      from './prop-types';
-import { RAC_KEY }                    from './context';
 
-var componentIDCounter = 1,
-    logCache = {};
+var logCache = {};
 
 const COMPONENT_FLAGS = {
   FOCUS:    0x01,
@@ -21,33 +34,18 @@ const COMPONENT_FLAGS = {
   DROPPING: 0x40
 };
 
-function removeDuplicates(array) {
-  return Object.keys((array || {}).reduce((obj, item) => {
-    obj[('' + item)] = true;
-    return obj;
-  }, {}));
-}
-
-function removeEmpty(array) {
-  return (array || []).filter((item) => !U.noe(item));
-}
-
 export default class ComponentBase {
   static getClassNamePrefix() {
     return 'application';
   }
 
   constructor(props, reactComponent) {
-    var rac = props[RAC_KEY];
-    if (rac)
-      rac.onInstantiate(this);
-
     Object.defineProperties(this, {
       'id': {
         writable: true,
         enumerable: false,
         configurable: true,
-        value: (props.id) ? props.id : `Component_${('' + (componentIDCounter++)).padStart(13, '0')}`
+        value: getUniqueComponentID()
       },
       '_renderCacheInvalid': {
         writable: true,
@@ -132,13 +130,7 @@ export default class ComponentBase {
         enumerable: false,
         configurable: true,
         get: () => {
-          var props = this.props,
-              fetchContext = props['_ameliorateContextProvider'];
-
-          if (typeof fetchContext === 'function')
-            return fetchContext();
-
-          return {};
+          return getParentComponentContext.call(this);
         },
         set: () => {}
       },
@@ -171,10 +163,17 @@ export default class ComponentBase {
         enumerable: false,
         configurable: true,
         value: false
+      },
+      'isMounted': {
+        enumerable: false,
+        configurable: true,
+        get: () => this._isMounted,
+        set: () => {}
       }
     });
 
     // Setup the styleSheet getter to build style-sheets when requested
+    addComponentReference(this);
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
   }
 
@@ -193,11 +192,11 @@ export default class ComponentBase {
   _contextFetcher() {
     var props = this.props,
         myProvider = this['provideContext'],
-        parentProvider = props['_ameliorateContextProvider'],
+        parent = getComponentReference(props[CONTEXT_PROVIDER_KEY]),
         context = {};
 
-    if (typeof parentProvider === 'function')
-      context = (parentProvider() || {});
+    if (parent && typeof parent._contextFetcher === 'function')
+      context = (parent._contextFetcher.call(parent) || {});
 
     if (typeof myProvider === 'function')
       context = Object.assign(context, (myProvider() || {}));
@@ -421,7 +420,11 @@ export default class ComponentBase {
   }
 
   _invokeComponentWillUnmount() {
-    this.componentWillUnmount();
+    try {
+      return this.componentWillUnmount();
+    } finally {
+      removeComponentReference(this);
+    }
   }
 
   getProps(filter, ...args) {
@@ -450,159 +453,32 @@ export default class ComponentBase {
     }, props);
   }
 
-  _filterProps(filter) {
-    var newProps = {},
-        filterIsRE = (filter instanceof RegExp),
-        filterIsFunc = (typeof filter === 'function');
-
-    for (var i = 1, il = arguments.length; i < il; i++) {
-      var arg = arguments[i];
-      if (!arg)
-        continue;
-
-      var keys = Object.keys(arg);
-      for (var j = 0, jl = keys.length; j < jl; j++) {
-        var key = keys[j],
-            value = arg[key];
-
-        if (filterIsRE) {
-          filter.lastIndex = 0;
-          if (filter.test(key))
-            continue;
-        } else if (filterIsFunc) {
-          if (!filter(key, value))
-            continue;
-        }
-
-        newProps[key] = value;
-      }
-    }
-
-    return newProps;
+  _filterProps() {
+    return filterProps.apply(this, arguments);
   }
 
   _getLayoutContextName(layoutContext) {
     return layoutContext;
   }
 
-  _postRenderProcessChildProps({ parent, child, childProps, context, index }) {
-    var newProps = childProps,
-        extraProps,
-        reactComponentClass = (child && child.type);
-
-    if (reactComponentClass && reactComponentClass._ameliorateComponent) {
-      extraProps = {
-        '_ameliorateContextProvider': this._contextFetcher,
-        '_ameliorateMutated': true
-      };
-    }
-
-    var finalProps = this._filterProps((key, _value) => {
-      var value = _value;
-      if (key === 'layoutContext') {
-        value = this._getLayoutContextName(value);
-        if (!value)
-          return false;
-
-        var layout = context.layout;
-        if (!layout)
-          layout = context.layout = {};
-
-        var namedLayout = layout[value];
-        if (!namedLayout)
-          namedLayout = layout[value] = [];
-
-        // WIP: Add to layouts for layout engine
-        // needs to be able to fetch a layout
-        // and remove a fetched layout
-        Object.defineProperty(child, 'removeFromCurrentLayout', {
-          writable: true,
-          enumerable: false,
-          configurable: true,
-          value: () => {
-            var props = (parent && parent.props);
-
-            if (props.children instanceof Array) {
-              var index = props.children.indexOf(child);
-              if (index >= 0)
-                props.children.splice(index, 1);
-            } else if (props.children === child) {
-              props.children = null;
-            }
-
-            return child;
-          }
-        });
-
-        namedLayout.push(child);
-      }
-
-      return true;
-    }, newProps, extraProps);
-
-    return finalProps;
+  _postRenderProcessChildProps() {
+    return postRenderProcessChildProps.apply(this, arguments);
   }
 
-  _postRenderProcessChild({ child, childProps, validElement }) {
-    const cloneComponent = (child, childProps) => {
-      if (!child)
-        return child;
-
-      child.props = childProps;
-      return child;
-    };
-
-    if (!validElement)
-      return child;
-
-    if (!child)
-      return child;
-
-    return cloneComponent(child, childProps);
+  _postRenderProcessChild() {
+    return postRenderProcessChild.apply(this, arguments);
   }
 
-  _postRenderShouldProcessChildren({ child }) {
-    if (!child)
-      return false;
-
-    if (child instanceof Array)
-      return true;
-
-    if (!child.props)
-      return false;
-
-    var props = child.props,
-        should = !props['_ameliorateMutated'];
-
-    return should;
+  _postRenderShouldProcessChildren() {
+    return postRenderShouldProcessChildren.apply(this, arguments);
   }
 
-  _processElements({ elements, onProps, onProcess, onShouldProcess }) {
-    var contexts = {};
-
-    if (elements == null || elements === false)
-      return { contexts, elements: null };
-
-    if (typeof onProps !== 'function')
-      onProps = () => {};
-
-    var newChildren = cloneComponents.call(this, elements, onProps, onProcess, onShouldProcess, undefined, contexts);
-    return { contexts, elements: newChildren };
+  _processElements() {
+    return processElements.apply(this, arguments);
   }
 
-  processElements(elements, _opts) {
-    var opts = _opts,
-        defaultOpts = {
-          elements,
-          onProps: this._postRenderProcessChildProps,
-          onProcess: this._postRenderProcessChild,
-          onShouldProcess: this._postRenderShouldProcessChildren
-        };
-
-    if (opts === true)
-      opts = { onShouldProcess: true, onProcess: null };
-
-    return this._processElements((opts) ? Object.assign(defaultOpts, opts) : defaultOpts);
+  processElements() {
+    return processRenderedElements.apply(this, arguments);
   }
 
   _postRenderProcessElements(elements, opts) {
@@ -702,10 +578,6 @@ export default class ComponentBase {
 
   componentWillUnmount() {
     this._isMounted = true;
-  }
-
-  isMounted() {
-    return this._isMounted;
   }
 
   getPlatform() {
@@ -1135,5 +1007,21 @@ export default class ComponentBase {
 
   static cloneComponents(...args) {
     return cloneComponents(...args);
+  }
+
+  static getComponentReferenceMap() {
+    return getComponentReferenceMap();
+  }
+
+  static addComponentReference(...args) {
+    return addComponentReference(...args);
+  }
+
+  static removeComponentReference(...args) {
+    return removeComponentReference(...args);
+  }
+
+  static getComponentReference(...args) {
+    return getComponentReference(...args);
   }
 }

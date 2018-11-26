@@ -229,10 +229,6 @@ export class StyleSheetBuilder {
           resolveAllStyles.call(this, style, finalStyles);
         else if (style) {
           var sanitizedStyle = this.sanitizeProps(null, style);
-
-          if (style.browser)
-            console.log('Sanitized style: ', sanitizedStyle);
-
           finalStyles.push(sanitizedStyle);
         }
       }
