@@ -225,9 +225,9 @@ export class StyleSheetBuilder {
             style = helper(this, styleName, style, sheet);
         }
 
-        if (style instanceof Array)
+        if (style instanceof Array) {
           resolveAllStyles.call(this, style, finalStyles);
-        else if (style) {
+        } else if (style) {
           var sanitizedStyle = this.sanitizeProps(null, style);
           finalStyles.push(sanitizedStyle);
         }
