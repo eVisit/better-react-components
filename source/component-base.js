@@ -384,8 +384,8 @@ export default class ComponentBase {
     this.setState(newState);
 
     if (initial || (newProps !== oldProps)) {
-      this.props = props;
       this._invokePropUpdates(initial, props, oldProps, ...args);
+      this.props = props;
     }
   }
 

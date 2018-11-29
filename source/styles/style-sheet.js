@@ -210,14 +210,13 @@ export class StyleSheetBuilder {
       for (var i = 0, il = styles.length; i < il; i++) {
         var style = styles[i];
 
-        if (style == null || style === false)
+        if (!style || typeof style === 'boolean')
           continue;
 
-        if (typeof style.valueOf === 'function')
+        if (style instanceof Object && typeof style.valueOf === 'function')
           style = style.valueOf();
 
-        var styleType = typeof style;
-        if (['string', 'boolean', 'number'].indexOf(styleType) > -1) {
+        if (typeof style === 'string') {
           var styleName = style;
           style = sheet[style];
 
@@ -225,11 +224,16 @@ export class StyleSheetBuilder {
             style = helper(this, styleName, style, sheet);
         }
 
+        if (!style || typeof style === 'boolean')
+          continue;
+
         if (style instanceof Array) {
           resolveAllStyles.call(this, style, finalStyles);
         } else if (style) {
-          var sanitizedStyle = this.sanitizeProps(null, style);
-          finalStyles.push(sanitizedStyle);
+          if (typeof style === 'object')
+            style = this.sanitizeProps(null, style);
+
+          finalStyles.push(style);
         }
       }
     }

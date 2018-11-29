@@ -23,11 +23,16 @@ export function getComponentReferenceMap() {
 }
 
 export function addComponentReference(instance) {
-  componentReferenceMap[instance.getComponentID()] = instance;
+  var componentID = instance.getComponentID();
+  if (!componentID)
+    throw new TypeError('getComponentID returned an empty component ID');
+
+  componentReferenceMap[componentID] = instance;
 }
 
 export function removeComponentReference(instance) {
-  delete componentReferenceMap[instance.getComponentID()];
+  var componentID = instance.getComponentID();
+  delete componentReferenceMap[componentID];
 }
 
 export function getComponentReference(componentID) {
