@@ -219,7 +219,7 @@ function buildPalette(opts = {}, _colorHelperFactory) {
       textContrastRatio     = options.ACCEPTABLE_TEXT_CONTRAST_RATIO,
       transparencyRatio     = options.TRANSPARENCY_RATIO,
       fadeRatio             = options.FADE_RATIO,
-      thisMainColor         = Color(mainColor.color || mainColor).hsl().object();
+      thisMainColor         = (new Color(mainColor.color || mainColor)).hsl().object();
 
   if (alt1LuminosityOffset == null)
     alt1LuminosityOffset = thisMainColor.l - (thisMainColor.l * alt1LuminosityRatio);
@@ -250,7 +250,7 @@ function buildPalette(opts = {}, _colorHelperFactory) {
   }
 
   const getRelativeColorLuminance = colorHelperFactory(function getRelativeColorLuminance(color) {
-    var contrast = color.contrast(Color('black'));
+    var contrast = color.contrast(new Color('black'));
     return (contrast - 1) / 20;
   });
 

@@ -4,7 +4,11 @@ import {
   copyPrototypeFuncs
 }                                     from './utils';
 
+const RAContext = React.createContext({});
+
 export default class ReactComponentBase extends React.Component {
+  static contextType = RAContext;
+
   static proxyComponentInstanceMethod(propName) {
     if (propName in React.Component.prototype)
       return false;
@@ -101,11 +105,23 @@ export default class ReactComponentBase extends React.Component {
   }
 
   render() {
-    var renderID = `${this._propUpdateCounter}/${this._stateUpdateCounter}`;
+    const doRender = () => {
+      this._componentInstance._invalidateRenderCache();
+      var elements = this._componentInstance._renderInterceptor(renderID);
 
-    this._componentInstance._invalidateRenderCache();
+      if (typeof this._componentInstance.provideContext === 'function') {
+        return (
+          <RAContext.Provider value={this._componentInstance.provideContext()}>
+            {elements}
+          </RAContext.Provider>
+        );
+      } else {
+        return elements;
+      }
+    };
 
-    var elems = this._componentInstance._renderInterceptor(renderID);
+    var renderID = `${this._propUpdateCounter}/${this._stateUpdateCounter}`,
+        elems = doRender();
 
     this._componentInstance._previousRenderID = renderID;
     this._renderCount++;

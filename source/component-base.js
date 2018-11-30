@@ -129,9 +129,7 @@ export default class ComponentBase {
       'context': {
         enumerable: false,
         configurable: true,
-        get: () => {
-          return getParentComponentContext.call(this);
-        },
+        get: () => this._reactComponent.context,
         set: () => {}
       },
       '_referenceRetrieveHookCache': {
