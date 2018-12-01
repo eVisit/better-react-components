@@ -199,7 +199,7 @@ export default class ComponentBase {
     this.construct();
 
     // Call mixin "construct" initializers
-    var mixins = InstanceClass._mixins;
+    var mixins = InstanceClass._raMixins;
     if (mixins && mixins.length) {
       for (var i = 0, il = mixins.length; i < il; i++) {
         var mixin = mixins[i],
@@ -330,7 +330,7 @@ export default class ComponentBase {
       if (elements === undefined)
         this._logger('warn', 'Warning: @ returned a bad value from "render" method');
 
-      return updateRenderState(undefined);
+      return updateRenderState(elements);
     }
 
     // Async render
@@ -486,7 +486,7 @@ export default class ComponentBase {
 
     return Object.assign(
       {},
-      convertArrayToObj(this.constructor.resolvableProps) || {},
+      convertArrayToObj(this.constructor._raResolvableProps) || {},
       ...(args.filter((val) => (val != null)).map(convertArrayToObj))
     );
   }
@@ -497,13 +497,13 @@ export default class ComponentBase {
 
     var formattedProps = {},
         keys = Object.keys(props),
-        resolvableProps = this.getResolvableProps(extraProps);
+        _raResolvableProps = this.getResolvableProps(extraProps);
 
     for (var i = 0, il = keys.length; i < il; i++) {
       var key = keys[i],
           value = props[key];
 
-      if (resolvableProps && typeof value === 'function' && resolvableProps[key])
+      if (_raResolvableProps && typeof value === 'function' && _raResolvableProps[key])
         value = value.call(this, props, prevProps);
 
       formattedProps[key] = value;
@@ -988,5 +988,21 @@ export default class ComponentBase {
 
   static getComponentReference(...args) {
     return getComponentReference(...args);
+  }
+
+  static isComponent(value) {
+    if (!value)
+      return false;
+
+    if (typeof value === 'function')
+      return true;
+
+    if (value.hasOwnProperty('$$typeof'))
+      return true;
+
+    if (typeof value.render === 'function')
+      return true;
+
+    return false;
   }
 }

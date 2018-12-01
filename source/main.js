@@ -43,8 +43,8 @@ export function componentFactory(_name, definer, _options) {
     if (!component)
       return ComponentBase;
 
-    if (component && component._componentClass)
-      return component._componentClass;
+    if (component && component._raComponentClass)
+      return component._raComponentClass;
 
     return component;
   }
@@ -53,8 +53,8 @@ export function componentFactory(_name, definer, _options) {
     if (!component)
       return ReactComponentBase;
 
-    if (component && component._raReactComponentClass)
-      return component._raReactComponentClass;
+    if (component && component._raBaseReactComponentClass)
+      return component._raBaseReactComponentClass;
 
     return component;
   }
@@ -62,6 +62,56 @@ export function componentFactory(_name, definer, _options) {
   function mergePropTypes(..._types) {
     var types = _types.filter((type) => !!type);
     return PropTypes.mergeTypes(...types);
+  }
+
+  function wrapReactComponentWithContextProviders(ReactComponentClass) {
+    // Wrap the component in the context so it can receive the context properly
+    var parentReactComponent = ReactComponentClass;
+    ReactComponentClass = (function(ReactComponentClass) {
+      const ComponentClassContextType = ComponentClass.contextType;
+
+      return React.forwardRef((props, ref) => {
+        const renderComponent = (contextsProps) => {
+          var finalProps = Object.assign({}, props, contextsProps);
+          return (<ReactComponentClass ref={ref} {...finalProps}/>);
+        };
+
+        const renderWithContexts = (index, contextCount, contextsProps) => {
+          if (index >= contexts.length)
+            return renderComponent(contextsProps);
+
+          var thisContext = contexts[index],
+              thisConsumer = (thisContext && thisContext.Consumer);
+
+          if (!thisConsumer)
+            return renderWithContexts(index + 1, contextCount + 1, contextsProps);
+
+          return (React.createElement(thisConsumer, {}, (context) => {
+            contextsProps[`${CONTEXT_PROVIDER_KEY}-${contextCount}`] = context;
+            return renderWithContexts(index + 1, contextCount + 1, contextsProps);
+          }));
+        };
+
+        var contexts = [RAContext];
+        if (ComponentClassContextType)
+          contexts.push(ComponentClassContextType);
+
+        return renderWithContexts(0, 0, {});
+      });
+    })(ReactComponentClass);
+
+    Object.defineProperties(ReactComponentClass, Object.assign({}, commonStaticProps, {
+      '_raReactComponentClass': {
+        writable: false,
+        enumerable: false,
+        configurable: false,
+        value: ReactComponentClass
+      }
+    }));
+
+    copyStaticProperties(parentReactComponent, ReactComponentClass);
+
+    return ReactComponentClass;
   }
 
   var name = (_name && _name.name) ? _name.name : _name,
@@ -73,10 +123,10 @@ export function componentFactory(_name, definer, _options) {
   if (typeof definer !== 'function')
     throw new TypeError('"definer" callback is required to create a component');
 
-  var options = (typeof _options === 'function') ? { parent: _options } : (_options || {}),
+  var options = (ComponentBase.isComponent(_options)) ? { parent: _options } : (_options || {}),
       ReactBaseComponent = getReactComponentClass(options.reactComponentBaseClass),
       Parent = getComponentClass(options.parent || ComponentBase),
-      mixins = ([].concat(Parent._mixins, options.mixins)).filter((mixin) => mixin);
+      mixins = ([].concat(Parent._raMixins, options.mixins)).filter((mixin) => mixin);
 
   if (mixins && mixins.length) {
     const MixinParent = class InterstitialMixinClass extends Parent {};
@@ -84,6 +134,9 @@ export function componentFactory(_name, definer, _options) {
     mixinClasses.call(MixinParent.prototype, mixins);
     Parent = MixinParent;
   }
+
+  if (typeof Parent !== 'function')
+    debugger;
 
   var ComponentClass = definer(Object.assign({}, options, { Parent, componentName: displayName, componentInternalName: name }));
   if (typeof ComponentClass !== 'function')
@@ -95,12 +148,12 @@ export function componentFactory(_name, definer, _options) {
     }
   }
 
-  const parentComponent = Parent,
-        parentReactComponent = getReactComponentClass(Parent);
+  var parentComponent = Parent,
+      parentReactComponent = getReactComponentClass(Parent);
 
   var propTypes = mergePropTypes(parentComponent.propTypes, ComponentClass.propTypes),
       defaultProps = Object.assign({}, (parentComponent.defaultProps || {}), (ComponentClass.defaultProps || {})),
-      resolvableProps = ComponentClass.resolvableProps;
+      _raResolvableProps = ComponentClass._raResolvableProps;
 
   copyStaticProperties(parentComponent, ComponentClass, null, parentComponent._rebindStaticMethod);
   copyStaticProperties(ComponentClass, ReactComponentClass, (name) => {
@@ -111,43 +164,43 @@ export function componentFactory(_name, definer, _options) {
   });
 
   const commonStaticProps = {
-    '_ameliorateComponent': {
+    '_raAmeliorateComponent': {
       writable: false,
       enumerable: false,
       configurable: false,
       value: true
     },
-    '_parentComponent': {
+    '_raParentComponent': {
       writable: false,
       enumerable: false,
       configurable: false,
       value: parentComponent
     },
-    '_parentReactComponent': {
+    '_raParentReactComponent': {
       writable: false,
       enumerable: false,
       configurable: false,
       value: parentReactComponent
     },
-    '_componentClass': {
+    '_raComponentClass': {
       writable: false,
       enumerable: false,
       configurable: false,
       value: ComponentClass
     },
-    '_raReactComponentClass': {
+    '_raBaseReactComponentClass': {
       writable: false,
       enumerable: false,
       configurable: false,
       value: ReactComponentClass
     },
-    '_componentFactory': {
+    '_raComponentFactory': {
       writable: true,
       enumerable: false,
       configurable: false,
       value: definer
     },
-    'internalName': {
+    '_raInternalName': {
       writable: true,
       enumerable: false,
       configurable: false,
@@ -159,11 +212,17 @@ export function componentFactory(_name, definer, _options) {
       configurable: false,
       value: displayName
     },
-    'resolvableProps': {
+    '_raResolvableProps': {
       writable: true,
       enumerable: false,
       configurable: true,
-      value: resolvableProps
+      value: _raResolvableProps
+    },
+    '_raMixins': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: mixins
     },
     'propTypes': {
       writable: true,
@@ -189,16 +248,12 @@ export function componentFactory(_name, definer, _options) {
       configurable: true,
       value: () => displayName
     },
-    '_mixins': {
-      writable: true,
-      enumerable: false,
-      configurable: true,
-      value: mixins
-    }
   };
 
   Object.defineProperties(ComponentClass, commonStaticProps);
   Object.defineProperties(ReactComponentClass, commonStaticProps);
+
+  ReactComponentClass = wrapReactComponentWithContextProviders(ReactComponentClass);
 
   var componentFactoryHook = options.componentFactoryHook || ComponentClass._componentFactoryHook;
   if (typeof componentFactoryHook === 'function') {
@@ -210,41 +265,8 @@ export function componentFactory(_name, definer, _options) {
   if (!global._components)
     global._components = {};
 
-  // Wrap the component in the context so it can receive the context properly
-  ReactComponentClass = (function(ReactComponentClass) {
-    const ComponentClassContextType = ComponentClass.contextType;
-
-    return React.forwardRef((props, ref) => {
-      const renderComponent = (contextsProps) => {
-        var finalProps = Object.assign({}, props, contextsProps);
-        return (<ReactComponentClass ref={ref} {...finalProps}/>);
-      };
-
-      const renderWithContexts = (index, contextCount, contextsProps) => {
-        if (index >= contexts.length)
-          return renderComponent(contextsProps);
-
-        var thisContext = contexts[index],
-            thisConsumer = (thisContext && thisContext.Consumer);
-
-        if (!thisConsumer)
-          return renderWithContexts(index + 1, contextCount + 1, contextsProps);
-
-        return (React.createElement(thisConsumer, {}, (context) => {
-          contextsProps[`${CONTEXT_PROVIDER_KEY}-${contextCount}`] = context;
-          return renderWithContexts(index + 1, contextCount + 1, contextsProps);
-        }));
-      };
-
-      var contexts = [RAContext];
-      if (ComponentClassContextType)
-        contexts.push(ComponentClassContextType);
-
-      return renderWithContexts(0, 0, {});
-    });
-  })(ReactComponentClass);
-
   global._components[name] = ReactComponentClass;
+
   return ReactComponentClass;
 }
 
