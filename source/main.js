@@ -5,15 +5,10 @@ import ReactComponentBase       from './react-component-base';
 
 import {
   CONTEXT_PROVIDER_KEY,
+  RAContext,
   copyStaticProperties,
   copyPrototypeFuncs,
-  areObjectsEqualShallow,
-  processRenderedElements,
-  getComponentReference,
-  getParentComponentContext,
-  getUniqueComponentID,
-  addComponentReference,
-  removeComponentReference,
+  areObjectsEqualShallow
 }                                 from './utils';
 
 export { StyleSheetBuilder }      from './styles/style-sheet';
@@ -43,7 +38,7 @@ function mixinClasses(args) {
   }
 }
 
-function _componentFactory(_name, definer, _options) {
+export function componentFactory(_name, definer, _options) {
   function getComponentClass(component) {
     if (!component)
       return ComponentBase;
@@ -58,8 +53,8 @@ function _componentFactory(_name, definer, _options) {
     if (!component)
       return ReactComponentBase;
 
-    if (component && component._reactComponentClass)
-      return component._reactComponentClass;
+    if (component && component._raReactComponentClass)
+      return component._raReactComponentClass;
 
     return component;
   }
@@ -109,9 +104,11 @@ function _componentFactory(_name, definer, _options) {
 
   copyStaticProperties(parentComponent, ComponentClass, null, parentComponent._rebindStaticMethod);
   copyStaticProperties(ComponentClass, ReactComponentClass, (name) => {
-    return (name !== 'propTypes' && name !== 'defaultProps');
+    return (name !== 'propTypes' && name !== 'defaultProps' && name !== 'contextType');
   });
-  copyStaticProperties(parentReactComponent, ReactComponentClass);
+  copyStaticProperties(parentReactComponent, ReactComponentClass, (name) => {
+    return (name !== 'contextType');
+  });
 
   const commonStaticProps = {
     '_ameliorateComponent': {
@@ -138,7 +135,7 @@ function _componentFactory(_name, definer, _options) {
       configurable: false,
       value: ComponentClass
     },
-    '_reactComponentClass': {
+    '_raReactComponentClass': {
       writable: false,
       enumerable: false,
       configurable: false,
@@ -213,120 +210,42 @@ function _componentFactory(_name, definer, _options) {
   if (!global._components)
     global._components = {};
 
+  // Wrap the component in the context so it can receive the context properly
+  ReactComponentClass = (function(ReactComponentClass) {
+    const ComponentClassContextType = ComponentClass.contextType;
+
+    return React.forwardRef((props, ref) => {
+      const renderComponent = (contextsProps) => {
+        var finalProps = Object.assign({}, props, contextsProps);
+        return (<ReactComponentClass ref={ref} {...finalProps}/>);
+      };
+
+      const renderWithContexts = (index, contextCount, contextsProps) => {
+        if (index >= contexts.length)
+          return renderComponent(contextsProps);
+
+        var thisContext = contexts[index],
+            thisConsumer = (thisContext && thisContext.Consumer);
+
+        if (!thisConsumer)
+          return renderWithContexts(index + 1, contextCount + 1, contextsProps);
+
+        return (React.createElement(thisConsumer, {}, (context) => {
+          contextsProps[`${CONTEXT_PROVIDER_KEY}-${contextCount}`] = context;
+          return renderWithContexts(index + 1, contextCount + 1, contextsProps);
+        }));
+      };
+
+      var contexts = [RAContext];
+      if (ComponentClassContextType)
+        contexts.push(ComponentClassContextType);
+
+      return renderWithContexts(0, 0, {});
+    });
+  })(ReactComponentClass);
+
   global._components[name] = ReactComponentClass;
-
   return ReactComponentClass;
-}
-
-export function componentFactory(name, ...args) {
-  const updateProperty = (obj, propName, value) => {
-    var desc = Object.getOwnPropertyDescriptor(obj, propName);
-    if (!desc)
-      return;
-
-    if (desc.configurable) {
-      Object.defineProperty(obj, propName, {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: value
-      });
-
-      Object.defineProperty(obj, propName, Object.assign({}, desc, { value }));
-    } else if (desc.writable) {
-      obj[propName] = value;
-    }
-  };
-
-  const functionalToReactComponent = (component, componentName) => {
-    class ReactAmeliorateWrappedFunctionalComponent extends React.Component {
-      render() {
-        return component.call(this, this.props);
-      }
-    }
-
-    updateProperty(ReactAmeliorateWrappedFunctionalComponent, 'name', componentName);
-    updateProperty(ReactAmeliorateWrappedFunctionalComponent, 'displayName', componentName);
-
-    return ReactAmeliorateWrappedFunctionalComponent;
-  };
-
-  if (typeof name === 'function') {
-    var component = name,
-        componentName = component.displayName || component.name;
-
-    if (component._ameliorateComponent)
-      return component;
-
-    if (!('render' in component.prototype))
-      component = functionalToReactComponent(component, componentName);
-
-    class ReactAmeliorateWrappedComponent extends component {
-      constructor(props, ...args) {
-        super(props, ...args);
-
-        Object.defineProperties(this, {
-          '__id': {
-            writable: true,
-            enumerable: false,
-            configurable: true,
-            value: getUniqueComponentID('React')
-          },
-          'context': {
-            enumerable: false,
-            configurable: true,
-            get: () => {
-              return getParentComponentContext.call(this);
-            },
-            set: () => {}
-          }
-        });
-
-        addComponentReference(this);
-      }
-
-      componentWillUnmount() {
-        try {
-          return (typeof super.componentWillUnmount === 'function') ? super.componentWillUnmount.apply(this, arguments) : undefined;
-        } finally {
-          removeComponentReference(this);
-        }
-      }
-
-      getComponentID() {
-        return this.__id;
-      }
-
-      render(...args) {
-        var renderResult = super.render(...args);
-        return processRenderedElements.call(this, renderResult).elements;
-      }
-
-      _contextFetcher() {
-        var props = this.props,
-            myProvider = this['getChildContext'],
-            parent = getComponentReference(props[CONTEXT_PROVIDER_KEY]),
-            context = {};
-
-        if (parent && typeof parent._contextFetcher === 'function')
-          context = (parent._contextFetcher.call(parent) || {});
-
-        if (typeof myProvider === 'function')
-          context = Object.assign(context, (myProvider() || {}));
-
-        return context;
-      }
-    }
-
-    updateProperty(ReactAmeliorateWrappedComponent, 'name', componentName);
-    updateProperty(ReactAmeliorateWrappedComponent, 'displayName', componentName);
-
-    copyStaticProperties(component, ReactAmeliorateWrappedComponent);
-
-    return ReactAmeliorateWrappedComponent;
-  } else {
-    return _componentFactory.apply(this, arguments);
-  }
 }
 
 export {

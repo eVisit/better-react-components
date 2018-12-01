@@ -4,6 +4,7 @@ import { utils as U } from 'evisit-js-utils';
 const componentReferenceMap = {};
 var componentIDCounter = 1;
 
+export const RAContext = React.createContext({});
 export const CONTEXT_PROVIDER_KEY  = 'data-ra-provider';
 
 export function prefixPad(_str, size = 0, char = '0') {
@@ -214,9 +215,6 @@ export function postRenderProcessChildProps({ parent, child, childProps, context
       extraProps = {},
       reactComponentClass = (child && child.type);
 
-  if (reactComponentClass)
-    extraProps[CONTEXT_PROVIDER_KEY] = this.getComponentID();
-
   var getLayoutContextName = (typeof this._getLayoutContextName === 'function') ? this._getLayoutContextName : (layoutContext) => layoutContext,
       finalProps = (this._filterProps || filterProps).call(this, (key, _value) => {
         var value = _value;
@@ -311,14 +309,4 @@ export function processRenderedElements(elements, _opts) {
     opts = { onShouldProcess: true, onProcess: null };
 
   return (this._processElements || processElements).call(this, (opts) ? Object.assign(defaultOpts, opts) : defaultOpts);
-}
-
-export function getParentComponentContext() {
-  var props = this.props,
-      parent = getComponentReference(props[CONTEXT_PROVIDER_KEY]);
-
-  if (parent && typeof parent._contextFetcher === 'function')
-    return (parent._contextFetcher.call(this) || {});
-
-  return {};
 }

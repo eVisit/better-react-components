@@ -16,7 +16,6 @@ import {
   postRenderShouldProcessChildren,
   processElements,
   processRenderedElements,
-  getParentComponentContext,
   getUniqueComponentID
 }                                     from './utils';
 import { utils as U }                 from 'evisit-js-utils';
@@ -41,41 +40,101 @@ export default class ComponentBase {
 
   constructor(props, reactComponent) {
     Object.defineProperties(this, {
-      'id': {
+      '_raID': {
         writable: true,
         enumerable: false,
         configurable: true,
         value: getUniqueComponentID()
       },
-      '_renderCacheInvalid': {
+      '_raRenderCacheInvalid': {
         writable: true,
         enumerable: false,
         configurable: true,
         value: false
       },
-      '_renderCache': {
+      '_raRenderCache': {
         writable: true,
         enumerable: false,
         configurable: true,
         value: undefined
       },
-      '_previousRenderID': {
+      '_raPreviousRenderID': {
         writable: true,
         enumerable: false,
         configurable: true,
         value: undefined
       },
-      '_reactPropsCache': {
+      '_raReactPropsCache': {
         writable: true,
         enumerable: false,
         configurable: true,
         value: null
       },
-      '_resolvedPropsCache': {
+      '_raResolvedPropsCache': {
         writable: true,
         enumerable: false,
         configurable: true,
         value: null
+      },
+      '_raStaleInternalState': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
+      },
+      '_raInternalState': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
+      },
+      '_raReactComponent': {
+        enumerable: false,
+        configurable: true,
+        get: () => reactComponent,
+        set: () => {}
+      },
+      '_raUpdatesFrozenSemaphore': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: 0
+      },
+      '_raReferenceRetrieveHookCache': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
+      },
+      '_raReferenceCaptureHookCache': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
+      },
+      '_raCompponentFlagsCache': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: null
+      },
+      '_raRefs': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
+      },
+      '_raIsMounted': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: false
+      },
+      'isMounted': {
+        enumerable: false,
+        configurable: true,
+        get: () => this._raIsMounted,
+        set: () => {}
       },
       'props': {
         writable: true,
@@ -83,40 +142,10 @@ export default class ComponentBase {
         configurable: true,
         value: props
       },
-      '_staleInternalState': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: {}
-      },
-      '_internalState': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: {}
-      },
-      '_queuedStateUpdates': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: []
-      },
-      '_reactComponent': {
-        enumerable: false,
-        configurable: true,
-        get: () => reactComponent,
-        set: () => {}
-      },
-      '_updatesFrozenSemaphore': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: 0
-      },
       'state': {
         enumerable: false,
         configurable: true,
-        get: () => this._internalState,
+        get: () => this._raInternalState,
         set: (val) => {
           if (!val)
             return;
@@ -129,45 +158,9 @@ export default class ComponentBase {
       'context': {
         enumerable: false,
         configurable: true,
-        get: () => this._reactComponent.context,
+        get: () => this._fetchContext(),
         set: () => {}
       },
-      '_referenceRetrieveHookCache': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: {}
-      },
-      '_referenceCaptureHookCache': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: {}
-      },
-      '_compponentFlagsCache': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: null
-      },
-      '_refs': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: {}
-      },
-      '_isMounted': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: false
-      },
-      'isMounted': {
-        enumerable: false,
-        configurable: true,
-        get: () => this._isMounted,
-        set: () => {}
-      }
     });
 
     // Setup the styleSheet getter to build style-sheets when requested
@@ -176,7 +169,7 @@ export default class ComponentBase {
   }
 
   getComponentID() {
-    return this.id;
+    return this._raID;
   }
 
   getComponentInternalName() {
@@ -185,21 +178,6 @@ export default class ComponentBase {
 
   getComponentName() {
     return this.constructor.getComponentName();
-  }
-
-  _contextFetcher() {
-    var props = this.props,
-        myProvider = this['provideContext'],
-        parent = getComponentReference(props[CONTEXT_PROVIDER_KEY]),
-        context = {};
-
-    if (parent && typeof parent._contextFetcher === 'function')
-      context = (parent._contextFetcher.call(parent) || {});
-
-    if (typeof myProvider === 'function')
-      context = Object.assign(context, (myProvider() || {}));
-
-    return context;
   }
 
   _construct() {
@@ -239,8 +217,25 @@ export default class ComponentBase {
 
   }
 
-  _mutateChildJSXProps(props) {
-    return props;
+  _fetchContext() {
+    var reactProps = this._raReactComponent.props,
+        keys = Object.keys(reactProps),
+        contextProviderKeyLength = CONTEXT_PROVIDER_KEY.length,
+        finalContext = {};
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i];
+      if (key.substring(0, contextProviderKeyLength) !== CONTEXT_PROVIDER_KEY)
+        continue;
+
+      var context = reactProps[key];
+      if (!context || !(context instanceof Object) || context instanceof String || context instanceof Boolean || context instanceof Number)
+        continue;
+
+      Object.assign(finalContext, context);
+    }
+
+    return finalContext;
   }
 
   _getStyleSheetFromFactory(theme, _styleSheetFactory) {
@@ -290,11 +285,11 @@ export default class ComponentBase {
   }
 
   _forceReactComponentUpdate() {
-    this._reactComponent.setState({});
+    this._raReactComponent.setState({});
   }
 
   _invalidateRenderCache() {
-    this._renderCacheInvalid = true;
+    this._raRenderCacheInvalid = true;
   }
 
   _logger(type, _message) {
@@ -318,17 +313,17 @@ export default class ComponentBase {
 
   _renderInterceptor(renderID) {
     const updateRenderState = (elems, skipMutate) => {
-      this._staleInternalState = Object.assign({}, this._internalState);
-      this._renderCacheInvalid = false;
-      var newElems = this._renderCache = (skipMutate) ? elems : this._postRenderProcessElements(elems);
+      this._raStaleInternalState = Object.assign({}, this._raInternalState);
+      this._raRenderCacheInvalid = false;
+      var newElems = this._raRenderCache = (skipMutate) ? elems : this.postRenderProcessElements(elems);
       return newElems;
     };
 
     if (this._stateUpdatesFrozen)
-      return (this._renderCache !== undefined) ? this._renderCache : null;
+      return (this._raRenderCache !== undefined) ? this._raRenderCache : null;
 
-    if (this._renderCacheInvalid !== true && this._renderCache !== undefined)
-      return this._renderCache;
+    if (this._raRenderCacheInvalid !== true && this._raRenderCache !== undefined)
+      return this._raRenderCache;
 
     var elements = this.render();
     if (elements == null) {
@@ -341,9 +336,9 @@ export default class ComponentBase {
     // Async render
     if (typeof elements.then === 'function' && typeof elements.catch === 'function') {
       elements.then((elems) => {
-        if (renderID !== this._previousRenderID) {
+        if (renderID !== this._raPreviousRenderID) {
           console.warn(`Warning: Discarding render ID = ${renderID}... is your render function taking too long?`);
-          return updateRenderState(this._renderCache, true);
+          return updateRenderState(this._raRenderCache, true);
         }
 
         updateRenderState(elems);
@@ -353,14 +348,14 @@ export default class ComponentBase {
         throw new Error(error);
       });
 
-      return this._renderCache;
+      return this._raRenderCache;
     } else if (elements !== undefined) {
       return updateRenderState(elements);
     }
   }
 
   _setReactComponentState(newState, doneCallback) {
-    return this._reactComponent.setState(newState, doneCallback);
+    return this._raReactComponent.setState(newState, doneCallback);
   }
 
   _resolveState(initial, props, _props) {
@@ -429,28 +424,6 @@ export default class ComponentBase {
     return this._filterProps(filter, this.props, ...args);
   }
 
-  passProps(_props, filter) {
-    var props = _props || this.props,
-        filterIsRE = (filter instanceof RegExp),
-        filterIsFunc = (typeof filter === 'function');
-
-    return this._filterProps((key, value) => {
-      if (key.match(/^(id|ref|key)$/))
-        return false;
-
-      if (filterIsRE) {
-        filter.lastIndex = 0;
-        if (filter.test(key))
-          return false;
-      } else if (filterIsFunc) {
-        if (!filter(key, value))
-          return false;
-      }
-
-      return true;
-    }, props);
-  }
-
   _filterProps() {
     return filterProps.apply(this, arguments);
   }
@@ -479,12 +452,8 @@ export default class ComponentBase {
     return processRenderedElements.apply(this, arguments);
   }
 
-  _postRenderProcessElements(elements, opts) {
-    return this.processElements(elements, opts).elements;
-  }
-
   postRenderProcessElements(elements, opts) {
-    return this.processElements(elements, opts).elements;
+    return elements;
   }
 
   getChildren(children) {
@@ -523,8 +492,8 @@ export default class ComponentBase {
   }
 
   resolveProps(props, prevProps, extraProps) {
-    if (this._resolvedPropsCache && props === this._reactPropsCache)
-      return this._resolvedPropsCache;
+    if (this._raResolvedPropsCache && props === this._raReactPropsCache)
+      return this._raResolvedPropsCache;
 
     var formattedProps = {},
         keys = Object.keys(props),
@@ -540,8 +509,8 @@ export default class ComponentBase {
       formattedProps[key] = value;
     }
 
-    this._resolvedPropsCache = formattedProps;
-    this._reactPropsCache = props;
+    this._raResolvedPropsCache = formattedProps;
+    this._raReactPropsCache = props;
 
     return formattedProps;
   }
@@ -567,15 +536,13 @@ export default class ComponentBase {
   }
 
   getID() {
-    return this.id;
+    return this._raID;
   }
 
   componentDidMount() {
-    this._isMounted = true;
   }
 
   componentWillUnmount() {
-    this._isMounted = true;
   }
 
   getPlatform() {
@@ -587,21 +554,21 @@ export default class ComponentBase {
   }
 
   forceUpdate(...args) {
-    return this._reactComponent.forceUpdate(...args);
+    return this._raReactComponent.forceUpdate(...args);
   }
 
   freezeUpdates() {
-    this._updatesFrozenSemaphore++;
+    this._raUpdatesFrozenSemaphore++;
   }
 
   unfreezeUpdates(doUpdate) {
-    var oldState = this._updatesFrozenSemaphore;
+    var oldState = this._raUpdatesFrozenSemaphore;
     if (oldState <= 0)
       return;
 
-    this._updatesFrozenSemaphore--;
+    this._raUpdatesFrozenSemaphore--;
 
-    if (doUpdate !== false && this._updatesFrozenSemaphore <= 0)
+    if (doUpdate !== false && this._raUpdatesFrozenSemaphore <= 0)
       this.setState({});
   }
 
@@ -618,13 +585,13 @@ export default class ComponentBase {
     // Always keep the internal state up-to-date
     if (newState) {
       if (typeof newState === 'function')
-        newState = newState.call(this, this._internalState);
+        newState = newState.call(this, this._raInternalState);
 
       if (newState) {
         if (typeof this._debugStateUpdates === 'function')
-          this._debugStateUpdates(newState, this._internalState);
+          this._debugStateUpdates(newState, this._raInternalState);
 
-        Object.assign(this._internalState, newState);
+        Object.assign(this._raInternalState, newState);
       }
     }
 
@@ -637,7 +604,7 @@ export default class ComponentBase {
   }
 
   getState(path, defaultValue) {
-    var currentState = this._internalState;
+    var currentState = this._raInternalState;
     if (!arguments.length)
       return currentState;
 
@@ -744,7 +711,7 @@ export default class ComponentBase {
   }
 
   shouldComponentUpdate(newState, oldState) {
-    return (!areObjectsEqualShallow(newState, oldState));
+    return undefined;
   }
 
   render(children) {
@@ -759,7 +726,7 @@ export default class ComponentBase {
   }
 
   mounted() {
-    return this._reactComponent._mounted;
+    return this._raReactComponent._mounted;
   }
 
   getClassNamePrefix() {
@@ -850,7 +817,7 @@ export default class ComponentBase {
   }
 
   setReference(name, ref) {
-    var refs = this._refs;
+    var refs = this._raRefs;
     if (!refs)
       return;
 
@@ -858,7 +825,7 @@ export default class ComponentBase {
   }
 
   getReference(name, cb) {
-    var refs = this._refs;
+    var refs = this._raRefs;
     if (!refs)
       return;
 
@@ -871,7 +838,7 @@ export default class ComponentBase {
   }
 
   retrieveReference(name, transformer) {
-    var hook = this._referenceRetrieveHookCache[name];
+    var hook = this._raReferenceRetrieveHookCache[name];
     if (hook && hook.transformer === transformer)
       return hook.callback;
 
@@ -880,7 +847,7 @@ export default class ComponentBase {
       return (typeof transformer === 'function') ? transformer(_elem) : _elem;
     };
 
-    this._referenceRetrieveHookCache[name] = {
+    this._raReferenceRetrieveHookCache[name] = {
       callback,
       transformer
     };
@@ -889,7 +856,7 @@ export default class ComponentBase {
   }
 
   captureReference(name, transformer) {
-    var hook = this._referenceCaptureHookCache[name];
+    var hook = this._raReferenceCaptureHookCache[name];
     if (hook && hook.transformer === transformer)
       return hook.callback;
 
@@ -898,7 +865,7 @@ export default class ComponentBase {
       this.setReference(name, elem);
     };
 
-    this._referenceCaptureHookCache[name] = {
+    this._raReferenceCaptureHookCache[name] = {
       callback,
       transformer
     };
@@ -907,9 +874,9 @@ export default class ComponentBase {
   }
 
   _getFlags() {
-    var cache = this._compponentFlagsCache;
+    var cache = this._raCompponentFlagsCache;
     if (!cache)
-      cache = this._compponentFlagsCache = this.getFlags();
+      cache = this._raCompponentFlagsCache = this.getFlags();
 
     return cache;
   }

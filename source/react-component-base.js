@@ -1,14 +1,11 @@
 import React                          from 'react';
 import {
   areObjectsEqualShallow,
-  copyPrototypeFuncs
+  copyPrototypeFuncs,
+  RAContext
 }                                     from './utils';
 
-const RAContext = React.createContext({});
-
 export default class ReactComponentBase extends React.Component {
-  static contextType = RAContext;
-
   static proxyComponentInstanceMethod(propName) {
     if (propName in React.Component.prototype)
       return false;
@@ -66,6 +63,12 @@ export default class ReactComponentBase extends React.Component {
         enumerable: false,
         configurable: true,
         value: 0
+      },
+      '_providedContext': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
       }
     });
 
@@ -78,30 +81,58 @@ export default class ReactComponentBase extends React.Component {
   }
 
   shouldComponentUpdate(nextProps, nextState) {
-    // Props have changed... update componentInstance
-    var propsDiffer = !areObjectsEqualShallow(nextProps, this.props),
-        statesDiffer = !areObjectsEqualShallow(nextState, this.state);
+    const handleUpdate = () => {
+      // Props have changed... update componentInstance
+      var propsDiffer = !areObjectsEqualShallow(nextProps, this.props),
+          statesDiffer = !areObjectsEqualShallow(nextState, this.state);
 
-    if (!propsDiffer && !statesDiffer)
-      return false;
+      if (!propsDiffer && !statesDiffer)
+        return false;
 
-    if (propsDiffer)
-      this._updateInstanceProps(nextProps, nextState);
+      if (propsDiffer)
+        this._updateInstanceProps(nextProps, nextState);
 
-    if (statesDiffer)
-      this._stateUpdateCounter++;
+      if (statesDiffer)
+        this._stateUpdateCounter++;
 
-    return true;
+      return true;
+    };
+
+    var shouldUpdate = handleUpdate(),
+        shouldUserUpdate = this._componentInstance.shouldComponentUpdate.apply(this._componentInstance, arguments);
+
+    return (shouldUserUpdate === false || shouldUserUpdate === true) ? shouldUserUpdate : shouldUpdate;
   }
 
   componentDidMount() {
     this._mounted = true;
+    this._componentInstance._raIsMounted = true;
     this._componentInstance._invokeComponentDidMount();
   }
 
   componentWillUnmount() {
-    this._mounted = false;
     this._componentInstance._invokeComponentWillUnmount();
+    this._componentInstance._raIsMounted = false;
+    this._mounted = false;
+  }
+
+  // The context object reference must stay the same or React
+  // will continually re-render the component tree.
+  // So instead of delivering a new object we clear out the same
+  // object and add the new context keys to it
+  _getComponentContext() {
+    var instanceProvidedContext = this._componentInstance.provideContext() || {},
+        providedContext = this._providedContext,
+        keys = Object.keys(providedContext);
+
+    // Clear the context object
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i];
+      delete providedContext[key];
+    }
+
+    Object.assign(providedContext, instanceProvidedContext);
+    return providedContext;
   }
 
   render() {
@@ -111,7 +142,7 @@ export default class ReactComponentBase extends React.Component {
 
       if (typeof this._componentInstance.provideContext === 'function') {
         return (
-          <RAContext.Provider value={this._componentInstance.provideContext()}>
+          <RAContext.Provider value={this._getComponentContext()}>
             {elements}
           </RAContext.Provider>
         );
@@ -123,7 +154,7 @@ export default class ReactComponentBase extends React.Component {
     var renderID = `${this._propUpdateCounter}/${this._stateUpdateCounter}`,
         elems = doRender();
 
-    this._componentInstance._previousRenderID = renderID;
+    this._componentInstance._raPreviousRenderID = renderID;
     this._renderCount++;
 
     return elems;
