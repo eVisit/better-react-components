@@ -60,7 +60,7 @@ export function componentFactory(_name, definer, _options) {
   }
 
   function mergePropTypes(..._types) {
-    var types = _types.filter(Boolean);
+    var types = [].concat(...(_types.filter(Boolean)));
     return PropTypes.mergeTypes(...types);
   }
 

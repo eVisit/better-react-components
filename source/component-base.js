@@ -1,4 +1,5 @@
 
+import React                          from 'react';
 import {
   CONTEXT_PROVIDER_KEY,
   areObjectsEqualShallow,
@@ -972,6 +973,10 @@ export default class ComponentBase {
     }
 
     return true;
+  }
+
+  isValidElement(...args) {
+    return React.isValidElement(...args);
   }
 
   propsDiffer(obj1, obj2) {
