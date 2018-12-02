@@ -168,6 +168,10 @@ export default class ComponentBase {
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
   }
 
+  generateUniqueComponentID(prefix) {
+    return getUniqueComponentID(prefix);
+  }
+
   getComponentID() {
     return this._raID;
   }
@@ -968,6 +972,14 @@ export default class ComponentBase {
     }
 
     return true;
+  }
+
+  propsDiffer(obj1, obj2) {
+    return !areObjectsEqualShallow(obj1, obj2);
+  }
+
+  cloneComponents(...args) {
+    return cloneComponents(...args);
   }
 
   static cloneComponents(...args) {

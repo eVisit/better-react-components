@@ -60,8 +60,23 @@ export function componentFactory(_name, definer, _options) {
   }
 
   function mergePropTypes(..._types) {
-    var types = _types.filter((type) => !!type);
+    var types = _types.filter(Boolean);
     return PropTypes.mergeTypes(...types);
+  }
+
+  function mergeResolvableProps(..._props) {
+    var props = _props.filter(Boolean);
+    return Object.keys(([].concat(...props)).reduce((obj, value) => {
+      obj[value] = true;
+      return obj;
+    }, {}));
+  }
+
+  function getPropTypesFromResolvableProps(resolvableProps) {
+    return resolvableProps.reduce((obj, value) => {
+      obj[value] = PropTypes.func;
+      return obj;
+    }, {});
   }
 
   function wrapReactComponentWithContextProviders(ReactComponentClass) {
@@ -151,9 +166,9 @@ export function componentFactory(_name, definer, _options) {
   var parentComponent = Parent,
       parentReactComponent = getReactComponentClass(Parent);
 
-  var propTypes = mergePropTypes(parentComponent.propTypes, ComponentClass.propTypes),
-      defaultProps = Object.assign({}, (parentComponent.defaultProps || {}), (ComponentClass.defaultProps || {})),
-      _raResolvableProps = ComponentClass._raResolvableProps;
+  var resolvableProps = mergeResolvableProps(parentComponent.resolvableProps, ComponentClass.resolvableProps),
+      propTypes = mergePropTypes(parentComponent.propTypes, ComponentClass.propTypes, getPropTypesFromResolvableProps(resolvableProps)),
+      defaultProps = Object.assign({}, (parentComponent.defaultProps || {}), (ComponentClass.defaultProps || {}));
 
   copyStaticProperties(parentComponent, ComponentClass, null, parentComponent._rebindStaticMethod);
   copyStaticProperties(ComponentClass, ReactComponentClass, (name) => {
@@ -216,7 +231,7 @@ export function componentFactory(_name, definer, _options) {
       writable: true,
       enumerable: false,
       configurable: true,
-      value: _raResolvableProps
+      value: resolvableProps
     },
     '_raMixins': {
       writable: true,

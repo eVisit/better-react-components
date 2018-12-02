@@ -73,7 +73,7 @@ export function areObjectsEqualShallow(props, oldProps) {
     return true;
 
   if (!props || !oldProps)
-    return (props === oldProps);
+    return false;
 
   var keys = Object.keys(props);
   if (keys.length !== Object.keys(oldProps).length)
