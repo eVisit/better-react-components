@@ -1007,9 +1007,16 @@ export default class ComponentBase {
     return getComponentReference(...args);
   }
 
-  static isComponent(value) {
+  static isValidElement(...args) {
+    return React.isValidElement(...args);
+  }
+
+  static isValidComponent(value) {
     if (!value)
       return false;
+
+    if (value instanceof React.Component || value instanceof React.PureComponent || value instanceof ComponentBase)
+      return true;
 
     if (typeof value === 'function')
       return true;

@@ -260,6 +260,8 @@ function buildPalette(opts = {}, _colorHelperFactory) {
         [ h, s ] = color.hsl().color,
         contrastColor = { h: (h + 180) % 360, s: s, l: (relativeLuminance < acceptableContrastRatio) ? 100 : 0, alpha: color.alpha() };
 
+    console.log('Relative luminance: ', getRelativeColorLuminance(color), color);
+
     return contrastColor;
   });
 

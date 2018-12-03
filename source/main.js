@@ -138,7 +138,7 @@ export function componentFactory(_name, definer, _options) {
   if (typeof definer !== 'function')
     throw new TypeError('"definer" callback is required to create a component');
 
-  var options = (ComponentBase.isComponent(_options)) ? { parent: _options } : (_options || {}),
+  var options = (ComponentBase.isValidComponent(_options)) ? { parent: _options } : (_options || {}),
       ReactBaseComponent = getReactComponentClass(options.reactComponentBaseClass),
       Parent = getComponentClass(options.parent || ComponentBase),
       mixins = ([].concat(Parent._raMixins, options.mixins)).filter((mixin) => mixin);
