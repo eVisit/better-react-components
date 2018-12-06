@@ -263,6 +263,18 @@ export function componentFactory(_name, definer, _options) {
       configurable: true,
       value: () => displayName
     },
+    'getParentComponent': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: () => parentComponent
+    },
+    'getFactory': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: () => definer
+    }
   };
 
   Object.defineProperties(ComponentClass, commonStaticProps);
@@ -273,8 +285,16 @@ export function componentFactory(_name, definer, _options) {
   var componentFactoryHook = options.componentFactoryHook || ComponentClass._componentFactoryHook;
   if (typeof componentFactoryHook === 'function') {
     var classes = componentFactoryHook(ComponentClass, ReactComponentClass);
-    ComponentClass = classes.ComponentClass;
-    ReactComponentClass = classes.ReactComponentClass;
+
+    if (ComponentClass !== classes.ComponentClass) {
+      ComponentClass = classes.ComponentClass;
+      Object.defineProperties(ComponentClass, commonStaticProps);
+    }
+
+    if (ReactComponentClass !== classes.ReactComponentClass) {
+      ReactComponentClass = classes.ReactComponentClass;
+      Object.defineProperties(ReactComponentClass, commonStaticProps);
+    }
   }
 
   if (!global._components)
@@ -283,6 +303,29 @@ export function componentFactory(_name, definer, _options) {
   global._components[name] = ReactComponentClass;
 
   return ReactComponentClass;
+}
+
+export function rebaseComponent(component, parentClassSelector) {
+  function rebaseWithParent(component, _parent) {
+    // Get parent (if any) and walk parent tree rebasing each (if requested by the callback)
+    var parent = _parent,
+        parentParent = (parent && parent.getParentComponent());
+
+    if (parentParent)
+      parent = rebaseWithParent(parent, parentParent);
+
+    // Rebase parent class (if callback requests it)
+    parent = parentClassSelector.call(this, parent.getComponentName(), parent, component.getComponentName(), component);
+
+    // Construct component with a new parent
+    return componentFactory({
+      name: component.getComponentInternalName(),
+      displayName: component.getComponentName()
+    }, component.getFactory(), { parent });
+  }
+
+  var newComponent = rebaseWithParent(component, component.getParentComponent());
+  return newComponent;
 }
 
 export {

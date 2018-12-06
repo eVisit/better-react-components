@@ -1052,4 +1052,20 @@ export default class ComponentBase {
   static isValidComponent(value) {
     return isValidComponent(value, ComponentBase);
   }
+
+  static getComponentInternalName() {
+    return 'ComponentBase';
+  }
+
+  static getComponentName() {
+    return 'ComponentBase';
+  }
+
+  static getParentComponent() {
+    return null;
+  }
+
+  static getFactory() {
+    return null;
+  }
 }

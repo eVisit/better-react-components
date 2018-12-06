@@ -149,13 +149,15 @@ export function cloneComponents(children, propsHelper, cloneHelper, recurseHelpe
       if (childProps.children && shouldRecurse())
         childProps.children = cloneComponents.call(this, childProps.children, propsHelper, cloneHelper, recurseHelper, child, context, depth + 1);
 
-      var thisChildren = (childProps.children instanceof Array) ? childProps.children : [childProps.children];
-      return (typeof cloneHelper === 'function') ? cloneHelper.call(this, { child, childProps, index, parent, context, depth, validElement: true, defaultCloneElement: React.cloneElement }) : React.cloneElement(child, childProps, ...thisChildren);
+      var thisChildren = (childProps.children instanceof Array) ? childProps.children : [childProps.children],
+          clonedChild  = (typeof cloneHelper === 'function') ? cloneHelper.call(this, { child, childProps, index, parent, context, depth, validElement: true, defaultCloneElement: React.cloneElement }) : React.cloneElement(child, childProps, ...thisChildren);
+
+      return clonedChild;
     } else if (child instanceof Array && shouldRecurse()) {
       return cloneComponents.call(this, child, propsHelper, cloneHelper, recurseHelper, parent, context, depth + 1);
     }
 
-    return (typeof cloneHelper === 'function') ? cloneHelper.call(this, { child, childProps, index, context, depth, validElement: false, defaultCloneElement: React.cloneElement }) : child;
+    return (typeof cloneHelper === 'function') ? cloneHelper.call(this, { child, childProps: null, index, context, depth, validElement: false, defaultCloneElement: React.cloneElement }) : child;
   };
 
   var depth = _depth || 0,
@@ -210,67 +212,70 @@ export function removeEmpty(array) {
   return (array || []).filter((item) => !U.noe(item));
 }
 
-export function postRenderProcessChildProps({ parent, child, childProps, context, index }) {
-  var newProps = childProps,
-      extraProps = {},
-      reactComponentClass = (child && child.type);
+function getElementLayoutContext({ parent, child, childProps, context }) {
+  var getLayoutContextName = (typeof this._getLayoutContextName === 'function') ? this._getLayoutContextName : (layoutContext) => layoutContext;
+  return (this._filterProps || filterProps).call(this, (key, _value) => {
+    var value = _value;
+    if (key === 'layoutContext') {
+      value = getLayoutContextName.call(this, value);
+      if (!value)
+        return false;
 
-  var getLayoutContextName = (typeof this._getLayoutContextName === 'function') ? this._getLayoutContextName : (layoutContext) => layoutContext,
-      finalProps = (this._filterProps || filterProps).call(this, (key, _value) => {
-        var value = _value;
-        if (key === 'layoutContext') {
-          value = getLayoutContextName.call(this, value);
-          if (!value)
-            return false;
+      var layout = context.layout;
+      if (!layout)
+        layout = context.layout = {};
 
-          var layout = context.layout;
-          if (!layout)
-            layout = context.layout = {};
+      var namedLayout = layout[value];
+      if (!namedLayout)
+        namedLayout = layout[value] = [];
 
-          var namedLayout = layout[value];
-          if (!namedLayout)
-            namedLayout = layout[value] = [];
+      // WIP: Add to layouts for layout engine
+      // needs to be able to fetch a layout
+      // and remove a fetched layout
+      Object.defineProperty(child, 'removeFromCurrentLayout', {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: () => {
+          var props = (parent && parent.props);
 
-          // WIP: Add to layouts for layout engine
-          // needs to be able to fetch a layout
-          // and remove a fetched layout
-          Object.defineProperty(child, 'removeFromCurrentLayout', {
-            writable: true,
-            enumerable: false,
-            configurable: true,
-            value: () => {
-              var props = (parent && parent.props);
+          if (props.children instanceof Array) {
+            var index = props.children.indexOf(child);
+            if (index >= 0)
+              props.children.splice(index, 1);
+          } else if (props.children === child) {
+            props.children = null;
+          }
 
-              if (props.children instanceof Array) {
-                var index = props.children.indexOf(child);
-                if (index >= 0)
-                  props.children.splice(index, 1);
-              } else if (props.children === child) {
-                props.children = null;
-              }
-
-              return child;
-            }
-          });
-
-          namedLayout.push(child);
+          return child;
         }
+      });
 
-        return true;
-      }, newProps, extraProps);
+      namedLayout.push(child);
+    }
 
-  return finalProps;
+    return true;
+  }, childProps);
 }
 
-export function postRenderProcessChild({ child, childProps, validElement, defaultCloneElement }) {
+export function postRenderProcessChildProps({ childProps }) {
+  return childProps;
+}
+
+export function postRenderProcessChild(args) {
+  var { child, childProps, validElement, context, defaultCloneElement } = args;
   if (!validElement)
     return child;
 
   if (!child)
     return child;
 
-  var thisChildren = (childProps.children instanceof Array) ? childProps.children : [childProps.children];
-  return defaultCloneElement(child, childProps, ...thisChildren);
+  var thisChildren = (childProps.children instanceof Array) ? childProps.children : [childProps.children],
+      clonedChild = defaultCloneElement(child, childProps, ...thisChildren);
+
+  getElementLayoutContext(Object.assign({}, args, { child: clonedChild }));
+
+  return clonedChild;
 }
 
 export function postRenderShouldProcessChildren({ child }) {
