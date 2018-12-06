@@ -17,7 +17,8 @@ import {
   postRenderShouldProcessChildren,
   processElements,
   processRenderedElements,
-  getUniqueComponentID
+  getUniqueComponentID,
+  isValidComponent
 }                                     from './utils';
 import { utils as U }                 from 'evisit-js-utils';
 import PropTypes                      from './prop-types';
@@ -33,6 +34,8 @@ const COMPONENT_FLAGS = {
   DRAGGING: 0x20,
   DROPPING: 0x40
 };
+
+const NOOP = () => {};
 
 export default class ComponentBase {
   static getClassNamePrefix() {
@@ -64,12 +67,6 @@ export default class ComponentBase {
         enumerable: false,
         configurable: true,
         value: undefined
-      },
-      '_raReactPropsCache': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: null
       },
       '_raResolvedPropsCache': {
         writable: true,
@@ -125,6 +122,30 @@ export default class ComponentBase {
         configurable: true,
         value: {}
       },
+      '_raPropUpdateCounter': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: 0
+      },
+      '_raStateUpdateCounter': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: 0
+      },
+      '_raReactPropUpdateCounter': {
+        enumerable: false,
+        configurable: true,
+        get: () => this._raReactComponent._propUpdateCounter,
+        set: NOOP
+      },
+      '_raReactStateUpdateCounter': {
+        enumerable: false,
+        configurable: true,
+        get: () => this._raReactComponent._stateUpdateCounter,
+        set: NOOP
+      },
       '_raIsMounted': {
         writable: true,
         enumerable: false,
@@ -160,7 +181,7 @@ export default class ComponentBase {
         enumerable: false,
         configurable: true,
         get: () => this._fetchContext(),
-        set: () => {}
+        set: NOOP
       },
     });
 
@@ -215,7 +236,7 @@ export default class ComponentBase {
       }
     }
 
-    this._invokeResolveState(true, this.props);
+    this._invokeResolveState(false, false, true, this.props);
   }
 
   construct() {
@@ -371,20 +392,31 @@ export default class ComponentBase {
     });
   }
 
-  _invokeResolveState(initial, newProps, ...args) {
-    var oldProps = this.props,
-        props = (initial || (newProps !== oldProps)) ? this.resolveProps(newProps, oldProps) : oldProps;
+  _invokeResolveState(propsUpdated, stateUpdated, initial, newProps, ...args) {
+    const getResolvedProps = () => {
+      if (!initial && !propsUpdated && !stateUpdated)
+        return this._raResolvedPropsCache;
 
-    if (!props)
-      props = {};
+      var formattedProps = this.resolveProps(newProps || {}, oldProps || {});
+      if (!formattedProps)
+        formattedProps = {};
+
+      return formattedProps;
+    };
+
+    var oldProps = this.props,
+        props = getResolvedProps();
 
     var newState = this._resolveState.call(this, initial, props, oldProps, ...args);
-    this.setState(newState);
+    this.setStatePassive(newState);
 
-    if (initial || (newProps !== oldProps)) {
+    if (initial || props !== this._raResolvedPropsCache) {
       this._invokePropUpdates(initial, props, oldProps, ...args);
-      this.props = props;
+      this.props = this._raResolvedPropsCache = props;
+      return true;
     }
+
+    return (propsUpdated || stateUpdated);
   }
 
   _invokePropUpdates(initial, _props, _oldProps) {
@@ -425,12 +457,12 @@ export default class ComponentBase {
     }
   }
 
-  getProps(filter, ...args) {
-    return this._filterProps(filter, this.props, ...args);
+  getProps(...args) {
+    return this.resolveProps(Object.assign({}, this.props, ...(args.filter(Boolean))), this.props);
   }
 
-  _filterProps() {
-    return filterProps.apply(this, arguments);
+  filterProps(filter, ...args) {
+    return filterProps.call(this, filter, this.props, ...args);
   }
 
   _getLayoutContextName(layoutContext) {
@@ -496,13 +528,10 @@ export default class ComponentBase {
     );
   }
 
-  resolveProps(props, prevProps, extraProps) {
-    if (this._raResolvedPropsCache && props === this._raReactPropsCache)
-      return this._raResolvedPropsCache;
-
+  resolveProps(props, prevProps, extraResolvableKeys) {
     var formattedProps = {},
         keys = Object.keys(props),
-        _raResolvableProps = this.getResolvableProps(extraProps);
+        _raResolvableProps = this.getResolvableProps(extraResolvableKeys);
 
     for (var i = 0, il = keys.length; i < il; i++) {
       var key = keys[i],
@@ -513,9 +542,6 @@ export default class ComponentBase {
 
       formattedProps[key] = value;
     }
-
-    this._raResolvedPropsCache = formattedProps;
-    this._raReactPropsCache = props;
 
     return formattedProps;
   }
@@ -529,12 +555,13 @@ export default class ComponentBase {
   }
 
   callProvidedCallback(_names, opts, defaultValue) {
-    var names = (_names instanceof Array) ? _names : [_names];
+    var names = (_names instanceof Array) ? _names : [_names],
+        args = (opts instanceof Array) ? opts : [Object.assign({ ref: this }, opts || {})];
 
     for (var i = 0, il = names.length; i < il; i++) {
       var callback = this.getProvidedCallback(names[i]);
       if (typeof callback === 'function')
-        return callback.call(this, Object.assign({ ref: this }, opts || {}));
+        return callback.apply(this, args);
     }
 
     return defaultValue;
@@ -559,7 +586,8 @@ export default class ComponentBase {
   }
 
   forceUpdate(...args) {
-    return this._raReactComponent.forceUpdate(...args);
+    if (!this.areUpdatesFrozen())
+      this._setReactComponentState(this.getState());
   }
 
   freezeUpdates() {
@@ -584,7 +612,7 @@ export default class ComponentBase {
     return (this._stateUpdatesFrozen > 0);
   }
 
-  setState(_newState, doneCallback) {
+  setStatePassive(_newState, doneCallback) {
     var newState = _newState;
 
     // Always keep the internal state up-to-date
@@ -600,12 +628,18 @@ export default class ComponentBase {
       }
     }
 
-    if (this.areUpdatesFrozen())
-      return;
-
     // Tell render that we want to render again
     this._invalidateRenderCache();
-    this._setReactComponentState(newState, doneCallback);
+
+    return newState;
+  }
+
+  setState(_newState, doneCallback) {
+    var newState = this.setStatePassive(_newState, doneCallback);
+
+    this.forceUpdate();
+
+    return newState;
   }
 
   getState(path, defaultValue) {
@@ -979,6 +1013,10 @@ export default class ComponentBase {
     return React.isValidElement(...args);
   }
 
+  isValidComponent(value) {
+    return isValidComponent(value, ComponentBase);
+  }
+
   propsDiffer(obj1, obj2) {
     return !areObjectsEqualShallow(obj1, obj2);
   }
@@ -1012,21 +1050,6 @@ export default class ComponentBase {
   }
 
   static isValidComponent(value) {
-    if (!value)
-      return false;
-
-    if (value instanceof React.Component || value instanceof React.PureComponent || value instanceof ComponentBase)
-      return true;
-
-    if (typeof value === 'function')
-      return true;
-
-    if (value.hasOwnProperty('$$typeof'))
-      return true;
-
-    if (typeof value.render === 'function')
-      return true;
-
-    return false;
+    return isValidComponent(value, ComponentBase);
   }
 }

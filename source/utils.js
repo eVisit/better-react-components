@@ -310,3 +310,22 @@ export function processRenderedElements(elements, _opts) {
 
   return (this._processElements || processElements).call(this, (opts) ? Object.assign(defaultOpts, opts) : defaultOpts);
 }
+
+export function isValidComponent(value, ComponentBase) {
+  if (!value)
+    return false;
+
+  if (value instanceof React.Component || value instanceof React.PureComponent || value instanceof ComponentBase)
+    return true;
+
+  if (typeof value === 'function')
+    return true;
+
+  if (value.hasOwnProperty('$$typeof'))
+    return true;
+
+  if (typeof value.render === 'function')
+    return true;
+
+  return false;
+}

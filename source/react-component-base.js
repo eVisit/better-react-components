@@ -75,11 +75,6 @@ export default class ReactComponentBase extends React.Component {
     instance._construct();
   }
 
-  _updateInstanceProps(newProps, newState) {
-    this._propUpdateCounter++;
-    this._componentInstance._invokeResolveState(false, newProps, this.props);
-  }
-
   shouldComponentUpdate(nextProps, nextState) {
     const handleUpdate = () => {
       // Props have changed... update componentInstance
@@ -90,12 +85,12 @@ export default class ReactComponentBase extends React.Component {
         return false;
 
       if (propsDiffer)
-        this._updateInstanceProps(nextProps, nextState);
+        this._propUpdateCounter++;
 
       if (statesDiffer)
         this._stateUpdateCounter++;
 
-      return true;
+      return this._componentInstance._invokeResolveState(propsDiffer, statesDiffer, false, nextProps, this.props);
     };
 
     var shouldUpdate = handleUpdate(),
