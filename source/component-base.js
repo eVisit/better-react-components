@@ -667,7 +667,9 @@ export default class ComponentBase {
 
   resolveState() {
     return {
-      _componentFlags: 0x0,
+      ...this.getState({
+        _componentFlags: 0x0
+      })
     };
   }
 

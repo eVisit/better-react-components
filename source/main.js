@@ -34,7 +34,7 @@ function mixinClasses(args) {
 
     copyPrototypeFuncs(arg.prototype, this, (propName, prop, source) => {
       return !source.hasOwnProperty('isReactComponent');
-    });
+    }, false);
   }
 }
 
