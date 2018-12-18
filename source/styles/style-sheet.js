@@ -417,13 +417,16 @@ export class StyleSheetBuilder {
       if (value && value.constructor === Object)
         value = this.sanitizeProps((parentName) ? ([parentName, key].join('.')) : key, value, alreadyVisited);
 
-      if (value && (value instanceof Array || value.constructor === Object) && this.isCurrentPlatform(key, allPlatforms))
+      if (value && (value instanceof Array || value.constructor === Object) && this.isPlatform(key, allPlatforms))
         platformProps[key] = value;
       else
         finalProps[key] = value;
     }
 
     return Object.keys(platformProps).reduce((obj, key) => {
+      if (!this.isCurrentPlatform(key, allPlatforms))
+        return obj;
+
       return Object.assign(obj, platformProps[key]);
     }, finalProps);
   }
