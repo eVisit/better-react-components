@@ -404,19 +404,25 @@ export default class ComponentBase {
       return formattedProps;
     };
 
-    var oldProps = this.props,
-        props = getResolvedProps();
+    try {
+      this.freezeUpdates();
 
-    var newState = this._resolveState.call(this, initial, props, oldProps, ...args);
-    this.setStatePassive(newState);
+      var oldProps = this.props,
+          props = getResolvedProps();
 
-    if (initial || props !== this._raResolvedPropsCache) {
-      this._invokePropUpdates(initial, props, oldProps, ...args);
-      this.props = this._raResolvedPropsCache = props;
-      return true;
+      var newState = this._resolveState.call(this, initial, props, oldProps, ...args);
+      this.setStatePassive(newState);
+
+      if (initial || props !== this._raResolvedPropsCache) {
+        this.props = this._raResolvedPropsCache = props;
+        this._invokePropUpdates(initial, props, oldProps, ...args);
+        return true;
+      }
+
+      return (propsUpdated || stateUpdated);
+    } finally {
+      this.unfreezeUpdates(false);
     }
-
-    return (propsUpdated || stateUpdated);
   }
 
   _invokePropUpdates(initial, _props, _oldProps) {
@@ -434,7 +440,7 @@ export default class ComponentBase {
           value2 = oldProps[key];
 
       if (initial || value1 !== value2) {
-        var updateFunc = this[`onPropUpdate_${key}`];
+        var updateFunc = this[`onPropUpdated_${key}`];
         if (typeof updateFunc === 'function')
           updateFunc.call(this, value1, value2);
       }
