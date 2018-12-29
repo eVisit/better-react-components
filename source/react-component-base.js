@@ -119,12 +119,10 @@ export default class ReactComponentBase extends React.Component {
     var contextProvider = this._componentInstance.provideContext,
         baseContext = this._componentInstance.context,
         providedContext = this._providedContext,
-        instanceProvidedContext = (typeof contextProvider === 'function') ? contextProvider.call(this._componentInstance) : null;
+        instanceProvidedContext = (typeof contextProvider === 'function') ? Object.assign({}, baseContext, contextProvider.call(this._componentInstance) || {}) : null;
 
     if (instanceProvidedContext && !areObjectsEqualShallow(instanceProvidedContext, providedContext))
       this._providedContext = providedContext = Object.assign({}, baseContext, instanceProvidedContext);
-    else if (!areObjectsEqualShallow(baseContext, providedContext, false))
-      this._providedContext = providedContext = Object.assign({}, baseContext, instanceProvidedContext || {});
 
     return providedContext;
   }

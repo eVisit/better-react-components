@@ -380,8 +380,8 @@ export default class ComponentBase {
     }
   }
 
-  _setReactComponentState(newState, doneCallback) {
-    return this._raReactComponent.setState(newState, doneCallback);
+  _setReactComponentState(newState) {
+    return this._raReactComponent.setState(newState);
   }
 
   _resolveState(initial, props, _props) {
@@ -591,7 +591,7 @@ export default class ComponentBase {
     return this.theme || this.context.theme;
   }
 
-  forceUpdate(...args) {
+  forceUpdate() {
     if (!this.areUpdatesFrozen())
       this._raReactComponent.forceUpdate();
   }
@@ -643,7 +643,8 @@ export default class ComponentBase {
   setState(_newState, doneCallback) {
     var newState = this.setStatePassive(_newState, doneCallback);
 
-    this.forceUpdate();
+    if (!this.areUpdatesFrozen())
+      this._setReactComponentState(newState);
 
     return newState;
   }
