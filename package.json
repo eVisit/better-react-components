@@ -52,7 +52,7 @@
     "react": "^16.4.2"
   },
   "dependencies": {
-    "evisit-js-utils": "^0.6.6",
+    "evisit-js-utils": "^0.7.1",
     "color": "^3.0.0"
   },
   "peerDependencies": {

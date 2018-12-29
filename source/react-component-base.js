@@ -116,18 +116,16 @@ export default class ReactComponentBase extends React.Component {
   // So instead of delivering a new object we clear out the same
   // object and add the new context keys to it
   _getComponentContext() {
-    var baseContext = this._componentInstance.context,
-        instanceProvidedContext = this._componentInstance.provideContext() || {},
+    var contextProvider = this._componentInstance.provideContext,
+        baseContext = this._componentInstance.context,
         providedContext = this._providedContext,
-        keys = Object.keys(providedContext);
+        instanceProvidedContext = (typeof contextProvider === 'function') ? contextProvider.call(this._componentInstance) : null;
 
-    // Clear the context object
-    for (var i = 0, il = keys.length; i < il; i++) {
-      var key = keys[i];
-      delete providedContext[key];
-    }
+    if (instanceProvidedContext && !areObjectsEqualShallow(instanceProvidedContext, providedContext))
+      this._providedContext = providedContext = Object.assign({}, baseContext, instanceProvidedContext);
+    else if (!areObjectsEqualShallow(baseContext, providedContext, false))
+      this._providedContext = providedContext = Object.assign({}, baseContext, instanceProvidedContext || {});
 
-    Object.assign(providedContext, baseContext, instanceProvidedContext);
     return providedContext;
   }
 

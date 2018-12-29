@@ -593,7 +593,7 @@ export default class ComponentBase {
 
   forceUpdate(...args) {
     if (!this.areUpdatesFrozen())
-      this._setReactComponentState(this.getState());
+      this._raReactComponent.forceUpdate();
   }
 
   freezeUpdates() {

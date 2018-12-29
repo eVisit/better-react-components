@@ -68,15 +68,17 @@ export function copyPrototypeFuncs(source, target, filterFunc, doBind) {
   }
 }
 
-export function areObjectsEqualShallow(props, oldProps) {
+export function areObjectsEqualShallow(props, oldProps, checkKeyCount) {
   if (props === oldProps)
     return true;
 
   if (!props || !oldProps)
     return false;
 
-  var keys = Object.keys(props);
-  if (keys.length !== Object.keys(oldProps).length)
+  var keys = Object.keys(props),
+      oldKeys = Object.keys(oldProps);
+
+  if (checkKeyCount !== false && keys.length !== oldKeys.length)
     return false;
 
   for (var i = 0, il = keys.length; i < il; i++) {
