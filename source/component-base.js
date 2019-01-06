@@ -74,12 +74,6 @@ export default class ComponentBase {
         configurable: true,
         value: null
       },
-      '_raStaleInternalState': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: {}
-      },
       '_raInternalState': {
         writable: true,
         enumerable: false,
@@ -339,7 +333,6 @@ export default class ComponentBase {
 
   _renderInterceptor(renderID) {
     const updateRenderState = (elems, skipMutate) => {
-      this._raStaleInternalState = Object.assign({}, this._raInternalState);
       this._raRenderCacheInvalid = false;
       var newElems = this._raRenderCache = (skipMutate) ? elems : this.postRenderProcessElements(elems);
       return newElems;
@@ -432,7 +425,7 @@ export default class ComponentBase {
         onPropsUpdated = this.onPropsUpdated;
 
     if (typeof onPropsUpdated === 'function')
-      onPropsUpdated.call(this, initial, props, oldProps);
+      onPropsUpdated.call(this, initial, oldProps, props);
 
     for (var i = 0, il = keys.length; i < il; i++) {
       var key = keys[i],
@@ -630,7 +623,7 @@ export default class ComponentBase {
         if (typeof this._debugStateUpdates === 'function')
           this._debugStateUpdates(newState, this._raInternalState);
 
-        Object.assign(this._raInternalState, newState);
+        this._raInternalState = Object.assign({}, this._raInternalState, newState);
       }
     }
 
