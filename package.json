@@ -1,6 +1,6 @@
 {
   "name": "react-ameliorate",
-  "version": "0.9.1",
+  "version": "0.9.2",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "index.js",
   "scripts": {
