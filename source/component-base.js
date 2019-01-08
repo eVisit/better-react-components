@@ -435,7 +435,7 @@ export default class ComponentBase {
       if (initial || value1 !== value2) {
         var updateFunc = this[`onPropUpdated_${key}`];
         if (typeof updateFunc === 'function')
-          updateFunc.call(this, value1, value2);
+          updateFunc.call(this, value1, value2, initial);
       }
     }
   }
@@ -492,16 +492,20 @@ export default class ComponentBase {
     return elements;
   }
 
-  getChildren(children) {
+  getChildren(_children, asArray) {
     function filterChildren(_children) {
       return ((_children instanceof Array) ? _children : [_children]).filter((child) => (child !== false && child != null));
     }
 
+    var children = _children;
     if (children === undefined)
       return this.props.children;
 
-    if (!(children instanceof Array))
+    if (asArray !== true && !(children instanceof Array))
       return children;
+
+    if (asArray && !(children instanceof Array))
+      children = [children];
 
     return filterChildren(children);
   }
