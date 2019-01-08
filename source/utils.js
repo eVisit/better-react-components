@@ -160,7 +160,7 @@ export function cloneComponents(children, propsHelper, cloneHelper, recurseHelpe
 
       return clonedChild;
     } else if (child instanceof Array && shouldRecurse()) {
-      return cloneComponents.call(this, child, propsHelper, cloneHelper, recurseHelper, getParent, context, depth + 1);
+      return cloneComponents.call(this, child, propsHelper, cloneHelper, recurseHelper, getThisParent, context, depth + 1);
     }
 
     clonedChild = (typeof cloneHelper === 'function') ? cloneHelper.call(this, { child, childProps: null, index, parent: getThisParent, context, depth, validElement: false, defaultCloneElement: React.cloneElement }) : child;
