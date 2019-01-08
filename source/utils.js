@@ -177,32 +177,27 @@ export function cloneComponents(children, propsHelper, cloneHelper, recurseHelpe
   return children.map(cloneChild).filter((c) => (c != null && c !== false));
 }
 
-export function filterProps(filter) {
+export function filterProps(filter, ...args) {
   var newProps = {},
       filterIsRE = (filter instanceof RegExp),
-      filterIsFunc = (typeof filter === 'function');
+      filterIsFunc = (typeof filter === 'function'),
+      tempObj = Object.assign({}, ...(args.filter(Boolean)));
 
-  for (var i = 1, il = arguments.length; i < il; i++) {
-    var arg = arguments[i];
-    if (!arg)
-      continue;
+  var keys = Object.keys(tempObj);
+  for (var j = 0, jl = keys.length; j < jl; j++) {
+    var key = keys[j],
+        value = tempObj[key];
 
-    var keys = Object.keys(arg);
-    for (var j = 0, jl = keys.length; j < jl; j++) {
-      var key = keys[j],
-          value = arg[key];
-
-      if (filterIsRE) {
-        filter.lastIndex = 0;
-        if (filter.test(key))
-          continue;
-      } else if (filterIsFunc) {
-        if (!filter(key, value))
-          continue;
-      }
-
-      newProps[key] = value;
+    if (filterIsRE) {
+      filter.lastIndex = 0;
+      if (filter.test(key))
+        continue;
+    } else if (filterIsFunc) {
+      if (!filter(key, value))
+        continue;
     }
+
+    newProps[key] = value;
   }
 
   return newProps;
