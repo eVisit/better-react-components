@@ -13,7 +13,7 @@ export default class ReactComponentBase extends React.Component {
     if (propName in ReactComponentBase.prototype)
       return false;
 
-    return !(/^(componentWillMount|componentDidMount|componentWillUnmount|componentWillReceiveProps|shouldComponentUpdate|componentWillUpdate|render|componentDidUpdate|componentDidCatch|constructor|construct|getMountState|measure)$/).test(propName);
+    return !(/^(UNSAFE_|componentWillMount$|componentDidMount$|componentWillUnmount$|componentWillReceiveProps$|shouldComponentUpdate$|componentWillUpdate$|render$|componentDidUpdate$|componentDidCatch$|constructor$|construct$|getMountState$|measure$)/).test(propName);
   }
 
   constructor(InstanceClass, props, ...args) {

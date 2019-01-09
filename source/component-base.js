@@ -418,26 +418,35 @@ export default class ComponentBase {
     }
   }
 
-  _invokePropUpdates(initial, _props, _oldProps) {
-    var props = _props || {},
-        oldProps = _oldProps || {},
-        keys = Object.keys(props),
-        onPropsUpdated = this.onPropsUpdated;
+  _invokeStateOrPropKeyUpdates(state, initial, obj, oldObj) {
+    var onUpdateKeys = (state) ? this.constructor._raOnStateUpdateKeys : this.constructor._raOnPropUpdateKeys;
+    if (!onUpdateKeys)
+      return;
 
-    if (typeof onPropsUpdated === 'function')
-      onPropsUpdated.call(this, initial, oldProps, props);
-
-    for (var i = 0, il = keys.length; i < il; i++) {
-      var key = keys[i],
-          value1 = props[key],
-          value2 = oldProps[key];
+    for (var i = 0, il = onUpdateKeys.length; i < il; i++) {
+      var onUpdateKey = onUpdateKeys[i],
+          key = onUpdateKey.name,
+          methodName = onUpdateKey.methodName,
+          value1 = obj[key],
+          value2 = oldObj[key];
 
       if (initial || value1 !== value2) {
-        var updateFunc = this[`onPropUpdated_${key}`];
+        var updateFunc = this[methodName];
         if (typeof updateFunc === 'function')
           updateFunc.call(this, value1, value2, initial);
       }
     }
+  }
+
+  _invokePropUpdates(initial, _props, _oldProps) {
+    var props = _props || {},
+        oldProps = _oldProps || {},
+        onPropsUpdated = this.onPropsUpdated;
+
+    if (typeof onPropsUpdated === 'function')
+      onPropsUpdated.call(this, oldProps, props, initial);
+
+    this._invokeStateOrPropKeyUpdates(false, initial, props, oldProps);
   }
 
   onPropsUpdated() {
@@ -627,7 +636,10 @@ export default class ComponentBase {
         if (typeof this._debugStateUpdates === 'function')
           this._debugStateUpdates(newState, this._raInternalState);
 
-        this._raInternalState = Object.assign({}, this._raInternalState, newState);
+        var oldState = this._raInternalState,
+            currentState = this._raInternalState = Object.assign({}, this._raInternalState, newState);
+
+        this._invokeStateOrPropKeyUpdates(true, false, currentState, oldState);
       }
     }
 

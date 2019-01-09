@@ -8,7 +8,8 @@ import {
   RAContext,
   copyStaticProperties,
   copyPrototypeFuncs,
-  areObjectsEqualShallow
+  areObjectsEqualShallow,
+  getPrototypeKeys
 }                                 from './utils';
 
 export { StyleSheetBuilder }      from './styles/style-sheet';
@@ -36,6 +37,18 @@ function mixinClasses(args) {
       return !source.hasOwnProperty('isReactComponent');
     }, false);
   }
+}
+
+function propCallbackNameToMethodMap(methodNames) {
+  if (!methodNames || !methodNames.length)
+    return null;
+
+  return methodNames.map((name) => {
+    return {
+      name: name.replace(/^(onPropUpdated_|onStateUpdated_)/, ''),
+      methodName: name
+    };
+  });
 }
 
 export function componentFactory(_name, definer, _options) {
@@ -154,6 +167,7 @@ export function componentFactory(_name, definer, _options) {
     debugger;
 
   var ComponentClass = definer(Object.assign({}, options, { Parent, componentName: displayName, componentInternalName: name }));
+
   if (typeof ComponentClass !== 'function')
     throw new TypeError('"definer" callback must return a class or a function');
 
@@ -162,6 +176,13 @@ export function componentFactory(_name, definer, _options) {
       super(ComponentClass, ...args);
     }
   }
+
+  // update keys are calculated from the class prototype
+  // update keys are used later when the props/state are updated to call the
+  // corresponding methods... calculating this up-front is more performant than
+  // iterating every key in the props/state and do a method check on every update
+  var onPropUpdateKeys = propCallbackNameToMethodMap(getPrototypeKeys(ComponentClass, (key) => key.match(/^onPropUpdated_/))),
+      onStateUpdateKeys = propCallbackNameToMethodMap(getPrototypeKeys(ComponentClass, (key) => key.match(/^onStateUpdated_/)));
 
   var parentComponent = Parent,
       parentReactComponent = getReactComponentClass(Parent);
@@ -238,6 +259,18 @@ export function componentFactory(_name, definer, _options) {
       enumerable: false,
       configurable: true,
       value: mixins
+    },
+    '_raOnPropUpdateKeys': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: onPropUpdateKeys
+    },
+    '_raOnStateUpdateKeys': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: onStateUpdateKeys
     },
     'propTypes': {
       writable: true,

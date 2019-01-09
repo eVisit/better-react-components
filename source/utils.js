@@ -40,6 +40,32 @@ export function getComponentReference(componentID) {
   return componentReferenceMap[componentID];
 }
 
+function iteratePrototype(klass, func) {
+  if (!klass)
+    return;
+
+  if (typeof func !== 'function')
+    throw new TypeError('Expected callback function for iteratePrototype method');
+
+  var proto = Object.getPrototypeOf(klass);
+  if (proto)
+    iteratePrototype.call(this, proto, func);
+  else
+    return;
+
+  var objProto = Object.prototype,
+      names = Object.getOwnPropertyNames(klass);
+
+  for (var i = 0, il = names.length; i < il; i++) {
+    var propName = names[i];
+    if (propName.match(/^(constructor|caller|callee|arguments)$/) || objProto.hasOwnProperty(propName))
+      continue;
+
+    var prop = klass[propName];
+    func.call(this, propName, prop);
+  }
+}
+
 export function copyPrototypeFuncs(source, target, filterFunc, doBind) {
   if (!source)
     return;
@@ -336,4 +362,15 @@ export function isValidComponent(value, ComponentBase) {
     return true;
 
   return false;
+}
+
+export function getPrototypeKeys(klass, filterFunc) {
+  var keys = [];
+
+  iteratePrototype.call(this, klass.prototype, (propName, prop) => {
+    if (typeof filterFunc === 'function' && filterFunc(propName, prop))
+      keys.push(propName);
+  });
+
+  return keys;
 }
