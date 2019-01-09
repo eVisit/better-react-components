@@ -26,9 +26,9 @@ import PropTypes                      from './prop-types';
 var logCache = {};
 
 const COMPONENT_FLAGS = {
-  FOCUS:    0x01,
-  HOVER:    0x02,
-  DISABLE:  0x04,
+  FOCUSSED: 0x01,
+  HOVERED:  0x02,
+  DISABLED: 0x04,
   ERROR:    0x08,
   WARNING:  0x10,
   DRAGGING: 0x20,
@@ -943,32 +943,36 @@ export default class ComponentBase {
   }
 
   getComponentFlags(mergeStates) {
-    var currentState = (this.props.hasOwnProperty('componentFlags')) ? this.props.componentFlags : this.getState('_componentFlags', 0),
-        allFlags = this._getFlags();
+    var currentFlags = this.props.componentFlags;
+    if (currentFlags == null)
+      currentFlags = this.getState('_componentFlags', 0);
 
-    Object.keys(mergeStates || {}).forEach((_key) => {
-      var key = _key;
-      if (!key)
-        return;
+    if (arguments.length) {
+      var allFlags = this._getFlags();
+      Object.keys(mergeStates || {}).forEach((_key) => {
+        var key = _key;
+        if (!key)
+          return;
 
-      key = ('' + key).toUpperCase();
-      if (!allFlags.hasOwnProperty(key))
-        return;
+        key = ('' + key).toUpperCase();
+        if (!allFlags.hasOwnProperty(key))
+          return;
 
-      var thisState = allFlags[key],
-          doMerge = mergeStates[_key];
+        var thisState = allFlags[key],
+            doMerge = mergeStates[_key];
 
-      if (doMerge)
-        currentState |= thisState;
-      else
-        currentState = currentState &~ thisState;
-    });
+        if (doMerge)
+          currentFlags |= thisState;
+        else
+          currentFlags = currentFlags &~ thisState;
+      });
+    }
 
-    return currentState;
+    return currentFlags;
   }
 
   getComponentFlagsAsObject() {
-    var currentState = this.getComponentFlags(),
+    var currentFlags = this.getComponentFlags(),
         allFlags = this._getFlags(),
         keys = Object.keys(allFlags),
         states = {};
@@ -977,7 +981,7 @@ export default class ComponentBase {
       var key = keys[i],
           state = allFlags[key];
 
-      states[key.toLowerCase()] = !!(currentState & state);
+      states[key.toLowerCase()] = !!(currentFlags & state);
     }
 
     return states;
@@ -1002,7 +1006,7 @@ export default class ComponentBase {
   }
 
   isComponentFlag(...args) {
-    var currentState = (this.props.hasOwnProperty('componentFlags')) ? this.props.componentFlags : this.getState('_componentFlags', 0),
+    var currentFlags = this.getComponentFlags(),
         allFlags = this._getFlags();
 
     for (var i = 0, il = args.length; i < il; i++) {
@@ -1020,11 +1024,39 @@ export default class ComponentBase {
         arg = allFlags[arg];
       }
 
-      if (!(arg & currentState))
+      if (!(arg & currentFlags))
         return false;
     }
 
     return true;
+  }
+
+  isFlagHovered() {
+    return this.isComponentFlag('hovered');
+  }
+
+  isFlagFocussed() {
+    return this.isComponentFlag('focussed');
+  }
+
+  isFlagDisabled() {
+    return this.isComponentFlag('disabled');
+  }
+
+  isFlagError() {
+    return this.isComponentFlag('error');
+  }
+
+  isFlagWarning() {
+    return this.isComponentFlag('warning');
+  }
+
+  isFlagDragging() {
+    return this.isComponentFlag('dragging');
+  }
+
+  isFlagDropping() {
+    return this.isComponentFlag('dropping');
   }
 
   isValidElement(...args) {
