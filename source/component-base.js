@@ -802,7 +802,7 @@ export default class ComponentBase {
       return true;
     };
 
-    var id = (new Error()).stack,
+    var id = ('' + cb),
         cache = this._raMemoizeCache[id];
 
     if (isCacheValid(cache))
