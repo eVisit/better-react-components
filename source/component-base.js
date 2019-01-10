@@ -50,6 +50,12 @@ export default class ComponentBase {
         configurable: true,
         value: getUniqueComponentID()
       },
+      '_raMemoizeCache': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
+      },
       '_raRenderCacheInvalid': {
         writable: true,
         enumerable: false,
@@ -457,11 +463,23 @@ export default class ComponentBase {
     this.componentDidMount();
   }
 
+  _raCleanup() {
+    removeComponentReference(this);
+
+    // Free references so we don't leak memory
+    this._raReferenceRetrieveHookCache = {};
+    this._raReferenceCaptureHookCache = {};
+    this._raMemoizeCache = {};
+    this._raRenderCache = null;
+    this._raResolvedPropsCache = {};
+    this._raCompponentFlagsCache = {};
+  }
+
   _invokeComponentWillUnmount() {
     try {
       return this.componentWillUnmount();
     } finally {
-      removeComponentReference(this);
+      this._raCleanup();
     }
   }
 
@@ -765,6 +783,35 @@ export default class ComponentBase {
       return;
 
     clearTimeout(this._componentDelayTimers[id]);
+  }
+
+  memoize(cb, ...args) {
+    const isCacheValid = (cache) => {
+      if (!cache)
+        return false;
+
+      var cacheArgs = cache.args;
+      if (cacheArgs.length !== args.length)
+        return false;
+
+      for (var i = 0, il = cacheArgs.length; i < il; i++) {
+        if (cacheArgs[i] !== args[i])
+          return false;
+      }
+
+      return true;
+    };
+
+    var id = (new Error()).stack,
+        cache = this._raMemoizeCache[id];
+
+    if (isCacheValid(cache))
+      return cache.value;
+
+    var value = cb.apply(this, args);
+    this._raMemoizeCache[id] = { args, value };
+
+    return value;
   }
 
   shouldComponentUpdate(newState, oldState) {
