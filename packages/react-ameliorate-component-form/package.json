@@ -2,7 +2,7 @@
   "name": "@react-ameliorate/component-form",
   "version": "0.9.3",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
-  "main": "form.js",
+  "main": "./source/form.js",
   "scripts": {
     "test": "./node_modules/.bin/jest"
   },
@@ -17,7 +17,7 @@
   "bugs": {
     "url": "https://github.com/eVisit/react-ameliorate/issues"
   },
-  "homepage": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-component-form",
+  "homepage": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-component-form#readme",
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.54",
     "@babel/core": "^7.0.0",
