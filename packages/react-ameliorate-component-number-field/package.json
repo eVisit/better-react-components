@@ -1,5 +1,5 @@
 {
-  "name": "@react-ameliorate/react-ameliorate-component-number-field",
+  "name": "@react-ameliorate/component-number-field",
   "version": "0.9.3",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "number-field.js",

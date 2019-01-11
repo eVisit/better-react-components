@@ -1,5 +1,5 @@
 {
-  "name": "@react-ameliorate/react-ameliorate-component-context-provider",
+  "name": "@react-ameliorate/component-context-provider",
   "version": "0.9.3",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "context-provider.js",

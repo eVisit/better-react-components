@@ -1,5 +1,5 @@
 {
-  "name": "@react-ameliorate/react-ameliorate-component-icon",
+  "name": "@react-ameliorate/component-icon",
   "version": "0.9.3",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "icon.js",
