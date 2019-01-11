@@ -41,11 +41,11 @@ function updateAllPackageJSONs() {
 
     var json = require(fullFileName);
     json.repository = `https://github.com/eVisit/react-ameliorate/tree/master/packages/${packageName}`;
-    json.name = `@react-ameliorate/${packageName}`;
-    json.main = packageName.replace(/^(react-ameliorate-component-|react-ameliorate-)/, '') + '.js';
+    json.name = `@react-ameliorate/${packageName.replace(/^react-ameliorate-/, '')}`;
+    json.main = (packageName === 'react-ameliorate-core') ? 'index.js' : packageName.replace(/^(react-ameliorate-component-|react-ameliorate-)/, '') + '.js';
     json.homepage = `https://github.com/eVisit/react-ameliorate/tree/master/packages/${packageName}`;
 
-    //console.log({ repo: json.repository, name: json.name, main: json.main, homepage: json.homepage });
+    // console.log({ repo: json.repository, name: json.name, main: json.main, homepage: json.homepage });
 
     FS.writeFileSync(fullFileName, JSON.stringify(json, undefined, 2));
   }, {
@@ -87,4 +87,5 @@ function copySupportFilesToPackages() {
   });
 }
 
-copySupportFilesToPackages();
+updateAllPackageJSONs();
+//copySupportFilesToPackages();
