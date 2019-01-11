@@ -1,15 +1,12 @@
 {
-  "name": "react-ameliorate",
+  "name": "@react-ameliorate/react-ameliorate-component-button",
   "version": "0.9.3",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
-  "main": "index.js",
+  "main": "button.js",
   "scripts": {
     "test": "./node_modules/.bin/jest"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/eVisit/react-ameliorate.git"
-  },
+  "repository": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-component-button",
   "keywords": [
     "react",
     "jsx",
@@ -20,7 +17,7 @@
   "bugs": {
     "url": "https://github.com/eVisit/react-ameliorate/issues"
   },
-  "homepage": "https://github.com/eVisit/react-ameliorate#readme",
+  "homepage": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-component-button",
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.54",
     "@babel/core": "^7.0.0",
