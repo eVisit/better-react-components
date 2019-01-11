@@ -1,9 +1,7 @@
 import React                            from 'react';
 import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
-import { Text }                         from '../text';
+import { View, Text, TouchableOpacity } from '@react-ameliorate/native-shims';
 import styleSheet                       from './button-styles';
-import { TouchableOpacity }             from '../touchable-opacity';
 import {
   stopEventPropagation,
   getLargestFlag

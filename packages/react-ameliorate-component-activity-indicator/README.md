@@ -1,3 +1,0 @@
-# This project is currently in Alpha and is not ready for prime-time! Check back soon!
-
-Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...

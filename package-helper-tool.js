@@ -87,5 +87,5 @@ function copySupportFilesToPackages() {
   });
 }
 
-updateAllPackageJSONs();
+//updateAllPackageJSONs();
 //copySupportFilesToPackages();

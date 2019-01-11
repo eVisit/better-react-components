@@ -1,7 +1,5 @@
-import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
-import { GenericModal }                 from '../generic-modal';
+import { componentFactory }             from '@base';
+import { GenericModal }                 from '@react-ameliorate/generic-modal';
 import styleSheet                       from './alert-modal-styles';
 
 const AlertModal = componentFactory('AlertModal', ({ Parent, componentName }) => {
