@@ -883,6 +883,10 @@ export default class ComponentBase {
     return removeDuplicateStrings(names.map((name) => `${prefix}${base}${capitalize(name)}`));
   }
 
+  generateStyleNames(theme, name, ...args) {
+    return this.generateNames({ prefix: name }, args).concat(this.generateNames({ prefix: theme, base: name }, args));
+  }
+
   getClassName(_componentName, ...args) {
     var prefix = this.getClassNamePrefix(),
         base = (_componentName) ? _componentName : this.getComponentName();
