@@ -32,10 +32,12 @@ walkFiles(PATH.join(__dirname, 'packages'), (fullFileName, fileName) => {
   var json = require(fullFileName);
   json.repository = `https://github.com/eVisit/react-ameliorate/tree/master/packages/${packageName}`;
   json.name = `@react-ameliorate/${packageName}`;
-  json.main = packageName.replace(/^(react-ameliorate-component-|react-ameliorate-)/, '');
+  json.main = packageName.replace(/^(react-ameliorate-component-|react-ameliorate-)/, '') + '.js';
   json.homepage = `https://github.com/eVisit/react-ameliorate/tree/master/packages/${packageName}`;
 
-  console.log({ repo: json.repository, name: json.name, main: json.main });
+  console.log({ repo: json.repository, name: json.name, main: json.main, homepage: json.homepage });
+
+  FS.writeFileSync(fullFileName, JSON.stringify(json, undefined, 2));
 }, {
   filter: (fullFileName, fileName, stat) => {
     if (stat.isDirectory())
