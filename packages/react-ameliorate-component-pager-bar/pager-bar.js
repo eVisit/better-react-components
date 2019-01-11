@@ -1,13 +1,11 @@
 import React                            from 'react';
 import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
-import { Text }                         from '../text';
-import { TouchableOpacity }             from '../touchable-opacity';
-import { Icon }                         from '../icon';
-import styleSheet                       from './navigation-bar-styles';
+import { View, Text, TouchableOpacity } from '@react-ameliorate/react-native-shims';
+import { Icon }                         from '@react-ameliorate/component-icon';
+import styleSheet                       from './pager-bar-styles';
 
-const NavigationBar = componentFactory('NavigationBar', ({ Parent, componentName }) => {
-  return class NavigationBar extends Parent {
+const PagerBar = componentFactory('PagerBar', ({ Parent, componentName }) => {
+  return class PagerBar extends Parent {
     static styleSheet = styleSheet;
 
     static propTypes = {
@@ -28,14 +26,14 @@ const NavigationBar = componentFactory('NavigationBar', ({ Parent, componentName
 
       return (
         <TouchableOpacity
-          className={this.getRootClassName(componentName, 'navigationBarTab', (active) ? 'navigationBarTabActive' : null)}
+          className={this.getRootClassName(componentName, 'pagerBarTab', (active) ? 'pagerBarTabActive' : null)}
           key={('' + index)}
           onPress={this.onTabPress.bind(this, tab)}
         >
           <View style={this.style('tabContainer', (active) ? 'tabContainerActive' : 'tabContainerNotActive')}>
             {(!!tab.icon) && (
               <View
-                className={this.getRootClassName(componentName, 'navigationBarTabIcon', (active) ? 'navigationBarTabIconActive' : null)}
+                className={this.getRootClassName(componentName, 'pagerBarTabIcon', (active) ? 'pagerBarTabIconActive' : null)}
                 style={this.style('tabIconContainer', (active) ? 'tabIconContainerActive' : 'tabIconContainerNotActive')}
               >
                 <Icon icon={tab.icon} style={this.style('tabIcon', (active) ? 'tabIconActive' : 'tabIconNotActive')}/>
@@ -43,7 +41,7 @@ const NavigationBar = componentFactory('NavigationBar', ({ Parent, componentName
             )}
 
             <View
-              className={this.getRootClassName(componentName, 'navigationBarTabCaption', (active) ? 'navigationBarTabCaptionActive' : null)}
+              className={this.getRootClassName(componentName, 'pagerBarTabCaption', (active) ? 'pagerBarTabCaptionActive' : null)}
               style={this.style('tabCaptionContainer', (active) ? 'tabCaptionContainerActive' : 'tabCaptionContainerNotActive')}
             >
               <Text style={this.style('tabCaption', (active) ? 'tabCaptionActive' : 'tabCaptionNotActive')}>{tab.caption || ''}</Text>
@@ -65,4 +63,4 @@ const NavigationBar = componentFactory('NavigationBar', ({ Parent, componentName
   };
 });
 
-export { NavigationBar };
+export { PagerBar };

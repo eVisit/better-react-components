@@ -1,12 +1,12 @@
 {
-  "name": "@react-ameliorate/react-ameliorate-component-navigator",
+  "name": "@react-ameliorate/react-ameliorate-component-navigation-bar",
   "version": "0.9.3",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
-  "main": "navigator.js",
+  "main": "pager-bar.js",
   "scripts": {
     "test": "./node_modules/.bin/jest"
   },
-  "repository": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-component-navigator",
+  "repository": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-component-navigation-bar",
   "keywords": [
     "react",
     "jsx",
@@ -17,7 +17,7 @@
   "bugs": {
     "url": "https://github.com/eVisit/react-ameliorate/issues"
   },
-  "homepage": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-component-navigator",
+  "homepage": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-component-navigation-bar",
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.54",
     "@babel/core": "^7.0.0",

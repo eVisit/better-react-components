@@ -1,11 +1,11 @@
 import React                            from 'react';
 import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
-import { NavigationBar }                from '../navigation-bar';
-import styleSheet                       from './navigator-styles';
+import { View }                         from '@react-ameliorate/react-native-shims';
+import { NavigationBar }                from '@react-ameliorate/pager-bar';
+import styleSheet                       from './pager-styles';
 
-const Navigator = componentFactory('Navigator', ({ Parent, componentName }) => {
-  return class Navigator extends Parent {
+const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
+  return class Pager extends Parent {
     static styleSheet = styleSheet;
 
     static propTypes = {
@@ -33,14 +33,14 @@ const Navigator = componentFactory('Navigator', ({ Parent, componentName }) => {
       return (
         <View className={this.getRootClassName(componentName)} style={this.style('container')}>
           <NavigationBar
-            className={this.getRootClassName(componentName, 'navigatorTabs')}
+            className={this.getRootClassName(componentName, 'pagerTabs')}
             tabs={this.props.pages}
             tab={this.props.page}
             onTabPress={this.onTabPress}
           />
 
           <View
-            className={this.getRootClassName(componentName, 'navigatorPageContainer')}
+            className={this.getRootClassName(componentName, 'pagerPageContainer')}
             style={this.style('pageContainer')}
           >
             {this.getChildren(children)}
@@ -51,4 +51,4 @@ const Navigator = componentFactory('Navigator', ({ Parent, componentName }) => {
   };
 });
 
-export { Navigator };
+export { Pager };
