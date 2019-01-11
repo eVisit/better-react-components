@@ -87,5 +87,21 @@ function copySupportFilesToPackages() {
   });
 }
 
+function structureHelper() {
+  walkFiles(PATH.join(__dirname, 'packages'), ({ fullFileName, fileName, isDirectory, path }) => {
+    if (!isDirectory)
+      return;
+
+    var finalName = PATH.join(fullFileName, 'source');
+    //console.log('THIS: ', finalName);
+    try {
+      FS.mkdirSync(finalName);
+    } catch (e) {}
+  }, {
+    recurse: false
+  });
+}
+
 //updateAllPackageJSONs();
 //copySupportFilesToPackages();
+structureHelper();
