@@ -229,11 +229,27 @@ export function filterProps(filter, ...args) {
   return newProps;
 }
 
-export function removeDuplicates(array) {
-  return Object.keys((array || {}).reduce((obj, item) => {
-    obj[('' + item)] = true;
-    return obj;
-  }, {}));
+export function removeDuplicateStrings(thisArray) {
+  if (!thisArray || !thisArray.length)
+    return thisArray;
+
+  var keys = {},
+      finalArray = [];
+
+  for (var i = 0, il = thisArray.length; i < il; i++) {
+    var item = thisArray[i];
+    if (item == null)
+      continue;
+
+    item = ('' + item);
+    if (keys.hasOwnProperty(item))
+      continue;
+
+    keys[item] = true;
+    finalArray.push(item);
+  }
+
+  return finalArray;
 }
 
 export function removeEmpty(array) {

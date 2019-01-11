@@ -10,8 +10,7 @@ import {
   addComponentReference,
   removeComponentReference,
   getComponentReference,
-  removeDuplicates,
-  removeEmpty,
+  removeDuplicateStrings,
   postRenderProcessChildProps,
   postRenderProcessChild,
   postRenderShouldProcessChildren,
@@ -840,54 +839,67 @@ export default class ComponentBase {
     return this.constructor.getClassNamePrefix();
   }
 
-  _getClassNamesFromObject(_componentName, obj) {
-    if (!obj)
-      return;
+  /*
+   * prefix = default
+   * name = field
+   * ...args = ['derp', { 'focussed': true, 'hovered': true, 'error': false }]
+   * result: [
+   *  defaultField
+   *  defaultFieldDerp
+   *  defaultFieldFocussed
+   *  defaultFieldHovered
+    ]
+  */
+  generateNames(_opts, ...args) {
+    const flattenArgs = (args) => {
+      return [].concat(...(args.map((name) => {
+        var type = typeof name;
+        if (type === 'boolean' || (type instanceof Boolean))
+          return null;
 
-    if (obj instanceof Array)
-      return this.getClassName(_componentName, ...obj);
+        if (name == null)
+          return;
 
-    var keys = Object.keys(obj);
-    return this.getClassName(_componentName, ...keys.filter((key) => !!obj[key]));
+        if (type === 'number' || (name instanceof Number))
+          return (isFinite(name)) ? ('' + name) : null;
+
+        if (type === 'string' || (name instanceof String))
+          return name;
+
+        // Deal with normal array
+        if (name instanceof Array)
+          return flattenArgs(name);
+
+        // Convert object to array (keys are used as names, filtered by value)
+        return flattenArgs((Object.keys(name).filter((key) => name[key])));
+      }))).filter(Boolean);
+    };
+
+    var opts = ((typeof _opts === 'string') ? { prefix: _opts } : _opts) || {},
+        prefix = opts.prefix || '',
+        base = capitalize(opts.base || ''),
+        names = flattenArgs(args);
+
+    return removeDuplicateStrings(names.map((name) => `${prefix}${base}${capitalize(name)}`));
   }
 
   getClassName(_componentName, ...args) {
-    var classNamesPrefix = this.getClassNamePrefix(),
-        componentName = (_componentName) ? _componentName : capitalize(this.getComponentName()),
-        thisClassName = `${classNamesPrefix}${componentName}`;
+    var prefix = this.getClassNamePrefix(),
+        base = (_componentName) ? _componentName : this.getComponentName();
 
-    var classNames = ([].concat(...args.map((_elem) => {
-      var elem = _elem;
-      if (elem === '')
-        return thisClassName;
-
-      // Filter out bad class names
-      if (U.noe(elem) || elem == null || elem === false)
-        return undefined;
-
-      if (U.instanceOf(elem, 'object', 'array'))
-        return this._getClassNamesFromObject(_componentName, elem);
-
-      if (elem.length >= classNamesPrefix.length && elem.substring(0, classNamesPrefix.length) === classNamesPrefix)
-        return elem;
-
-      return `${classNamesPrefix}${componentName}${capitalize(('' + elem))}`;
-    })));
-
-    if (!args.length)
-      classNames.push(thisClassName);
-
-    return removeDuplicates(removeEmpty(classNames)).join(' ');
+    return this.generateNames({ prefix, base }, ...args).join(' ');
   }
 
-  getRootClassName(componentName, ...args) {
-    var classNames = this.getClassName(componentName, '', ...args);
+  getRootClassName(_componentName, ...args) {
+    var prefix = this.getClassNamePrefix(),
+        base = (_componentName) ? _componentName : this.getComponentName(),
+        classNames = this.generateNames({ prefix, base }, '', ...args);
 
-    var specifiedClassName = this.props['className'];
-    if (!U.noe(specifiedClassName))
-      classNames = removeDuplicates(removeEmpty(([classNames.trim(), specifiedClassName.trim()].join(' ')).split(/\s+/g))).join(' ');
+    var specifiedClassName = this.props.className;
+    if (!specifiedClassName)
+      return classNames.join(' ');
 
-    return classNames;
+    return removeDuplicateStrings(classNames.concat(specifiedClassName.split(/\s+/g)));
   }
 
   style(...args) {
