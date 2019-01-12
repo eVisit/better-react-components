@@ -27,11 +27,11 @@ var logCache = {};
 const COMPONENT_FLAGS = {
   FOCUSSED: 0x01,
   HOVERED:  0x02,
-  DISABLED: 0x04,
-  ERROR:    0x08,
-  WARNING:  0x10,
-  DRAGGING: 0x20,
-  DROPPING: 0x40
+  DRAGGING: 0x04,
+  DROPPING: 0x08,
+  ERROR:    0x10,
+  WARNING:  0x20,
+  DISABLED: 0x40
 };
 
 const NOOP = () => {};
@@ -872,7 +872,7 @@ export default class ComponentBase {
 
         // Convert object to array (keys are used as names, filtered by value)
         return flattenArgs((Object.keys(name).filter((key) => name[key])));
-      }))).filter(Boolean);
+      }))).filter((name) => (name === '' || name));
     };
 
     var opts = ((typeof _opts === 'string') ? { prefix: _opts } : _opts) || {},
@@ -884,7 +884,7 @@ export default class ComponentBase {
   }
 
   generateStyleNames(theme, name, ...args) {
-    return this.generateNames({ prefix: name }, args).concat(this.generateNames({ prefix: theme, base: name }, args));
+    return this.generateNames({ prefix: name }, '', args).concat(this.generateNames({ prefix: theme, base: name }, '', args));
   }
 
   getClassName(_componentName, ...args) {
@@ -1048,6 +1048,14 @@ export default class ComponentBase {
     }
 
     return states;
+  }
+
+  getComponentFlagsAsArray(...extraFlags) {
+    var allFlags = this._getFlags(),
+        flagOrder = Object.keys(allFlags).sort((a, b) => (allFlags[a] - allFlags[b])).map((flag) => flag.toLowerCase()),
+        flags = this.getComponentFlagsAsObject();
+
+    return flagOrder.filter((flag) => flags[flag]).concat([].concat(extraFlags).filter(Boolean));
   }
 
   setComponentFlags(newState) {
