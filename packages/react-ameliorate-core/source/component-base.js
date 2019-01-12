@@ -1146,6 +1146,10 @@ export default class ComponentBase {
     return cloneComponents(...args);
   }
 
+  static getAllComponentFlags() {
+    return COMPONENT_FLAGS;
+  }
+
   static cloneComponents(...args) {
     return cloneComponents(...args);
   }
