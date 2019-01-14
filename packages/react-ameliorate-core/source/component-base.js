@@ -343,7 +343,7 @@ export default class ComponentBase {
       return newElems;
     };
 
-    if (this._stateUpdatesFrozen)
+    if (this._raUpdatesFrozenSemaphore > 0)
       return (this._raRenderCache !== undefined) ? this._raRenderCache : null;
 
     if (this._raRenderCacheInvalid !== true && this._raRenderCache !== undefined)
@@ -392,7 +392,7 @@ export default class ComponentBase {
 
   _invokeResolveState(propsUpdated, stateUpdated, initial, newProps, ...args) {
     const getResolvedProps = () => {
-      if (!initial && !propsUpdated && !stateUpdated)
+      if (this._raResolvedPropsCache && !initial && !propsUpdated && !stateUpdated)
         return this._raResolvedPropsCache;
 
       var formattedProps = this.resolveProps(newProps || {}, oldProps || {});
@@ -409,7 +409,7 @@ export default class ComponentBase {
           props = getResolvedProps();
 
       var newState = this._resolveState.call(this, initial, props, oldProps, ...args);
-      this.setStatePassive(newState);
+      this.setStatePassive(newState, undefined, initial);
 
       if (initial || props !== this._raResolvedPropsCache) {
         this.props = this._raResolvedPropsCache = props;
@@ -423,8 +423,8 @@ export default class ComponentBase {
     }
   }
 
-  _invokeStateOrPropKeyUpdates(state, initial, obj, oldObj) {
-    var onUpdateKeys = (state) ? this.constructor._raOnStateUpdateKeys : this.constructor._raOnPropUpdateKeys;
+  _invokeStateOrPropKeyUpdates(stateUpdate, initial, obj, oldObj) {
+    var onUpdateKeys = (stateUpdate) ? this.constructor._raOnStateUpdateKeys : this.constructor._raOnPropUpdateKeys;
     if (!onUpdateKeys)
       return;
 
@@ -638,10 +638,10 @@ export default class ComponentBase {
     if (!this.mounted())
       return true;
 
-    return (this._stateUpdatesFrozen > 0);
+    return (this._raUpdatesFrozenSemaphore > 0);
   }
 
-  setStatePassive(_newState, doneCallback) {
+  setStatePassive(_newState, doneCallback, initial) {
     var newState = _newState;
 
     // Always keep the internal state up-to-date
@@ -656,7 +656,7 @@ export default class ComponentBase {
         var oldState = this._raInternalState,
             currentState = this._raInternalState = Object.assign({}, this._raInternalState, newState);
 
-        this._invokeStateOrPropKeyUpdates(true, false, currentState, oldState);
+        this._invokeStateOrPropKeyUpdates(true, initial, currentState, oldState);
       }
     }
 
@@ -1038,16 +1038,16 @@ export default class ComponentBase {
     var currentFlags = this.getComponentFlags(),
         allFlags = this._getFlags(),
         keys = Object.keys(allFlags),
-        states = {};
+        flags = {};
 
     for (var i = 0, il = keys.length; i < il; i++) {
       var key = keys[i],
           state = allFlags[key];
 
-      states[key.toLowerCase()] = !!(currentFlags & state);
+      flags[key.toLowerCase()] = !!(currentFlags & state);
     }
 
-    return states;
+    return flags;
   }
 
   getComponentFlagsAsArray(...extraFlags) {
@@ -1071,7 +1071,7 @@ export default class ComponentBase {
       return;
 
     var newState = this.getComponentFlags(stateProps);
-    this.setState({ _componentFlags: newState });
+    this.setComponentFlags(newState);
 
     return newState;
   }
