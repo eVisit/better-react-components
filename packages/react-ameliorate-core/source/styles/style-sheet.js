@@ -206,42 +206,43 @@ export class StyleSheetBuilder {
   }
 
   styleWithHelper(helper, ...args) {
-    function resolveAllStyles(styles, finalStyles) {
+    const resolveAllStyles = (styles, finalStyles) => {
       for (var i = 0, il = styles.length; i < il; i++) {
         var style = styles[i];
 
-        if (!style || typeof style === 'boolean')
+        if (!style || style === true)
           continue;
 
-        if (style instanceof Object && typeof style.valueOf === 'function')
+        if (style && typeof style.valueOf === 'function')
           style = style.valueOf();
 
         if (typeof style === 'string') {
           var styleName = style;
-          style = sheet[style];
+          style = sheet[styleName];
 
           if (typeof helper === 'function')
             style = helper(this, styleName, style, sheet);
         }
 
-        if (!style || typeof style === 'boolean')
+        if (!style || style === true)
           continue;
 
         if (style instanceof Array) {
-          resolveAllStyles.call(this, style, finalStyles);
-        } else if (style) {
-          if (typeof style === 'object')
-            style = this.sanitizeProps(null, style);
-
-          finalStyles.push(style);
+          resolveAllStyles(style, finalStyles);
+          continue;
         }
+
+        if (typeof style === 'object')
+          style = this.sanitizeProps(null, style);
+
+        finalStyles.push(style);
       }
-    }
+    };
 
     var sheet = this.getInternalStyleSheet(),
         mergedStyles = [];
 
-    resolveAllStyles.call(this, args, mergedStyles);
+    resolveAllStyles(args, mergedStyles);
 
     if (mergedStyles.length < 2)
       return mergedStyles[0];

@@ -184,8 +184,9 @@ export default class ComponentBase {
       },
     });
 
-    // Setup the styleSheet getter to build style-sheets when requested
     addComponentReference(this);
+
+    // Setup the styleSheet getter to build style-sheets when requested
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
   }
 
@@ -1025,9 +1026,9 @@ export default class ComponentBase {
             doMerge = mergeStates[_key];
 
         if (doMerge)
-          currentFlags |= thisState;
+          currentFlags = (currentFlags | thisState);
         else
-          currentFlags = currentFlags &~ thisState;
+          currentFlags = (currentFlags & ~thisState);
       });
     }
 
@@ -1053,9 +1054,10 @@ export default class ComponentBase {
   getComponentFlagsAsArray(...extraFlags) {
     var allFlags = this._getFlags(),
         flagOrder = Object.keys(allFlags).sort((a, b) => (allFlags[a] - allFlags[b])).map((flag) => flag.toLowerCase()),
-        flags = this.getComponentFlagsAsObject();
+        flags = this.getComponentFlagsAsObject(),
+        thisExtraFlags = ([].concat(extraFlags)).filter(Boolean);
 
-    return flagOrder.filter((flag) => flags[flag]).concat([].concat(extraFlags).filter(Boolean));
+    return flagOrder.filter((flag) => flags[flag]).concat(thisExtraFlags);
   }
 
   setComponentFlags(newState) {
