@@ -633,11 +633,11 @@ export default class ComponentBase {
         newState = newState.call(this, this._raInternalState);
 
       if (newState) {
-        if (typeof this._debugStateUpdates === 'function')
-          this._debugStateUpdates(newState, this._raInternalState);
-
         var oldState = this._raInternalState,
             currentState = this._raInternalState = Object.assign({}, this._raInternalState, newState);
+
+        if (typeof this._debugStateUpdates === 'function')
+          this._debugStateUpdates(currentState, oldState, newState);
 
         this._invokeStateOrPropKeyUpdates(true, initial, currentState, oldState);
       }
