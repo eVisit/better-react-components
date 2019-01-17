@@ -143,7 +143,7 @@ export default class ComponentBase {
         writable: true,
         enumerable: false,
         configurable: true,
-        value: this.resolveProps(props, {})
+        value: props
       },
       'state': {
         enumerable: false,
@@ -226,7 +226,7 @@ export default class ComponentBase {
   }
 
   _fetchContext() {
-    var reactProps = this._raReactComponent.props,
+    var reactProps = this._raReactProps,
         keys = Object.keys(reactProps),
         contextProviderKeyLength = CONTEXT_PROVIDER_KEY.length,
         finalContext = {};
