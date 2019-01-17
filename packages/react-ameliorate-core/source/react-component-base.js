@@ -90,7 +90,7 @@ export default class ReactComponentBase extends React.Component {
       if (statesDiffer)
         this._stateUpdateCounter++;
 
-      return this._componentInstance._invokeResolveState.call(this._componentInstance, propsDiffer, statesDiffer, false, nextProps, this.props);
+      return this._componentInstance._invokeResolveState.call(this._componentInstance, propsDiffer, statesDiffer, false, nextProps);
     };
 
     var shouldUpdate = handleUpdate(),

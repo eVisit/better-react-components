@@ -85,6 +85,12 @@ export default class ComponentBase {
         configurable: true,
         value: {}
       },
+      '_raReactProps': {
+        enumerable: false,
+        configurable: true,
+        get: () => reactComponent.props,
+        set: NOOP
+      },
       '_raReactComponent': {
         enumerable: false,
         configurable: true,
@@ -121,30 +127,6 @@ export default class ComponentBase {
         configurable: true,
         value: {}
       },
-      '_raPropUpdateCounter': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: 0
-      },
-      '_raStateUpdateCounter': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: 0
-      },
-      '_raReactPropUpdateCounter': {
-        enumerable: false,
-        configurable: true,
-        get: () => this._raReactComponent._propUpdateCounter,
-        set: NOOP
-      },
-      '_raReactStateUpdateCounter': {
-        enumerable: false,
-        configurable: true,
-        get: () => this._raReactComponent._stateUpdateCounter,
-        set: NOOP
-      },
       '_raIsMounted': {
         writable: true,
         enumerable: false,
@@ -161,7 +143,7 @@ export default class ComponentBase {
         writable: true,
         enumerable: false,
         configurable: true,
-        value: props
+        value: this.resolveProps(props, {})
       },
       'state': {
         enumerable: false,
@@ -236,7 +218,7 @@ export default class ComponentBase {
       }
     }
 
-    this._invokeResolveState(false, false, true, this.props);
+    this._invokeResolveState(false, false, true, this._raReactProps);
   }
 
   construct() {
@@ -484,7 +466,7 @@ export default class ComponentBase {
   }
 
   getProps(...args) {
-    return this.resolveProps(Object.assign({}, this.props, ...(args.filter(Boolean))), this.props);
+    return Object.assign({}, this.props, ...(args.filter(Boolean)));
   }
 
   filterProps(filter, ...args) {
