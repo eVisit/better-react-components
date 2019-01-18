@@ -1,6 +1,7 @@
 /* globals __DEV__ */
 
 import { data as D, utils as U }  from 'evisit-js-utils';
+import { filterProps } from '../utils';
 
 var styleSheetID = 1;
 
@@ -433,36 +434,44 @@ export class StyleSheetBuilder {
   }
 
   _expandStyleProps(parentName, props) {
-    var finalProps = Object.assign({}, props || {}),
-        mutators = this._getStylePropMutators(parentName, props, finalProps);
+    var mutators = this._getStylePropMutators(parentName, props),
+        mergeBeforeProps = [],
+        mergeAfterProps = [];
 
     for (var i = 0, il = mutators.length; i < il; i++) {
       var mutator = mutators[i];
       if (typeof mutator !== 'function')
         continue;
 
-      mutator.call(this, props, finalProps);
+      var mutatedProps = mutator.call(this, props);
+      if (mutatedProps) {
+        if (mutatedProps.before)
+          mergeBeforeProps.push(mutatedProps.before);
+
+        if (mutatedProps.after)
+          mergeAfterProps.push(mutatedProps.after);
+      }
     }
 
-    return finalProps;
+    var finalStyle = filterProps((key, value) => (value !== undefined), ...mergeBeforeProps, props, ...mergeAfterProps);
+    return finalStyle;
   }
 
   _getStylePropMutators() {
-    const mutateFourWay = (testKey, props, finalProps) => {
+    const mutateFourWay = (testKey, props) => {
       var value = props[testKey];
-
-      if (finalProps.hasOwnProperty(testKey))
-        delete finalProps[testKey];
-
       if (value == null)
         return;
 
+      var mutatedProps = {};
       for (var i = 0, il = sides.length; i < il; i++) {
         var side = sides[i],
             keyName = (testKey === 'borderWidth') ? `border${side}Width` : `${testKey}${side}`;
 
-        finalProps[keyName] = value;
+        mutatedProps[keyName] = value;
       }
+
+      return { before: mutatedProps, after: { [testKey]: undefined } };
     };
 
     var sides = ['Top', 'Left', 'Right', 'Bottom'];

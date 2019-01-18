@@ -883,10 +883,7 @@ export default class ComponentBase {
         classNames = this.generateNames({ prefix, base }, '', ...args);
 
     var specifiedClassName = this.props.className;
-    if (!specifiedClassName)
-      return classNames.join(' ');
-
-    return removeDuplicateStrings(classNames.concat(specifiedClassName.split(/\s+/g)));
+    return removeDuplicateStrings(classNames.concat((!specifiedClassName) ? [] : specifiedClassName.split(/\s+/g), `${prefix}${capitalize(this.getComponentID())}`)).join(' ');
   }
 
   style(...args) {
