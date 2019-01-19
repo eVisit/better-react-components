@@ -48,7 +48,7 @@
   },
   "dependencies": {
     "evisit-js-utils": "^0.7.1",
-    "color": "^3.0.0"
+    "color": "^3.1.0"
   },
   "peerDependencies": {
     "react": ">=16.3.0",
