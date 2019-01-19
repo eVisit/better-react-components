@@ -193,7 +193,7 @@ export default class ComponentBase {
     if (InstanceClass.propTypes) {
       try {
         PropTypes.checkPropTypes(InstanceClass.propTypes, this.props, 'propType', this.getComponentName(), () => {
-          var propTypes = InstanceClass.PropTypes,
+          var propTypes = InstanceClass.propTypes,
               props = this.props;
 
           var error = new Error();

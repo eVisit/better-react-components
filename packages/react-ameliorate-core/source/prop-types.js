@@ -242,6 +242,9 @@ function factory(isValidElement, throwOnDirectAccess) {
   }
 
   function defaultTypeMerge(propName, currentType, newType) {
+    if (currentType && currentType._context && currentType._context.type === 'any')
+      return currentType;
+
     // Are types exactly the same?
     if (currentType._context && newType._context && currentType._context.type === newType._context.type && newType._context.primitive)
       return newType;

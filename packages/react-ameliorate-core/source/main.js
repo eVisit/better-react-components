@@ -9,7 +9,8 @@ import {
   copyStaticProperties,
   copyPrototypeFuncs,
   areObjectsEqualShallow,
-  getPrototypeKeys
+  getPrototypeKeys,
+  isValidComponent
 }                                 from './utils';
 
 export { StyleSheetBuilder }      from './styles/style-sheet';
@@ -23,7 +24,8 @@ export { Theme, ThemeProperties } from './styles/theme';
 export {
   copyStaticProperties,
   copyPrototypeFuncs,
-  areObjectsEqualShallow
+  areObjectsEqualShallow,
+  isValidComponent
 };
 
 // This needs to be smarter and needs to stack classes intelligently so that super properly works

@@ -365,6 +365,9 @@ export function isValidComponent(value, ComponentBase) {
   if (!value)
     return false;
 
+  if (value._raAmeliorateComponent)
+    return true;
+
   if (value instanceof React.Component || value instanceof React.PureComponent || value instanceof ComponentBase)
     return true;
 
