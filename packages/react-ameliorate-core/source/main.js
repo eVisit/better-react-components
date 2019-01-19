@@ -1,8 +1,3 @@
-import React                    from 'react';
-import ComponentBase            from './component-base';
-import PropTypes                from './prop-types';
-import ReactComponentBase       from './react-component-base';
-
 import {
   CONTEXT_PROVIDER_KEY,
   RAContext,
@@ -11,15 +6,22 @@ import {
   areObjectsEqualShallow,
   getPrototypeKeys,
   isValidComponent
-}                                 from './utils';
+}                                 from '@react-ameliorate/utils';
 
-export { StyleSheetBuilder }      from './styles/style-sheet';
+import PropTypes                  from '@react-ameliorate/prop-types';
+
+import React                      from 'react';
+import ComponentBase              from './component-base';
+import ReactComponentBase         from './react-component-base';
+
 export {
+  StyleSheetBuilder,
   Color,
   buildPalette,
-  Constants
-}                                 from './styles/colors';
-export { Theme, ThemeProperties } from './styles/theme';
+  ColorConstants,
+  Theme,
+  ThemeProperties
+}                                 from '@react-ameliorate/styles';
 
 export {
   copyStaticProperties,

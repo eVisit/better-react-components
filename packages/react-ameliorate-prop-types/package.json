@@ -1,12 +1,12 @@
 {
-  "name": "@react-ameliorate/native-shims",
+  "name": "@react-ameliorate/prop-types",
   "version": "0.9.3",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/jest"
   },
-  "repository": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-native-shims",
+  "repository": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-prop-types",
   "keywords": [
     "react",
     "jsx",
@@ -17,7 +17,7 @@
   "bugs": {
     "url": "https://github.com/eVisit/react-ameliorate/issues"
   },
-  "homepage": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-native-shims#readme",
+  "homepage": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-prop-types#readme",
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.54",
     "@babel/core": "^7.0.0",
@@ -43,17 +43,6 @@
     "eslint-plugin-extra-syntax": "^1.0.0",
     "eslint-plugin-react": "^7.9.1",
     "eslint-plugin-react-native": "^3.2.1",
-    "jest": "^23.5.0",
-    "react": "^16.4.2"
-  },
-  "dependencies": {
-    "evisit-js-utils": "^0.7.1",
-    "@react-ameliorate/styles": "^0.9.3",
-    "@react-ameliorate/utils": "^0.9.3"
-  },
-  "peerDependencies": {
-    "react": ">=16.3.0",
-    "babel-preset-react-ameliorate": ">=0.57.0",
-    "@react-ameliorate/core": "^0.9.3"
+    "jest": "^23.5.0"
   }
 }

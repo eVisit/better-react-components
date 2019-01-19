@@ -423,7 +423,7 @@ function buildPalette(opts = {}, _colorHelperFactory) {
   };
 }
 
-const Constants = {
+const ColorConstants = {
   DEFAULT_PALETTE,
   DEFAULT_MAIN_COLOR,
   DEFAULT_ALT1_SATURATION_RATIO,
@@ -440,5 +440,5 @@ const Constants = {
 export {
   Color,
   buildPalette,
-  Constants
+  ColorConstants
 };

@@ -1,12 +1,15 @@
 //###if(MOBILE) {###//
 export { ActivityIndicator }        from 'react-native';
 //###} else {###//
-import { React, StyleSheetBuilder } from '@base/component-base';
+import React                        from 'react';
+import {
+  Color,
+  StyleSheetBuilder
+}                                   from '@react-ameliorate/styles';
 import {
   insertStyleSheet,
   toNumber
-}                                   from '@base/utils';
-import Color                        from 'color';
+}                                   from '@react-ameliorate/utils';
 
 const SPIN_SPEED = '1.25s',
       SMALL_SIZE = 24,

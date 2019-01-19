@@ -1,5 +1,5 @@
-import { utils as U }       from 'evisit-js-utils';
-import { buildPalette, Color, Constants }  from './colors';
+import { utils as U }                     from 'evisit-js-utils';
+import { buildPalette, Color, ColorConstants } from './colors';
 
 var themeIDCounter = 1;
 
@@ -29,7 +29,7 @@ function getScreenInfo() {
 }
 
 export class ThemeProperties {
-  static Constants = Constants;
+  static ColorConstants = ColorConstants;
   static Color = Color;
 
   buildPalette(...args) {

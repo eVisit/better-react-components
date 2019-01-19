@@ -1,9 +1,10 @@
-import React                          from 'react';
 import {
   areObjectsEqualShallow,
   copyPrototypeFuncs,
   RAContext
-}                                     from './utils';
+}                                     from '@react-ameliorate/utils';
+
+import React                          from 'react';
 
 export default class ReactComponentBase extends React.Component {
   static proxyComponentInstanceMethod(propName) {

@@ -1,7 +1,7 @@
 /* globals __DEV__ */
 
 import { data as D, utils as U }  from 'evisit-js-utils';
-import { filterProps } from '../utils';
+import { filterProps }            from '@react-ameliorate/utils';
 
 var styleSheetID = 1;
 
@@ -74,29 +74,39 @@ export class StyleSheetBuilder {
       resolveStyles = [];
 
     var sheetName = (props.name) ? '' + props.name : styleSheetName(),
-        styleFunction = function(theme, platform) {
-          return new builderClass({ thisSheetID, styleExports, sheetName, theme, platform, factory, mergeStyles, resolveStyles, onUpdate });
+        styleFunction = function(theme, platform, _opts) {
+          var opts = _opts || {},
+              thisBuilderClass = (opts.StyleSheetBuilder) ? opts.StyleSheetBuilder : builderClass;
+
+          return new thisBuilderClass({ thisSheetID, styleExports, sheetName, theme, platform, factory, mergeStyles, resolveStyles, onUpdate });
         };
 
-    Object.defineProperty(styleFunction, '_styleFactory', {
+    Object.defineProperty(styleFunction, '_raStyleFactory', {
       writable: false,
       enumerable: false,
       configurable: false,
       value: true
     });
 
-    Object.defineProperty(styleFunction, '_styleSheetName', {
+    Object.defineProperty(styleFunction, '_raStyleSheetName', {
       writable: false,
       enumerable: false,
       configurable: false,
       value: sheetName
     });
 
-    Object.defineProperty(styleFunction, '_styleSheetID', {
+    Object.defineProperty(styleFunction, '_raStyleSheetID', {
       writable: false,
       enumerable: false,
       configurable: false,
       value: thisSheetID
+    });
+
+    Object.defineProperty(styleFunction, '_raStyleSheetBuilder', {
+      writable: false,
+      enumerable: false,
+      configurable: false,
+      value: builderClass
     });
 
     return styleFunction;

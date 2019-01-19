@@ -1,3 +1,5 @@
+import { utils as U }                 from 'evisit-js-utils';
+import PropTypes                      from '@react-ameliorate/prop-types';
 
 import React                          from 'react';
 import {
@@ -18,9 +20,7 @@ import {
   processRenderedElements,
   getUniqueComponentID,
   isValidComponent
-}                                     from './utils';
-import { utils as U }                 from 'evisit-js-utils';
-import PropTypes                      from './prop-types';
+}                                     from '@react-ameliorate/utils';
 
 var logCache = {};
 
@@ -270,11 +270,14 @@ export default class ComponentBase {
       return;
     }
 
-    var styleID = styleSheetFactory._styleSheetID,
+    var styleID = styleSheetFactory._raStyleSheetID,
         cachedStyle = styleCache[styleID];
 
     if (!cachedStyle) {
-      cachedStyle = styleSheetFactory(theme, theme.platform);
+      cachedStyle = styleSheetFactory(theme, theme.platform, {
+        StyleSheetBuilder: (typeof this['_getStyleSheetBuilderClass'] === 'function') ? this._getStyleSheetBuilderClass(styleSheetFactory._raStyleSheetBuilder) : null
+      });
+
       styleCache[styleID] = cachedStyle;
     }
 
@@ -1125,6 +1128,12 @@ export default class ComponentBase {
 
   cloneComponents(...args) {
     return cloneComponents(...args);
+  }
+
+  getPropAsElement(name) {
+    var element = this.props[name];
+    if (this.isValidElement(element))
+      return element;
   }
 
   static getAllComponentFlags() {
