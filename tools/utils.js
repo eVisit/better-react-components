@@ -87,8 +87,11 @@ function updateAllPackageJSONs() {
     //console.log({ repo: json.repository, name: json.name, main: json.main, homepage: json.homepage });
 
     var newJSONContent = (JSON.stringify(json, undefined, 2) + '\n');
-    showDiff(fullFileName, jsonContent, newJSONContent);
-    //FS.writeFileSync(fullFileName, JSON.stringify(json, undefined, 2));
+
+    //showDiff(fullFileName, jsonContent, newJSONContent);
+
+    if (newJSONContent !== jsonContent)
+      FS.writeFileSync(fullFileName, JSON.stringify(json, undefined, 2));
   }, {
     filter: ({ fileName, isDirectory }) => {
       if (isDirectory)
