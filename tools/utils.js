@@ -1,7 +1,7 @@
-//export * from '@react-ameliorate/core';
-
 const FS = require('fs'),
-      PATH = require('path');
+      PATH = require('path'),
+      colors = require('colors'),
+      jsDiff = require('diff');
 
 function walkFiles(walkPath, cb, _opts) {
   var opts = _opts || {},
@@ -29,7 +29,43 @@ function walkFiles(walkPath, cb, _opts) {
   }
 }
 
+function showDiff(fileName, c1, c2) {
+  jsDiff.createPatch(fileName, c1 || '', c2 || '').replace(/.*/g, function(m) {
+    if (!m)
+      return;
+
+    var c = m.charAt(0),
+        out = m;
+
+    if (c === '-')
+      console.log(out.red);
+    else if (c === '+')
+      console.log(out.green);
+    else
+      console.log(out);
+  });
+}
+
 function updateAllPackageJSONs() {
+  var masterPackageJSON = require(path.resolve(__dirname, '..', 'package.json')),
+      masterVersion = masterPackageJSON.version;
+
+  const updateAllDependencyVersions = (scope, version, json) => {
+    if (!json.hasOwnProperty(scope))
+      return;
+
+    var thisScope = json[scope],
+        keys = Object.keys();
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i];
+      if (!key.match(/^@react-ameliorate\//))
+        continue;
+
+      thisScope[key] = `^${version}`;
+    }
+  };
+
   walkFiles(PATH.join(__dirname, 'packages'), ({ fullFileName, isDirectory, path }) => {
     if (isDirectory)
       return;
@@ -39,20 +75,23 @@ function updateAllPackageJSONs() {
       packageName = p;
     });
 
-    var json = require(fullFileName);
+    var jsonContent = ('' + fs.readFileSync(fullFileName)),
+        json = JSON.parse(jsonContent);
+
     json.repository = `https://github.com/eVisit/react-ameliorate/tree/master/packages/${packageName}`;
     json.name = `@react-ameliorate/${packageName.replace(/^react-ameliorate-/, '')}`;
     json.main = (packageName === 'react-ameliorate-core') ? 'index.js' : `./source/${packageName.replace(/^(react-ameliorate-component-|react-ameliorate-)/, '') + '.js'}`;
     json.homepage = `https://github.com/eVisit/react-ameliorate/tree/master/packages/${packageName}#readme`;
 
+    updateAllDependencyVersions('dependencies', masterVersion, json);
+    updateAllDependencyVersions('peerDependencies', masterVersion, json);
     //console.log({ repo: json.repository, name: json.name, main: json.main, homepage: json.homepage });
 
-    FS.writeFileSync(fullFileName, JSON.stringify(json, undefined, 2));
+    var newJSONContent = JSON.stringify(json, undefined, 2);
+    showDiff(fullFileName, jsonContent, newJSONContent);
+    //FS.writeFileSync(fullFileName, JSON.stringify(json, undefined, 2));
   }, {
     filter: ({ fileName, stat }) => {
-      if (stat.isDirectory())
-        return (!fileName.match(/^(react-ameliorate-native-shims)$/));
-
       return (fileName === 'package.json');
     }
   });
@@ -102,6 +141,8 @@ function structureHelper() {
   });
 }
 
-updateAllPackageJSONs();
-//copySupportFilesToPackages();
-//structureHelper();
+module.exports = {
+  walkFiles,
+  showDiff,
+  updateAllPackageJSONs
+};
