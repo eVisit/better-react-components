@@ -3,5 +3,5 @@ __tests__
 node_modules
 spec
 packages
-mass-helper-tool.js
+tools
 .eslintrc

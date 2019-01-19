@@ -53,8 +53,8 @@
     "react": "^16.4.2"
   },
   "dependencies": {
-    "evisit-js-utils": "^0.7.1",
-    "color": "^3.0.0"
+    "@react-ameliorate/core": "^0.9.4",
+    "@react-ameliorate/native-shims": "^0.9.4"
   },
   "peerDependencies": {
     "react": ">=16.3.0",
