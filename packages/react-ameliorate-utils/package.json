@@ -51,7 +51,8 @@
     "color": "^3.1.0"
   },
   "peerDependencies": {
-    "react": ">=16.3.0",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
     "babel-preset-react-ameliorate": ">=0.57.0"
   }
 }

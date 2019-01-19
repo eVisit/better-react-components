@@ -7,7 +7,7 @@ import {
   areObjectsEqualShallow,
   capitalize,
   cloneComponents,
-  filterProps,
+  filterObjectKeys,
   getComponentReferenceMap,
   addComponentReference,
   removeComponentReference,
@@ -473,7 +473,7 @@ export default class ComponentBase {
   }
 
   filterProps(filter, ...args) {
-    return filterProps.call(this, filter, this.props, ...args);
+    return filterObjectKeys.call(this, filter, this.props, ...args);
   }
 
   _getLayoutContextName(layoutContext) {

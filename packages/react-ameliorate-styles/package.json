@@ -52,7 +52,7 @@
     "@react-ameliorate/utils": "^0.9.4"
   },
   "peerDependencies": {
-    "react": ">=16.3.0",
+    "react": "^16.7.0",
     "babel-preset-react-ameliorate": ">=0.57.0"
   }
 }

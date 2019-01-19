@@ -2,8 +2,8 @@
 export { TextInput }            from 'react-native';
 //###} else {###//
 import React                    from 'react';
-import { StyleSheetBuilder }    from '@react-ameliorate/prop-types';
-import { StyleSheetBuilder }    from '@react-ameliorate/prop-types';
+import { StyleSheetBuilder }    from '@react-ameliorate/styles';
+import PropTypes                from '@react-ameliorate/prop-types';
 import { stopEventPropagation } from '@react-ameliorate/utils';
 
 export class TextInput extends React.Component {

@@ -16,6 +16,7 @@ import ReactComponentBase         from './react-component-base';
 
 export {
   StyleSheetBuilder,
+  PLATFORM,
   Color,
   buildPalette,
   ColorConstants,
@@ -27,7 +28,8 @@ export {
   copyStaticProperties,
   copyPrototypeFuncs,
   areObjectsEqualShallow,
-  isValidComponent
+  isValidComponent,
+  PropTypes
 };
 
 // This needs to be smarter and needs to stack classes intelligently so that super properly works
@@ -366,7 +368,6 @@ export function rebaseComponent(component, parentClassSelector) {
 }
 
 export {
-  PropTypes,
   ComponentBase,
   ReactComponentBase
 };

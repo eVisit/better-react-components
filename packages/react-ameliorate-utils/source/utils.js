@@ -1,6 +1,10 @@
 import React          from 'react';
 import { utils as U } from 'evisit-js-utils';
 
+//###if(!MOBILE) {###//
+import { findDOMNode as reactFindDOMNode } from 'react-dom';
+//###}###//
+
 const componentReferenceMap = {};
 var componentIDCounter = 1;
 
@@ -203,7 +207,7 @@ export function cloneComponents(children, propsHelper, cloneHelper, recurseHelpe
   return children.map(cloneChild).filter((c) => (c != null && c !== false));
 }
 
-export function filterProps(filter, ...args) {
+export function filterObjectKeys(filter, ...args) {
   var newProps = {},
       filterIsRE = (filter instanceof RegExp),
       filterIsFunc = (typeof filter === 'function'),
@@ -258,7 +262,7 @@ export function removeEmpty(array) {
 
 function getElementLayoutContext({ parent, child, childProps, context }) {
   var getLayoutContextName = (typeof this._getLayoutContextName === 'function') ? this._getLayoutContextName : (layoutContext) => layoutContext;
-  return (this._filterProps || filterProps).call(this, (key, _value) => {
+  return (this._filterProps || filterObjectKeys).call(this, (key, _value) => {
     var value = _value;
     if (key === 'layoutContext') {
       value = getLayoutContextName.call(this, value);
@@ -393,3 +397,131 @@ export function getPrototypeKeys(klass, filterFunc) {
 
   return keys;
 }
+
+export function findDOMNode(elem) {
+  if (!elem)
+    return elem;
+
+  //###if(MOBILE) {###//
+  return elem;
+  //###} else {###//
+  return reactFindDOMNode(elem);
+  //###}###//
+}
+
+export function nextTick(callback) {
+  if (typeof process !== 'undefined' && process.nextTick) {
+    return new Promise((resolve) => {
+      process.nextTick(() => {
+        callback();
+        resolve();
+      });
+    });
+  } else {
+    return Promise.resolve().then(callback);
+  }
+}
+
+export function toNumber(value, defaultValue) {
+  if ((typeof value === 'number' || (value instanceof Number))) {
+    if (isFinite(value))
+      return value.valueOf();
+    else
+      return defaultValue;
+  }
+
+  var number = parseFloat(('' + value).replace(/[^\d.-]/g, ''));
+  if (isNaN(number) || !isFinite(number))
+    return defaultValue || 0;
+
+  return number;
+}
+
+export function sendOnLayoutEvent(onLayout, elem) {
+  if (typeof onLayout !== 'function' || !elem)
+    return;
+
+  var cachedRect = this._cachedLayout || {},
+      rect = elem.getBoundingClientRect();
+
+  if (rect.width === cachedRect.width &&
+      rect.height === cachedRect.height &&
+      rect.top === cachedRect.top &&
+      rect.bottom === cachedRect.bottom &&
+      rect.left === cachedRect.left &&
+      rect.right === cachedRect.right)
+    return;
+
+  rect.elem = elem;
+  this._cachedLayout = rect;
+
+  requestAnimationFrame(() => {
+    onLayout({
+      nativeEvent: {
+        layout: rect
+      }
+    });
+  });
+}
+
+export function isElementOrDescendant(elem, target) {
+  if (!elem || !target)
+    return false;
+
+  if (elem === target)
+    return true;
+
+  return elem.contains(target);
+}
+
+export function isDescendantElement(elem, target) {
+  if (!elem || !target)
+    return false;
+
+  if (elem === target)
+    return false;
+
+  return elem.contains(target);
+}
+
+export function preventEventDefault(event) {
+  if (event && typeof event.preventDefault === 'function')
+    return event.preventDefault();
+
+  if (event && event.nativeEvent && typeof event.nativeEvent.preventDefault === 'function')
+    return event.nativeEvent.preventDefault();
+}
+
+export function stopEventPropagation(event) {
+  if (event && typeof event.stopPropagation === 'function')
+    return event.stopPropagation();
+
+  if (event && event.nativeEvent && typeof event.nativeEvent.stopPropagation === 'function')
+    return event.nativeEvent.stopPropagation();
+}
+
+export function stopEventImmediatePropagation(event) {
+  if (event && typeof event.stopImmediatePropagation === 'function')
+    return event.stopImmediatePropagation();
+
+  if (event && event.nativeEvent && typeof event.nativeEvent.stopImmediatePropagation === 'function')
+    return event.nativeEvent.stopImmediatePropagation();
+}
+
+//###if(!MOBILE) {###//
+export function insertStyleSheet(id, content) {
+  var styleElement = document.querySelector(`head > style#${id}`);
+  if (styleElement) {
+    styleElement.innerHTML = content;
+    return;
+  }
+
+  styleElement = document.createElement('style');
+  styleElement.setAttribute('id', id);
+  document.head.appendChild(styleElement);
+
+  styleElement.innerHTML = content;
+}
+//###} else {###//
+export function insertStyleSheet() {}
+//###}###//

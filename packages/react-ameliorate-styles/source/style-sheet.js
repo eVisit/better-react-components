@@ -1,7 +1,14 @@
 /* globals __DEV__ */
 
 import { data as D, utils as U }  from 'evisit-js-utils';
-import { filterProps }            from '@react-ameliorate/utils';
+import { filterObjectKeys }       from '@react-ameliorate/utils';
+
+//###if(MOBILE) {###//
+import { StyleSheet, Platform }   from 'react-native';
+const PLATFORM = Platform.OS;
+//###} else {###//
+const PLATFORM = 'browser';
+//###}###//
 
 var styleSheetID = 1;
 
@@ -20,6 +27,8 @@ const transformAxis = [
   'skewY',
   'perspective'
 ];
+
+var singletonStyleSheetBuilder;
 
 export class StyleSheetBuilder {
   constructor({ thisSheetID, styleExports, sheetName, theme, platform, factory, mergeStyles, resolveStyles, onUpdate }) {
@@ -113,7 +122,11 @@ export class StyleSheetBuilder {
   }
 
   createInternalStyleSheet(styleObj) {
+    //###if(MOBILE) {###//
+    return StyleSheet.create(super.createInternalStyleSheet(styleObj));
+    //###} else {###//
     return Object.assign({}, (styleObj || {}));
+    //###}###//
   }
 
   buildCSSFromStyle(style, selector) {
@@ -463,7 +476,7 @@ export class StyleSheetBuilder {
       }
     }
 
-    var finalStyle = filterProps((key, value) => (value !== undefined), ...mergeBeforeProps, props, ...mergeAfterProps);
+    var finalStyle = filterObjectKeys((key, value) => (value !== undefined), ...mergeBeforeProps, props, ...mergeAfterProps);
     return finalStyle;
   }
 
@@ -507,7 +520,7 @@ export class StyleSheetBuilder {
     return this._expandStyleProps(parentName, finalStyle);
   }
 
-  flattenInternalStyleSheet(style, _finalStyle) {
+  _flattenInternalStyleSheet(style, _finalStyle) {
     var finalStyle = _finalStyle || {};
     if (!(style instanceof Array))
       return Object.assign(finalStyle, (style || {}));
@@ -518,7 +531,7 @@ export class StyleSheetBuilder {
         continue;
 
       if (thisStyle instanceof Array)
-        finalStyle = this.flattenInternalStyleSheet(thisStyle, finalStyle);
+        finalStyle = this._flattenInternalStyleSheet(thisStyle, finalStyle);
       else
         finalStyle = Object.assign(finalStyle, (thisStyle || {}));
     }
@@ -529,7 +542,38 @@ export class StyleSheetBuilder {
     return finalStyle;
   }
 
+  flattenInternalStyleSheet(...args) {
+    //###if(MOBILE) {###//
+    return StyleSheet.flatten(...args);
+    //###} else {###//
+    return this._flattenInternalStyleSheet(args, {});
+    //###}###//
+  }
+
+  static flattenInternalStyleSheet() {
+    if (!singletonStyleSheetBuilder)
+      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, PLATFORM);
+
+    return singletonStyleSheetBuilder.flattenInternalStyleSheet.apply(singletonStyleSheetBuilder, arguments);
+  }
+
+  static getCSSRuleName(...args) {
+    if (!singletonStyleSheetBuilder)
+      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, PLATFORM);
+
+    return singletonStyleSheetBuilder.getCSSRuleName.apply(singletonStyleSheetBuilder, arguments);
+  }
+
+  static getCSSRuleValue(...args) {
+    if (!singletonStyleSheetBuilder)
+      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, PLATFORM);
+
+    return singletonStyleSheetBuilder.getCSSRuleValue.apply(singletonStyleSheetBuilder, arguments);
+  }
+
   static getTransformAxis() {
     return transformAxis;
   }
 }
+
+export { PLATFORM };

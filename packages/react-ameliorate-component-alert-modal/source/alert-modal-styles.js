@@ -1,5 +1,5 @@
 import { createStyleSheet }       from '@base';
-import genericModalStyles         from '../generic-modal/generic-modal-styles';
+import genericModalStyles         from '@react-ameliorate/component-generic-modal/generic-modal-styles';
 
 export default createStyleSheet(function(theme) {
   return {
