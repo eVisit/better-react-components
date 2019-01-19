@@ -1,7 +1,7 @@
 //###if(MOBILE) {###//
 export { ScrollView } from 'react-native';
 //###} else {###//
-import { View }       from '../view';
+import { View }       from './view';
 
 export class ScrollView extends View {
   getProps(providedProps) {

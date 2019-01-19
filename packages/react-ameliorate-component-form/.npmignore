@@ -1,6 +1,0 @@
-__tests__
-.vscode
-node_modules
-spec
-packages
-mass-helper-tool.js

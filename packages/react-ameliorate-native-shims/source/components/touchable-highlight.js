@@ -1,2 +1,11 @@
-// This is just a common import stub for the shim
-export { TouchableHighlight } from '@base';
+//###if(MOBILE) {###//
+export { TouchableHighlight } from 'react-native';
+//###} else {###//
+import Touchable              from './touchable';
+
+export class TouchableHighlight extends Touchable {
+  render(...args) {
+    return super.render(...args);
+  }
+}
+//###}###//
