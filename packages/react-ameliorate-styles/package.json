@@ -49,11 +49,11 @@
   "dependencies": {
     "evisit-js-utils": "^0.7.1",
     "color": "^3.1.0",
-    "@react-ameliorate/utils": "^0.9.5"
+    "@react-ameliorate/utils": "^0.9.6"
   },
   "peerDependencies": {
     "react": "^16.7.0",
     "babel-preset-react-ameliorate": ">=0.57.0",
-    "@react-ameliorate/utils": "^0.9.5"
+    "@react-ameliorate/utils": "^0.9.6"
   }
 }
