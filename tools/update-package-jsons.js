@@ -38,10 +38,10 @@ function updateAllPackageJSONs() {
 
     var newJSONContent = (JSON.stringify(json, undefined, 2) + '\n');
 
-    showDiff(fullFileName, jsonContent, newJSONContent);
+    //showDiff(fullFileName, jsonContent, newJSONContent);
 
-    // if (newJSONContent !== jsonContent)
-    //   FS.writeFileSync(packageJSONFileName, JSON.stringify(json, undefined, 2));
+    if (newJSONContent !== jsonContent)
+      FS.writeFileSync(packageJSONFileName, JSON.stringify(json, undefined, 2));
   }, {
     recurse: false,
     filter: ({ isDirectory }) => isDirectory
