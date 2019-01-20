@@ -1,6 +1,7 @@
 const FS = require('fs'),
       PATH = require('path'),
-      { walkFiles, showDiff } = require('./utils');
+      { walkFiles, showDiff } = require('./utils'),
+      { execSync } = require('child_process');
 
 function updateAllPackageJSONs() {
   var masterPackageJSON = require(PATH.resolve(__dirname, '..', 'package.json')),
@@ -45,6 +46,10 @@ function updateAllPackageJSONs() {
   }, {
     recurse: false,
     filter: ({ isDirectory }) => isDirectory
+  });
+
+  execSync(`git commit -am "Update to version v${masterPackageJSON}"`, {
+    cwd: PATH.resolve(__dirname, '..')
   });
 }
 
