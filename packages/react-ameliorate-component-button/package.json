@@ -48,7 +48,8 @@
   },
   "dependencies": {
     "evisit-js-utils": "^0.7.1",
-    "color": "^3.1.0"
+    "color": "^3.1.0",
+    "@react-ameliorate/mixin-hoverable": "0.9.4"
   },
   "peerDependencies": {
     "react": "^16.7.0",
