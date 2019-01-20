@@ -22,16 +22,10 @@ function updateAllPackageJSONs() {
     }
   };
 
-  walkFiles(PATH.resolve(__dirname, '..', 'packages'), ({ fullFileName, isDirectory, path }) => {
-    if (isDirectory)
-      return;
-
-    var packageName;
-    fullFileName.replace(/\/packages\/([^\/]+)\//, (m, p) => {
-      packageName = p;
-    });
-
-    var jsonContent = ('' + FS.readFileSync(fullFileName)),
+  walkFiles(PATH.resolve(__dirname, '..', 'packages'), ({ fullFileName, fileName, isDirectory, path }) => {
+    var packageName = fileName,
+        packageJSONFileName = PATH.join(fullFileName, 'package.json'),
+        jsonContent = ('' + FS.readFileSync(packageJSONFileName)),
         json = JSON.parse(jsonContent);
 
     json.repository = `https://github.com/eVisit/react-ameliorate/tree/master/packages/${packageName}`;
@@ -44,17 +38,13 @@ function updateAllPackageJSONs() {
 
     var newJSONContent = (JSON.stringify(json, undefined, 2) + '\n');
 
-    //showDiff(fullFileName, jsonContent, newJSONContent);
+    showDiff(fullFileName, jsonContent, newJSONContent);
 
-    if (newJSONContent !== jsonContent)
-      FS.writeFileSync(fullFileName, JSON.stringify(json, undefined, 2));
+    // if (newJSONContent !== jsonContent)
+    //   FS.writeFileSync(packageJSONFileName, JSON.stringify(json, undefined, 2));
   }, {
-    filter: ({ fileName, isDirectory }) => {
-      if (isDirectory)
-        return true;
-
-      return (fileName === 'package.json');
-    }
+    recurse: false,
+    filter: ({ isDirectory }) => isDirectory
   });
 }
 
