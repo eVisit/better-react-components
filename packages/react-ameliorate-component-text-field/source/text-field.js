@@ -2,7 +2,7 @@ import { utils as U }                   from 'evisit-js-utils';
 import React                            from 'react';
 import { componentFactory, PropTypes }  from '@react-ameliorate/core';
 import { View, TextInput }              from '@react-ameliorate/native-shims';
-import { Field }                        from '@react-ameliorate/field';
+import { Field }                        from '@react-ameliorate/component-field';
 import styleSheet                       from './text-field-styles';
 
 export const TextField = componentFactory('TextField', ({ Parent, componentName }) => {

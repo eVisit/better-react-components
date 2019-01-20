@@ -6,7 +6,7 @@ import { TransitionGroup }        from '@react-ameliorate/component-transition-g
 import {
   findDOMNode,
   isDescendantElement
-}                                 from '@react-ameliorate/base/utils';
+}                                 from '@react-ameliorate/utils';
 import styleSheet                 from './overlay-styles';
 
 const SIDE_VALUES = {

@@ -522,6 +522,17 @@ export default class ComponentBase {
     return filterChildren(children);
   }
 
+  getValidChildrenAsArray(_children) {
+    var children = this.getChildren(_children);
+
+    if (!(children instanceof Array))
+      children = [children];
+
+    children = children.filter(Boolean);
+
+    return children;
+  }
+
   getResolvableProps(...args) {
     function convertArrayToObj(_props) {
       var props = _props;

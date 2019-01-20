@@ -20,9 +20,22 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
       return this.iconDefaultFontFamily || this.context.iconDefaultFontFamily;
     }
 
-    getIconGlyph() {
+    getIconGlyphInfo() {
+      const getIconGlyph = (glyphMap) => {
+        var icons = ('' + this.props.icon).split(/\s*\|\s*/g);
+        for (var i = 0, il = icons.length; i < il; i++) {
+          var icon = icons[i],
+              glyph = glyphMap[icon];
+
+          if (glyph)
+            return glyph;
+        }
+
+        return null;
+      };
+
       var iconGlyphMap = this.getGlyphMap(),
-          rawStyle = this.rawStyle(this.props.style),
+          rawStyle = this.rawStyle('icon', this.props.style),
           fontFamily = (rawStyle && rawStyle.fontFamily);
 
       if (!fontFamily)
@@ -35,22 +48,16 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
       if (!glyphMap)
         throw new TypeError(`Attempted to use Icon component, but found no defined glyph map for fontFamily "${fontFamily}" (missing "iconGlyphMap" on context?)`);
 
-      var icons = ('' + this.props.icon).split(/\s*\|\s*/g);
-      for (var i = 0, il = icons.length; i < il; i++) {
-        var icon = icons[i],
-            glyph = glyphMap[icon];
-
-        if (glyph)
-          return glyph;
-      }
+      var glyph = getIconGlyph(glyphMap);
+      return { fontFamily, glyph };
     }
 
     render() {
-      var glyph = this.getIconGlyph();
+      var glyphInfo = this.getIconGlyphInfo();
 
       return (
         <View className={this.getRootClassName(componentName)} style={this.style('container', this.props.containerStyle)}>
-          <Text style={this.style('icon', this.props.style)} numberOfLines={1}>{glyph}</Text>
+          <Text style={this.style('icon', this.props.style, { fontFamily: glyphInfo.fontFamily })} numberOfLines={1}>{glyphInfo.glyph}</Text>
         </View>
       );
     }
