@@ -5,7 +5,7 @@ import {
   stopEventPropagation,
   getLargestFlag
 }                                       from '@react-ameliorate/utils';
-import { Hoverable }                    from '@mixins/hoverable';
+import { Hoverable }                    from '@react-ameliorate/mixin-hoverable';
 import styleSheet                       from './button-styles';
 
 export const Button = componentFactory('Button', ({ Parent, componentName }) => {
