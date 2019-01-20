@@ -1,7 +1,8 @@
 const FS = require('fs'),
       PATH = require('path'),
       colors = require('colors'),
-      jsDiff = require('diff');
+      jsDiff = require('diff'),
+      { execSync } = require('child_process');
 
 function walkFiles(walkPath, cb, _opts) {
   var opts = _opts || {},
@@ -78,19 +79,30 @@ function copySupportFilesToPackages() {
 }
 
 function structureHelper() {
-  walkFiles(PATH.join(__dirname, 'packages'), ({ fullFileName, fileName, isDirectory, path }) => {
+  var targetPath = PATH.resolve(__dirname, '..', '..', 'source-project', 'client', 'source', 'components');
+
+  walkFiles(PATH.resolve(__dirname, '..', 'packages'), ({ fullFileName, fileName, isDirectory, path }) => {
     if (!isDirectory)
       return;
 
-    var finalName = PATH.join(fullFileName, 'source');
-    //console.log('THIS: ', finalName);
-    try {
-      FS.mkdirSync(finalName);
-    } catch (e) {}
+    if (!fileName.match(/component/))
+      return;
+
+    var name = fileName.replace(/^react-ameliorate-component-/, ''),
+        targetComponentPath = PATH.join(targetPath, name),
+        sourceComponentPath = PATH.join(fullFileName, 'source');
+
+    if (!FS.existsSync(targetComponentPath))
+      return;
+
+    execSync(`cp ${PATH.join(targetComponentPath, `${name}.js`)} ${PATH.join(sourceComponentPath, `${name}.js`)}`);
+    execSync(`cp ${PATH.join(targetComponentPath, `${name}-styles.js`)} ${PATH.join(sourceComponentPath, `${name}-styles.js`)}`);
   }, {
     recurse: false
   });
 }
+
+// structureHelper();
 
 module.exports = {
   walkFiles,

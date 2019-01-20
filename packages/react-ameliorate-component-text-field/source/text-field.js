@@ -1,17 +1,15 @@
 import { utils as U }                   from 'evisit-js-utils';
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
-import { TextInput }                    from '../text-input';
-import { Field }                        from '../field';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { View, TextInput }              from '@react-ameliorate/native-shims';
+import { Field }                        from '@react-ameliorate/field';
 import styleSheet                       from './text-field-styles';
 
-const TextField = componentFactory('TextField', ({ Parent, componentName }) => {
+export const TextField = componentFactory('TextField', ({ Parent, componentName }) => {
   return class TextField extends Parent {
     static styleSheet = styleSheet;
 
     static propTypes = {
-      style: PropTypes.any,
       type: PropTypes.string,
       labelStyle: PropTypes.any
     }
@@ -20,8 +18,8 @@ const TextField = componentFactory('TextField', ({ Parent, componentName }) => {
       type: 'text'
     };
 
-    resolveProps(props, prevProps, extraProps) {
-      var props = super.resolveProps(props, prevProps, extraProps),
+    resolveProps() {
+      var props = super.resolveProps.apply(this, arguments),
           labelPosition = props.labelPosition;
 
       if (!labelPosition)
@@ -127,4 +125,4 @@ const TextField = componentFactory('TextField', ({ Parent, componentName }) => {
   };
 }, Field);
 
-export { TextField };
+export { styleSheet as textFieldStyles };

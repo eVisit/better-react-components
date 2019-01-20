@@ -1,16 +1,15 @@
 import { utils as U, validators }       from 'evisit-js-utils';
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
-import styleSheet                       from './field-styles';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { View }                         from '@react-ameliorate/native-shims';
 import { Hoverable }                    from '@mixins/hoverable';
+import styleSheet                       from './field-styles';
 
-const Field = componentFactory('Field', ({ Parent, componentName }) => {
+export const Field = componentFactory('Field', ({ Parent, componentName }) => {
   return class Field extends Parent {
     static styleSheet = styleSheet;
 
     static propTypes = {
-      style: PropTypes.any,
       defaultValue: PropTypes.any,
       value: PropTypes.any,
       field: PropTypes.string,
@@ -95,8 +94,8 @@ const Field = componentFactory('Field', ({ Parent, componentName }) => {
       return super.getResolvableProps({ value: true, field: true, caption: true }, ...args);
     }
 
-    resolveProps(props, prevProps, extraProps) {
-      var props = super.resolveProps(props, prevProps, extraProps);
+    resolveProps() {
+      var props = super.resolveProps.apply(this, arguments);
       if (props.field == null)
         props.field = ('' + props.caption).replace(/\W+/g, '_').toLowerCase();
 
@@ -171,7 +170,7 @@ const Field = componentFactory('Field', ({ Parent, componentName }) => {
 
     onFocus({ event }) {
       this.setCurrentlyFocussedField(this);
-      this.setComponentFlagsFromObject({ focus: true });
+      this.setComponentFlagsFromObject({ focussed: true });
 
       // Run formatters
       this.value(this.value());
@@ -183,7 +182,7 @@ const Field = componentFactory('Field', ({ Parent, componentName }) => {
       if (this.getCurrentlyFocussedField() === this)
         this.setCurrentlyFocussedField(null);
 
-      this.setComponentFlagsFromObject({ focus: false });
+      this.setComponentFlagsFromObject({ focussed: false });
 
       // Run formatters
       this.value(this.value());
@@ -488,4 +487,4 @@ const Field = componentFactory('Field', ({ Parent, componentName }) => {
   };
 }, { mixins: [ Hoverable ] });
 
-export { Field };
+export { styleSheet as fieldStyles };

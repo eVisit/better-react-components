@@ -1,11 +1,11 @@
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { capitalize }                   from '@base/utils';
-import { View }                         from '../view';
-import { Paper }                        from '../paper';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { View }                         from '@react-ameliorate/native-shims';
+import { Paper }                        from '@react-ameliorate/component-paper';
+import { capitalize }                   from '@react-ameliorate/utils';
 import styleSheet                       from './popup-styles';
 
-const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
+export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
   return class Popup extends Parent {
     static styleSheet = styleSheet;
     static propTypes = Paper.propTypes;
@@ -62,4 +62,4 @@ const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
   };
 });
 
-export { Popup };
+export { styleSheet as popupStyles };

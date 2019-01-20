@@ -1,4 +1,4 @@
-import { createStyleSheet } from '@base';
+import { createStyleSheet } from '@react-ameliorate/styles';
 
 export default createStyleSheet(function(theme) {
   const MODAL_BUTTON_SPACING = Math.round(theme.DEFAULT_PADDING * 0.5);

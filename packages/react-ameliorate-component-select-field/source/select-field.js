@@ -1,21 +1,23 @@
 import { utils as U }                   from 'evisit-js-utils';
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
-import { Text }                         from '../text';
-import { Field }                        from '../field';
-import { TextField }                    from '../text-field';
-import { TouchableOpacity }             from '../touchable-opacity';
-import { ActivityIndicator }            from '../activity-indicator';
-import { Icon }                         from '../icon';
-import { Paper }                        from '../paper';
-import styleSheet                       from './select-field-styles';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import {
+  ActivityIndicator,
+  View,
+  Text,
+  TouchableOpacity
+}                                       from '@react-ameliorate/native-shims';
+import { Field }                        from '@react-ameliorate/component-field';
+import { TextField }                    from '@react-ameliorate/component-text-field';
+import { Icon }                         from '@react-ameliorate/component-icon';
+import { Paper }                        from '@react-ameliorate/component-paper';
 import {
   stopEventPropagation,
   preventEventDefault
-}                                       from '@base/utils';
+}                                       from '@react-ameliorate/utils';
+import styleSheet                       from './select-field-styles';
 
-const SelectField = componentFactory('SelectField', ({ Parent, componentName }) => {
+export const SelectField = componentFactory('SelectField', ({ Parent, componentName }) => {
   return class SelectField extends Parent {
     static styleSheet = styleSheet;
 
@@ -316,4 +318,4 @@ const SelectField = componentFactory('SelectField', ({ Parent, componentName }) 
   };
 }, Field);
 
-export { SelectField };
+export { styleSheet as selectFieldStyles };

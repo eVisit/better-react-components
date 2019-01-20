@@ -1,5 +1,5 @@
-import { createStyleSheet } from '@base';
-import fieldStyles          from '../field/field-styles';
+import { createStyleSheet } from '@react-ameliorate/styles';
+import { fieldStyles }      from '@react-ameliorate/component-field';
 
 export default createStyleSheet(function(theme) {
   const FIELD_SIDE_PADDING = Math.round(theme.DEFAULT_PADDING * 0.25);

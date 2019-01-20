@@ -1,16 +1,16 @@
 import { utils as U }                   from 'evisit-js-utils';
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
-import styleSheet                       from './draggable-view-styles';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { View }                         from '@react-ameliorate/native-shims';
 import {
   setDraggedItems,
   isElementOrDescendant,
   preventEventDefault,
   findDOMNode
-}                                       from '@base/utils';
+}                                       from '@react-ameliorate/utils';
+import styleSheet                       from './draggable-view-styles';
 
-const DraggableView = componentFactory('DraggableView', ({ Parent, componentName }) => {
+export const DraggableView = componentFactory('DraggableView', ({ Parent, componentName }) => {
   return class DraggableView extends Parent {
     static styleSheet = styleSheet;
 
@@ -118,4 +118,4 @@ const DraggableView = componentFactory('DraggableView', ({ Parent, componentName
   };
 });
 
-export { DraggableView };
+export { styleSheet as draggableViewStyles };

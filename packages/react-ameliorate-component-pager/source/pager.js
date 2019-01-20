@@ -1,10 +1,10 @@
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '@react-ameliorate/react-native-shims';
-import { NavigationBar }                from '@react-ameliorate/pager-bar';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { View }                         from '@react-ameliorate/native-shims';
+import { PagerBar }                     from '@react-ameliorate/component-pager-bar';
 import styleSheet                       from './pager-styles';
 
-const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
+export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
   return class Pager extends Parent {
     static styleSheet = styleSheet;
 
@@ -32,7 +32,7 @@ const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
     render(children) {
       return (
         <View className={this.getRootClassName(componentName)} style={this.style('container')}>
-          <NavigationBar
+          <PagerBar
             className={this.getRootClassName(componentName, 'pagerTabs')}
             tabs={this.props.pages}
             tab={this.props.page}
@@ -51,4 +51,4 @@ const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
   };
 });
 
-export { Pager };
+export { styleSheet as pagerStyles };

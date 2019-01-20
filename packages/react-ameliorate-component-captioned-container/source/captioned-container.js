@@ -1,10 +1,9 @@
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
-import { Text }                         from '../text';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { View, Text }                   from '@react-ameliorate/native-shims';
 import styleSheet                       from './captioned-container-styles';
 
-const CaptionedContainer = componentFactory('CaptionedContainer', ({ Parent, componentName }) => {
+export const CaptionedContainer = componentFactory('CaptionedContainer', ({ Parent, componentName }) => {
   return class CaptionedContainer extends Parent {
     static styleSheet = styleSheet;
 
@@ -33,4 +32,5 @@ const CaptionedContainer = componentFactory('CaptionedContainer', ({ Parent, com
   };
 });
 
-export { CaptionedContainer };
+export { styleSheet as captionedContainerStyles };
+

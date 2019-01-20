@@ -1,8 +1,8 @@
-import { componentFactory }             from '@base';
+import { componentFactory }             from '@react-ameliorate/core';
 import { GenericModal }                 from '@react-ameliorate/component-generic-modal';
 import styleSheet                       from './alert-modal-styles';
 
-const AlertModal = componentFactory('AlertModal', ({ Parent, componentName }) => {
+export const AlertModal = componentFactory('AlertModal', ({ Parent, componentName }) => {
   return class AlertModal extends Parent {
     static styleSheet = styleSheet;
     static defaultProps = {
@@ -24,4 +24,4 @@ const AlertModal = componentFactory('AlertModal', ({ Parent, componentName }) =>
   };
 }, GenericModal);
 
-export { AlertModal };
+export { styleSheet as alertModalStyles };

@@ -1,38 +1,17 @@
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
-import styleSheet                       from './chart-styles';
-import { findDOMNode, capitalize }      from '@base/utils';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { View }                         from '@react-ameliorate/native-shims';
 import Chartist                         from 'chartist';
 import ChartistPluginToolTip            from 'chartist-plugin-tooltips-updated';
 import ChartistPluginLegend             from 'chartist-plugin-legend';
-import { toNumber }                     from '@base/utils';
+import {
+  toNumber,
+  findDOMNode,
+  capitalize
+}                                       from '@react-ameliorate/utils';
+import styleSheet                       from './chart-styles';
 
-const noop = () => {},
-      passthrough = (value) => value;
-
-function cleanupChildren(element) {
-  if (!element)
-    return;
-
-  for (var i = 0; i < element.children.length;) {
-    var child = element.children[i];
-    if (child.nodeType !== 1) {
-      i++;
-      continue;
-    }
-
-    var classAttr = child.getAttribute('class');
-    if (('' + classAttr).match(/ct-tooltip/)) {
-      element.removeChild(child);
-      continue;
-    }
-
-    i++;
-  }
-}
-
-const Chart = componentFactory('Chart', ({ Parent, componentName }) => {
+export const Chart = componentFactory('Chart', ({ Parent, componentName }) => {
   return class Chart extends Parent {
     static styleSheet = styleSheet;
 
@@ -189,4 +168,4 @@ const Chart = componentFactory('Chart', ({ Parent, componentName }) => {
   };
 });
 
-export { Chart };
+export { styleSheet as chartStyles };

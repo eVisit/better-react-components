@@ -1,9 +1,6 @@
-import { createStyleSheet } from '@base';
+import { createStyleSheet } from '@react-ameliorate/styles';
 
 export default createStyleSheet(function(theme) {
-  const MIN_TAB_SIZE = 30,
-        ICON_SIZE = 30;
-
   return {
     container: {
       flex: 1,

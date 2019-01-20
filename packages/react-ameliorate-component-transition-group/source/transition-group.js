@@ -1,13 +1,9 @@
-import React          from 'react';
-import {
-  componentFactory,
-  PropTypes,
-  Animated,
-  Easing
-}                     from '@base';
-import styleSheet     from './transition-group-styles';
-import { isPromise }  from '@base/utils';
-import { utils as U } from 'evisit-js-utils';
+import { utils as U }                   from 'evisit-js-utils';
+import React                            from 'react';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { Animated, Easing }             from '@react-ameliorate/native-shims';
+import { isPromise }                    from '@react-ameliorate/utils';
+import styleSheet                       from './transition-group-styles';
 
 const eventFuncMapping = {
   'entering': 'onEntering',
@@ -16,12 +12,11 @@ const eventFuncMapping = {
   'left': 'onLeft'
 };
 
-const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, componentName }) => {
+export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, componentName }) => {
   return class TransitionGroup extends Parent {
     static styleSheet = styleSheet;
 
     static propTypes = {
-      style: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
       containerStyle: PropTypes.oneOfType([PropTypes.object, PropTypes.array]),
       duration: PropTypes.number,
       useNativeDriver: PropTypes.bool,
@@ -331,4 +326,4 @@ const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, component
   };
 });
 
-export { TransitionGroup };
+export { styleSheet as transitionGroupStyles };

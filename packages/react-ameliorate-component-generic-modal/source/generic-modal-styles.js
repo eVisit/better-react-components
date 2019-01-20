@@ -1,5 +1,5 @@
-import { createStyleSheet } from '@base';
-import modalStyles          from '../modal/modal-styles';
+import { createStyleSheet } from '@react-ameliorate/styles';
+import { modalStyles }      from '@react-ameliorate/component-modal';
 
 export default createStyleSheet(function(theme) {
   const TITLE_BAR_PADDING     = Math.round(theme.DEFAULT_PADDING * 0.25),

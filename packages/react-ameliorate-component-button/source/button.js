@@ -1,12 +1,12 @@
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
 import { View, Text, TouchableOpacity } from '@react-ameliorate/native-shims';
-import styleSheet                       from './button-styles';
 import {
   stopEventPropagation,
   getLargestFlag
-}                                       from '@base/utils';
+}                                       from '@react-ameliorate/utils';
 import { Hoverable }                    from '@mixins/hoverable';
+import styleSheet                       from './button-styles';
 
 export const Button = componentFactory('Button', ({ Parent, componentName }) => {
   return class Button extends Parent {
@@ -14,7 +14,6 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
 
     static propTypes = {
       caption: PropTypes.string,
-      style: PropTypes.any,
       onPress: PropTypes.func,
       disabled: PropTypes.bool
     };
@@ -36,7 +35,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       var theme = this.props.theme || 'default',
           themeArray = [theme];
 
-      if (this.isComponentFlag('hover'))
+      if (this.isComponentFlag('hovered'))
         themeArray.push(`${theme}Hover`);
 
       if (this.isComponentFlag('pressed'))
@@ -129,3 +128,5 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
     }
   };
 }, { mixins: [ Hoverable ] });
+
+export { styleSheet as buttonStyles };

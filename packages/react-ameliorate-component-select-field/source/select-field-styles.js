@@ -1,5 +1,5 @@
-import { createStyleSheet } from '@base';
-import fieldStyles          from '../field/field-styles';
+import { createStyleSheet } from '@react-ameliorate/styles';
+import { fieldStyles }      from '@react-ameliorate/component-field';
 
 export default createStyleSheet(function(theme) {
   const OPTION_BG_COLOR = theme.blendColors(theme.contrastColor(theme.MAIN_COLOR), theme.transparentColor(theme.GREY01_COLOR)),

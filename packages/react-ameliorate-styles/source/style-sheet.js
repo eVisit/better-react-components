@@ -576,4 +576,9 @@ export class StyleSheetBuilder {
   }
 }
 
-export { PLATFORM };
+const createStyleSheet = StyleSheetBuilder.createStyleSheet;
+
+export {
+  createStyleSheet,
+  PLATFORM
+};

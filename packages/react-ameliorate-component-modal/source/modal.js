@@ -1,10 +1,10 @@
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
-import { Paper }                        from '../paper';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { View }                         from '@react-ameliorate/native-shims';
+import { Paper }                        from '@react-ameliorate/component-paper';
 import styleSheet                       from './modal-styles';
 
-const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
+export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
   return class Modal extends Parent {
     static styleSheet = styleSheet;
     static propTypes = [Paper.propTypes, {
@@ -48,4 +48,4 @@ const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
   };
 });
 
-export { Modal };
+export { styleSheet as modalStyles };

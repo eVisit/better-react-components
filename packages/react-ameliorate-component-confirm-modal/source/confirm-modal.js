@@ -1,9 +1,8 @@
-import React                from 'react';
-import { componentFactory } from '@base';
-import { GenericModal }     from '../generic-modal';
+import { componentFactory } from '@react-ameliorate/core';
+import { GenericModal }     from '@react-ameliorate/component-generic-modal';
 import styleSheet           from './confirm-modal-styles';
 
-const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componentName }) => {
+export const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componentName }) => {
   return class ConfirmModal extends Parent {
     static styleSheet = styleSheet;
     static defaultProps = {
@@ -31,4 +30,4 @@ const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componentName }
   };
 }, GenericModal);
 
-export { ConfirmModal };
+export { styleSheet as confirmModalStyles };

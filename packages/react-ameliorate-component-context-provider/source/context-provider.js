@@ -1,9 +1,9 @@
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { View }                         from '@react-ameliorate/native-shims';
 import styleSheet                       from './context-provider-styles';
 
-const ContextProvider = componentFactory('ContextProvider', ({ Parent, componentName }) => {
+export const ContextProvider = componentFactory('ContextProvider', ({ Parent, componentName }) => {
   return class ContextProvider extends Parent {
     static styleSheet = styleSheet;
     static propTypes = {
@@ -36,4 +36,4 @@ const ContextProvider = componentFactory('ContextProvider', ({ Parent, component
   };
 });
 
-export { ContextProvider };
+export { styleSheet as contextProviderStyles };

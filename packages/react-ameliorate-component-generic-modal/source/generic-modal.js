@@ -1,19 +1,17 @@
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { Text }                         from '../text';
-import { View }                         from '../view';
-import { ScrollView }                   from '../scroll-view';
-import { Button }                       from '../button';
-import { Icon }                         from '../icon';
-import { Modal }                        from '../modal';
-import { LayoutContainer }              from '../layout-container';
-import styleSheet                       from './generic-modal-styles';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { Text, View, ScrollView }       from '@react-ameliorate/native-shims';
+import { Button }                       from '@react-ameliorate/component-button';
+import { Icon }                         from '@react-ameliorate/component-icon';
+import { Modal }                        from '@react-ameliorate/component-modal';
+import { LayoutContainer }              from '@react-ameliorate/component-layout-container';
 import {
   findDOMNode,
   isElementOrDescendant
-}                                       from '@base/utils';
+}                                       from '@react-ameliorate/utils';
+import styleSheet                       from './generic-modal-styles';
 
-const GenericModal = componentFactory('GenericModal', ({ Parent, componentName }) => {
+export const GenericModal = componentFactory('GenericModal', ({ Parent, componentName }) => {
   return class GenericModal extends Parent {
     static styleSheet = styleSheet;
     static propTypes = {
@@ -190,4 +188,4 @@ const GenericModal = componentFactory('GenericModal', ({ Parent, componentName }
   };
 }, Modal);
 
-export { GenericModal };
+export { styleSheet as genericModalStyles };

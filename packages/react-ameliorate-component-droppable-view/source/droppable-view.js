@@ -1,15 +1,15 @@
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
-import styleSheet                       from './droppable-view-styles';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { View }                         from '@react-ameliorate/native-shims';
 import {
   preventEventDefault,
   isElementOrDescendant,
   findDOMNode,
   getDraggedItems
-}                                       from '@base/utils';
+}                                       from '@react-ameliorate/utils';
+import styleSheet                       from './droppable-view-styles';
 
-const DroppableView = componentFactory('DroppableView', ({ Parent, componentName }) => {
+export const DroppableView = componentFactory('DroppableView', ({ Parent, componentName }) => {
   return class DroppableView extends Parent {
     static styleSheet = styleSheet;
 
@@ -156,4 +156,4 @@ const DroppableView = componentFactory('DroppableView', ({ Parent, componentName
   };
 });
 
-export { DroppableView };
+export { styleSheet as droppableViewStyles };

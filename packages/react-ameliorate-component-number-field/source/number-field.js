@@ -1,10 +1,8 @@
-import { utils as U }                   from 'evisit-js-utils';
-import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { TextField }                    from '../text-field';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { TextField }                    from '@react-ameliorate/component-text-field';
 import styleSheet                       from './number-field-styles';
 
-const NumberField = componentFactory('NumberField', ({ Parent, componentName }) => {
+export const NumberField = componentFactory('NumberField', ({ Parent, componentName }) => {
   return class NumberField extends Parent {
     static styleSheet = styleSheet;
 
@@ -41,7 +39,7 @@ const NumberField = componentFactory('NumberField', ({ Parent, componentName }) 
           return num;
         };
 
-        if (args.focus) {
+        if (args.focussed) {
           console.log('Focussed!');
           return newValue;
         }
@@ -74,4 +72,4 @@ const NumberField = componentFactory('NumberField', ({ Parent, componentName }) 
   };
 }, TextField);
 
-export { NumberField };
+export { styleSheet as numberFieldStyles };

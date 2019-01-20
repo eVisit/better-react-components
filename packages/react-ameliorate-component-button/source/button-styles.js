@@ -1,4 +1,4 @@
-import { createStyleSheet } from '@base';
+import { createStyleSheet } from '@react-ameliorate/styles';
 
 export default createStyleSheet(function(theme) {
   const DEFAULT_BG_COLOR          = theme.MAIN_COLOR,

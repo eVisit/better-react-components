@@ -1,14 +1,13 @@
-import { utils as U }       from 'evisit-js-utils';
-import React                from 'react';
-import { componentFactory } from '@base';
-import { View }             from '../view';
-import { TouchableOpacity } from '../touchable-opacity';
-import { TransitionGroup }  from '../transition-group';
-import styleSheet           from './overlay-styles';
+import { utils as U }             from 'evisit-js-utils';
+import React                      from 'react';
+import { componentFactory }       from '@react-ameliorate/core';
+import { View, TouchableOpacity } from '@react-ameliorate/native-shims';
+import { TransitionGroup }        from '@react-ameliorate/component-transition-group';
 import {
   findDOMNode,
   isDescendantElement
-}                           from '../../base/utils';
+}                                 from '@react-ameliorate/base/utils';
+import styleSheet                 from './overlay-styles';
 
 const SIDE_VALUES = {
         left: -1,
@@ -158,7 +157,7 @@ function defaultPositioner(props, child, _opts) {
   return calculateAnchorPosition.call(this, child.anchorElement, props.anchorPosition);
 }
 
-const Overlay = componentFactory('Overlay', ({ Parent, componentName }) => {
+export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) => {
   return class Overlay extends Parent {
     static styleSheet = styleSheet;
 
@@ -404,4 +403,4 @@ const Overlay = componentFactory('Overlay', ({ Parent, componentName }) => {
   };
 });
 
-export { Overlay };
+export { styleSheet as overlayStyles };

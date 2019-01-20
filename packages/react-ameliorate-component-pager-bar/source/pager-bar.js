@@ -1,10 +1,10 @@
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View, Text, TouchableOpacity } from '@react-ameliorate/react-native-shims';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { View, Text, TouchableOpacity } from '@react-ameliorate/native-shims';
 import { Icon }                         from '@react-ameliorate/component-icon';
 import styleSheet                       from './pager-bar-styles';
 
-const PagerBar = componentFactory('PagerBar', ({ Parent, componentName }) => {
+export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName }) => {
   return class PagerBar extends Parent {
     static styleSheet = styleSheet;
 
@@ -63,4 +63,4 @@ const PagerBar = componentFactory('PagerBar', ({ Parent, componentName }) => {
   };
 });
 
-export { PagerBar };
+export { styleSheet as pagerBarStyles };

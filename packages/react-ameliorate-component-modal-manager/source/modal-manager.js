@@ -1,17 +1,17 @@
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { TouchableOpacity }             from '../touchable-opacity';
-import { ContextProvider }              from '../context-provider';
-import { Paper }                        from '../paper';
-import { TransitionGroup }              from '../transition-group';
-import styleSheet                       from './modal-manager-styles';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { TouchableOpacity }             from '@react-ameliorate/native-shims';
+import { ContextProvider }              from '@react-ameliorate/component-context-provider';
+import { Paper }                        from '@react-ameliorate/component-paper';
+import { TransitionGroup }              from '@react-ameliorate/component-transition-group';
 import {
   stopEventPropagation,
   isDescendantElement,
   findDOMNode
-}                                       from '@base/utils';
+}                                       from '@react-ameliorate/utils';
+import styleSheet                       from './modal-manager-styles';
 
-const ModalManager = componentFactory('ModalManager', ({ Parent, componentName }) => {
+export const ModalManager = componentFactory('ModalManager', ({ Parent, componentName }) => {
   return class ModalManager extends Parent {
     static styleSheet = styleSheet;
     static propTypes = {
@@ -114,4 +114,4 @@ const ModalManager = componentFactory('ModalManager', ({ Parent, componentName }
   };
 });
 
-export { ModalManager };
+export { styleSheet as modalManagerStyles };

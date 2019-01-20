@@ -1,7 +1,7 @@
-import { componentFactory, PropTypes }  from '@base';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
 import styleSheet                       from './paper-styles';
 
-const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
+export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
   return class Paper extends Parent {
     static styleSheet = styleSheet;
 
@@ -62,4 +62,4 @@ const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
   };
 });
 
-export { Paper };
+export { styleSheet as paperStyles };

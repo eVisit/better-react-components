@@ -1,10 +1,10 @@
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { View }                         from '@react-ameliorate/native-shims';
+import { capitalize }                   from '@react-ameliorate/utils';
 import styleSheet                       from './layout-container-styles';
-import { capitalize }                   from '@base/utils';
 
-const LayoutContainer = componentFactory('LayoutContainer', ({ Parent, componentName }) => {
+export const LayoutContainer = componentFactory('LayoutContainer', ({ Parent, componentName }) => {
   return class LayoutContainer extends Parent {
     static styleSheet = styleSheet;
 
@@ -37,4 +37,4 @@ const LayoutContainer = componentFactory('LayoutContainer', ({ Parent, component
   };
 });
 
-export { LayoutContainer };
+export { styleSheet as layoutContainerStyles };

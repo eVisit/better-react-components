@@ -6,7 +6,8 @@ import { findDOMNode as reactFindDOMNode } from 'react-dom';
 //###}###//
 
 const componentReferenceMap = {};
-var componentIDCounter = 1;
+var componentIDCounter = 1,
+    draggedItems = [];
 
 export const RAContext = React.createContext({});
 export const CONTEXT_PROVIDER_KEY  = 'data-ra-provider';
@@ -525,3 +526,32 @@ export function insertStyleSheet(id, content) {
 //###} else {###//
 export function insertStyleSheet() {}
 //###}###//
+
+export function getLargestFlag(flags) {
+  var keys = Object.keys(flags || {}),
+      largest = 0;
+
+  for (var i = 0, il = keys.length; i < il; i++) {
+    var key = keys[i],
+        value = flags[key];
+
+    if (value > largest)
+      largest = value;
+  }
+
+  return largest;
+}
+
+export function getDraggedItems() {
+  return draggedItems;
+}
+
+export function setDraggedItems(_items) {
+  var items = (_items instanceof Array) ? _items : [_items];
+  draggedItems = items.filter((item) => item);
+  return draggedItems;
+}
+
+export function isPromise(obj) {
+  return (obj && ((obj instanceof Promise) || typeof obj.then === 'function'));
+}

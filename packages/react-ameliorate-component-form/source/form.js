@@ -1,11 +1,10 @@
-import { utils as U, validators }       from 'evisit-js-utils';
 import React                            from 'react';
-import { componentFactory, PropTypes }  from '@base';
-import { View }                         from '../view';
+import { componentFactory, PropTypes }  from '@react-ameliorate/core';
+import { View }                         from '@react-ameliorate/native-shims';
+import { Field }                        from '@react-ameliorate/component-field';
 import styleSheet                       from './form-styles';
-import { Field }                        from '../field';
 
-const Form = componentFactory('Form', ({ Parent, componentName }) => {
+export const Form = componentFactory('Form', ({ Parent, componentName }) => {
   return class Form extends Parent {
     static styleSheet = styleSheet;
 
@@ -164,4 +163,4 @@ const Form = componentFactory('Form', ({ Parent, componentName }) => {
   };
 }, Field);
 
-export { Form };
+export { styleSheet as formStyles };

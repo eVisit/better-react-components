@@ -1,4 +1,4 @@
-import { createStyleSheet } from '@base';
+import { createStyleSheet } from '@react-ameliorate/styles';
 
 export default createStyleSheet(function(theme) {
   return {
@@ -9,7 +9,6 @@ export default createStyleSheet(function(theme) {
       justifyContent: 'center'
     },
     icon: {
-      fontFamily: 'propria',
       fontSize: theme.FONT_SIZE_SMALL,
       color: theme.MAIN_COLOR,
       backgroundColor: 'transparent',

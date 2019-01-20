@@ -48,10 +48,20 @@
   },
   "dependencies": {
     "evisit-js-utils": "^0.7.1",
-    "color": "^3.1.0"
+    "color": "^3.1.0",
+    "chartist": "^0.11.0",
+    "chartist-plugin-legend": "^0.6.2",
+    "chartist-plugin-pointlabels": "0.0.6",
+    "chartist-plugin-threshold": "0.0.2",
+    "chartist-plugin-tooltips-updated": "0.0.20",
+    "chartist-plugin-zoom": "^0.5.0"
   },
   "peerDependencies": {
     "react": "^16.7.0",
-    "babel-preset-react-ameliorate": ">=0.57.0"
+    "babel-preset-react-ameliorate": ">=0.57.0",
+    "@react-ameliorate/core": "^0.9.4",
+    "@react-ameliorate/styles": "^0.9.4",
+    "@react-ameliorate/utils": "^0.9.4",
+    "@react-ameliorate/native-shims": "^0.9.4"
   }
 }

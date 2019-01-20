@@ -893,6 +893,10 @@ export default class ComponentBase {
     return this.styleSheet.styleWithHelper(undefined, ...args);
   }
 
+  rawStyle(...args) {
+    return this.styleSheet.flattenInternalStyleSheet(this.style(...args));
+  }
+
   themedStyle(_theme, ...args) {
     const convertArgToThemeArgs = (arg) => {
       return [('' + arg)].concat(theme.map((themePart) => `${themePart}${capitalize(arg)}`));
