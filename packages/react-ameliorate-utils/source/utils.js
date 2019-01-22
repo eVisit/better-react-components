@@ -510,7 +510,7 @@ export function stopEventImmediatePropagation(event) {
 }
 
 //###if(!MOBILE) {###//
-export function insertStyleSheet(id, content) {
+function insertStyleSheet(id, content) {
   var styleElement = document.querySelector(`head > style#${id}`);
   if (styleElement) {
     styleElement.innerHTML = content;
@@ -524,7 +524,7 @@ export function insertStyleSheet(id, content) {
   styleElement.innerHTML = content;
 }
 //###} else {###//
-export function insertStyleSheet() {}
+function insertStyleSheet() {}
 //###}###//
 
 export function getLargestFlag(flags) {
@@ -555,3 +555,7 @@ export function setDraggedItems(_items) {
 export function isPromise(obj) {
   return (obj && ((obj instanceof Promise) || typeof obj.then === 'function'));
 }
+
+export {
+  insertStyleSheet
+};

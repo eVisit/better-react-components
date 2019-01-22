@@ -5,10 +5,15 @@ import { filterObjectKeys }       from '@react-ameliorate/utils';
 
 //###if(MOBILE) {###//
 import { StyleSheet, Platform }   from 'react-native';
-const PLATFORM = Platform.OS;
-//###} else {###//
-const PLATFORM = 'browser';
 //###}###//
+
+const PLATFORM = (() => {
+  //###if(MOBILE) {###//
+  return Platform.OS;
+  //###} else {###//
+  return 'browser';
+  //###}###//
+})();
 
 var styleSheetID = 1;
 
@@ -123,7 +128,7 @@ export class StyleSheetBuilder {
 
   createInternalStyleSheet(styleObj) {
     //###if(MOBILE) {###//
-    return StyleSheet.create(super.createInternalStyleSheet(styleObj));
+    return StyleSheet.create(styleObj);
     //###} else {###//
     return Object.assign({}, (styleObj || {}));
     //###}###//
