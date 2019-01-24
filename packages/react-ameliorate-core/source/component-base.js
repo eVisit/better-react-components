@@ -103,6 +103,18 @@ export default class ComponentBase {
         configurable: true,
         value: 0
       },
+      '_raQueueStateUpdatesSemaphore': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: 0
+      },
+      '_raQueuedStateUpdates': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: []
+      },
       '_raReferenceRetrieveHookCache': {
         writable: true,
         enumerable: false,
@@ -392,10 +404,20 @@ export default class ComponentBase {
       this.freezeUpdates();
 
       var oldProps = this.props,
-          props = getResolvedProps();
+          props = getResolvedProps(),
+          newState;
 
-      var newState = this._resolveState.call(this, initial, props, oldProps, ...args);
-      this.setStatePassive(newState, undefined, initial);
+      // Enable queued state updates (so any call to this.setState inside the state resolution
+      // callbacks gets queued in-order, instead of the order getting messed up during resolution)
+      this.queueStateUpdates(true);
+
+      // Queue the final state resolution to be first on the stack
+      this.setStatePassive(() => newState);
+
+      newState = this._resolveState.call(this, initial, props, oldProps, ...args);
+
+      // Now flush the queue of state updates
+      this.queueStateUpdates(false);
 
       if (initial || props !== this._raResolvedPropsCache) {
         this.props = this._raResolvedPropsCache = props;
@@ -621,8 +643,7 @@ export default class ComponentBase {
   }
 
   unfreezeUpdates(doUpdate) {
-    var oldState = this._raUpdatesFrozenSemaphore;
-    if (oldState <= 0)
+    if (this._raUpdatesFrozenSemaphore <= 0)
       return;
 
     this._raUpdatesFrozenSemaphore--;
@@ -635,39 +656,81 @@ export default class ComponentBase {
     if (!this.mounted())
       return true;
 
-    return (this._raUpdatesFrozenSemaphore > 0);
+    return (this._raUpdatesFrozenSemaphore > 0 || this._raQueueStateUpdatesSemaphore > 0);
   }
 
-  setStatePassive(_newState, doneCallback, initial) {
-    var newState = _newState;
-
-    // Always keep the internal state up-to-date
-    if (newState) {
-      if (typeof newState === 'function')
-        newState = newState.call(this, this._raInternalState);
-
-      if (newState) {
-        var oldState = this._raInternalState,
-            currentState = this._raInternalState = Object.assign({}, this._raInternalState, newState);
-
-        if (typeof this._debugStateUpdates === 'function')
-          this._debugStateUpdates(currentState, oldState, newState);
-
-        this._invokeStateOrPropKeyUpdates(true, initial, currentState, oldState);
-      }
+  queueStateUpdates(enable, doUpdate) {
+    if (enable) {
+      this._raQueueStateUpdatesSemaphore++;
+      return;
     }
 
-    // Tell render that we want to render again
+    if (this._raQueueStateUpdatesSemaphore <= 0)
+      return;
+
+    this._raQueueStateUpdatesSemaphore--;
+    if (this._raQueueStateUpdatesSemaphore <= 0)
+      this.flushStateUpdates(doUpdate);
+  }
+
+  flushStateUpdates(doUpdate) {
+    if (this._raQueueStateUpdatesSemaphore > 0)
+      return;
+
+    var stateUpdates = this._raQueuedStateUpdates,
+        oldState = this._raInternalState;
+
+    if (!stateUpdates.length)
+      return;
+
+    for (var i = 0, il = stateUpdates.length; i < il; i++) {
+      var stateUpdate = stateUpdates[i];
+      this.setStatePassive(stateUpdate, false, false);
+    }
+
+    if (doUpdate === false)
+      return;
+
+    this._invokeStateOrPropKeyUpdates(true, false, this.getState(), oldState);
     this._invalidateRenderCache();
+  }
+
+  setStatePassive(_newState, initial, invokeUpdates) {
+    var newState = _newState;
+    if (!newState)
+      return newState;
+
+    if (this._raQueueStateUpdatesSemaphore > 0) {
+      this._raQueuedStateUpdates.push(newState);
+      return newState;
+    }
+
+    // Always keep the internal state up-to-date
+    if (typeof newState === 'function')
+      newState = newState.call(this, this._raInternalState);
+
+    if (!newState)
+      return newState;
+
+    var oldState = this._raInternalState,
+        currentState = this._raInternalState = Object.assign({}, oldState, newState);
+
+    if (typeof this._debugStateUpdates === 'function')
+      this._debugStateUpdates(currentState, oldState, newState);
+
+    if (invokeUpdates !== false) {
+      this._invokeStateOrPropKeyUpdates(true, initial, currentState, oldState);
+      this._invalidateRenderCache();
+    }
 
     return newState;
   }
 
   setState(_newState, doneCallback) {
-    var newState = this.setStatePassive(_newState, doneCallback);
+    var newState = this.setStatePassive(_newState);
 
     if (!this.areUpdatesFrozen())
-      this._setReactComponentState(newState);
+      this._setReactComponentState(newState, doneCallback);
 
     return newState;
   }
@@ -684,9 +747,9 @@ export default class ComponentBase {
       for (var i = 0, il = keys.length; i < il; i++) {
         var key = keys[i],
             defaultVal = path[key],
-            stateVal = U.get(currentState, key, defaultVal);
+            stateVal = U.get(currentState, key);
 
-        finalState[key.replace(/^.*?(\w+)$/g, '$1')] = (stateVal === undefined) ? defaultVal : stateVal;
+        finalState[key] = (stateVal === undefined) ? defaultVal : stateVal;
       }
 
       return finalState;
