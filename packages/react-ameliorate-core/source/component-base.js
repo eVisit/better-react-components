@@ -1190,6 +1190,30 @@ export default class ComponentBase {
     return this.isComponentFlag('dropping');
   }
 
+  updateComponentFlagsFromProps(oldProps, newProps, initial) {
+    var flags = this._getFlags(),
+      keys = Object.keys(flags),
+      updatedFlags = {},
+      hasUpdates = false;
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i],
+        propName = key.toLowerCase(),
+        newProp = newProps[propName];
+
+      if (newProp == null)
+        continue;
+
+      if (initial || oldProps[propName] !== newProp) {
+        hasUpdates = true;
+        updatedFlags[propName] = !!newProp;
+      }
+    }
+
+    if (hasUpdates)
+      this.setComponentFlagsFromObject(updatedFlags);
+  }
+
   isValidElement(...args) {
     return React.isValidElement(...args);
   }
@@ -1204,6 +1228,15 @@ export default class ComponentBase {
 
   cloneComponents(...args) {
     return cloneComponents(...args);
+  }
+
+  getApp(cb) {
+    var app = this.application || this.context.application;
+
+    if (typeof cb === 'function')
+      return cb.call(this, { app });
+
+    return app;
   }
 
   static getAllComponentFlags() {

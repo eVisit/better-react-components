@@ -22,6 +22,11 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       super(props, ...args);
     }
 
+    onPropsUpdated(oldProps, newProps, initial) {
+      this.updateComponentFlagsFromProps(oldProps, newProps, initial);
+      return super.onPropsUpdated.apply(this, arguments);
+    }
+
     resolveState() {
       return {
         ...super.resolveState.apply(this, arguments),

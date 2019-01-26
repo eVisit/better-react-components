@@ -68,6 +68,9 @@ export default createStyleSheet(function(theme) {
     defaultPressedCaption: {
       color: theme.textColor(DEFAULT_PRESSED_BG_COLOR)
     },
+    defaultCaptionDisabled: {
+      color: theme.textColor(DEFAULT_HOVER_BG_COLOR, 6)
+    },
     whiteCaption: {
       color: theme.textColor(WHITE_BG_COLOR, 7)
     },
@@ -76,6 +79,9 @@ export default createStyleSheet(function(theme) {
     },
     whitePressedCaption: {
       color: theme.textColor(WHITE_PRESSED_BG_COLOR, 7)
-    }
+    },
+    whiteCaptionDisabled: {
+      color: theme.textColor(WHITE_PRESSED_BG_COLOR, 6)
+    },
   };
 });
