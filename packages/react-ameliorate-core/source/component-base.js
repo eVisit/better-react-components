@@ -443,6 +443,9 @@ export default class ComponentBase {
           value1 = obj[key],
           value2 = oldObj[key];
 
+      if (key === 'keyboardState')
+        console.log('PROP UPDATE keyboardState: ', value1, value2, value1 === value2);
+
       if (initial || value1 !== value2) {
         var updateFunc = this[methodName];
         if (typeof updateFunc === 'function')
@@ -533,7 +536,7 @@ export default class ComponentBase {
 
     var children = _children;
     if (children === undefined)
-      return this.props.children;
+      children = this.props.children;
 
     if (asArray !== true && !(children instanceof Array))
       return children;
