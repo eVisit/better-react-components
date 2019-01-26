@@ -1,5 +1,6 @@
 /* global Quad */
 
+import React                          from 'react';
 import { utils as U }                 from 'evisit-js-utils';
 import { TweenMax }                   from 'gsap';
 import { View as _View }              from './components/view';
@@ -12,10 +13,7 @@ import {
   nextTick,
   filterObjectKeys
 }                                     from '@react-ameliorate/utils';
-import {
-  React,
-  StyleSheetBuilder
-}                                     from '@base/component-base';
+import { StyleSheetBuilder }          from '@react-ameliorate/styles';
 
 var uuidCounter = 1;
 

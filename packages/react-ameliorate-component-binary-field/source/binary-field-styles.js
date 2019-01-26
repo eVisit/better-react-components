@@ -10,7 +10,10 @@ export default createStyleSheet(function(theme) {
       flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'flex-start'
+      justifyContent: 'flex-start',
+      browser: {
+        cursor: 'pointer'
+      }
     },
     binaryNodeContainer: {
       flex: 0,
@@ -18,6 +21,14 @@ export default createStyleSheet(function(theme) {
       height: theme.DEFAULT_INPUT_HEIGHT,
       alignItems: 'center',
       justifyContent: 'center'
+    },
+    binaryFieldIcon: {
+      fontSize: theme.DEFAULT_FONT_SIZE,
+      color: theme.MAIN_COLOR
+    },
+    caption: {
+      fontSize: theme.DEFAULT_FONT_SIZE,
+      color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 7)
     }
   };
 }, {

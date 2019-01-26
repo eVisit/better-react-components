@@ -12,8 +12,7 @@ export default createStyleSheet(function(theme) {
       fontSize: theme.FONT_SIZE_SMALL,
       color: theme.MAIN_COLOR,
       backgroundColor: 'transparent',
-      textAlign: 'center',
-      marginTop: '-0.1em'
+      textAlign: 'center'
     }
   };
 });

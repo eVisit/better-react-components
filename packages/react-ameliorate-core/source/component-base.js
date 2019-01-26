@@ -974,25 +974,20 @@ export default class ComponentBase {
     return this.styleSheet.flattenInternalStyleSheet(this.style(...args));
   }
 
-  themedStyle(_theme, ...args) {
-    const convertArgToThemeArgs = (arg) => {
-      return [('' + arg)].concat(theme.map((themePart) => `${themePart}${capitalize(arg)}`));
-    };
+  getCurrentlyFocussedField() {
+    var app = this.getApp();
+    if (!app)
+      return null;
 
-    const convertArgs = (args) => {
-      return ([].concat(...(args.map((arg) => {
-        if (arg instanceof Array)
-          return convertArgs(arg);
+    return app._currentlyFocussedField;
+  }
 
-        return (typeof arg === 'string' || (arg instanceof String)) ? convertArgToThemeArgs(arg) : arg;
-      }))));
-    };
+  setCurrentlyFocussedField(field) {
+    var app = this.getApp();
+    if (!app)
+      return null;
 
-    var theme = ((_theme instanceof Array) ? _theme : [_theme]).filter((themePart) => themePart),
-        convertedArgs = convertArgs(args);
-
-    //console.log('THEMED ARGS: ', theme, convertedArgs);
-    return this.style(...convertedArgs);
+    app._currentlyFocussedField = field;
   }
 
   styleProp(...args) {
@@ -1209,12 +1204,6 @@ export default class ComponentBase {
 
   cloneComponents(...args) {
     return cloneComponents(...args);
-  }
-
-  getPropAsElement(name) {
-    var element = this.props[name];
-    if (this.isValidElement(element))
-      return element;
   }
 
   static getAllComponentFlags() {

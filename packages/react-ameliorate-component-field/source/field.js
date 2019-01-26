@@ -1,7 +1,7 @@
 import { utils as U, validators }       from 'evisit-js-utils';
 import React                            from 'react';
 import { componentFactory, PropTypes }  from '@react-ameliorate/core';
-import { View }                         from '@react-ameliorate/native-shims';
+import { View, Text }                   from '@react-ameliorate/native-shims';
 import { Hoverable }                    from '@react-ameliorate/mixin-hoverable';
 import styleSheet                       from './field-styles';
 
@@ -477,8 +477,19 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       );
     }
 
-    getCaption() {
-      return this.props.caption;
+    getCaption(_children) {
+      var children = this.getChildren(_children);
+      if (!children)
+        children = this.props.caption;
+
+      if ((children instanceof Array) || this.isValidElement(children))
+        return children;
+
+      if (children == null)
+        children = '';
+
+      children = ('' + children);
+      return (<Text style={this.style('caption')}>{children}</Text>);
     }
 
     getField() {

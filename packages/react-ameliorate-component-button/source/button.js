@@ -32,16 +32,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
     }
 
     getRequestedTheme() {
-      var theme = this.props.theme || 'default',
-          themeArray = [theme];
-
-      if (this.isComponentFlag('hovered'))
-        themeArray.push(`${theme}Hover`);
-
-      if (this.isComponentFlag('pressed'))
-        themeArray.push(`${theme}Pressed`);
-
-      return themeArray;
+      return this.props.theme || 'default';
     }
 
     renderContents(children) {
@@ -49,13 +40,14 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
         return children;
 
       var caption = this.props.caption,
-          theme = this.getRequestedTheme();
+          theme = this.getRequestedTheme(),
+          flags = this.getComponentFlagsAsArray();
 
       if (!caption)
         caption = '';
 
       return (
-        <Text className={this.getRootClassName(componentName, 'caption')} style={this.themedStyle(theme, 'caption', this.props.captionStyle)}>{caption}</Text>
+        <Text className={this.getRootClassName(componentName, 'caption')} style={this.style(this.generateStyleNames(theme, 'caption', flags), this.props.captionStyle)}>{caption}</Text>
       );
     }
 
@@ -107,12 +99,12 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
     render(_children) {
       var children = this.getChildren(_children),
           theme = this.getRequestedTheme(),
-          flags = this.getComponentFlagsAsObject();
+          flags = this.getComponentFlagsAsArray();
 
       return (
         <TouchableOpacity
           className={this.getRootClassName(componentName, 'container', flags)}
-          style={this.themedStyle(theme, 'container', (this.props.disabled) ? 'containerDisabled' : 'containerActive', this.props.style)}
+          style={this.style(this.generateStyleNames(theme, 'container', flags), this.props.style)}
           onPress={this.onPress}
           onPressStart={this.onPressStart}
           onPressEnd={this.onPressEnd}
@@ -120,7 +112,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           tooltip-side={this.props.tooltipSide || 'bottom'}
           {...(Object.assign({}, this.getHoverableProps()))}
         >
-          <View className={this.getRootClassName(componentName, 'internalContainer')} style={this.themedStyle(theme, 'internalContainer', this.props.containerStyle)}>
+          <View className={this.getRootClassName(componentName, 'internalContainer')} style={this.style(this.generateStyleNames(theme, 'internalContainer', flags), this.props.containerStyle)}>
             {this.renderContents(children)}
           </View>
         </TouchableOpacity>

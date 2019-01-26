@@ -22,15 +22,13 @@ export default createStyleSheet(function(theme) {
     },
     defaultContainer: {
       borderWidth: 1,
-      borderColor: theme.MAIN_COLOR
-    },
-    defaultContainerActive: {
+      borderColor: theme.MAIN_COLOR,
       backgroundColor: DEFAULT_BG_COLOR
     },
-    defaultHoverContainerActive: {
+    defaultContainerHovered: {
       backgroundColor: DEFAULT_HOVER_BG_COLOR
     },
-    defaultPressedContainerActive: {
+    defaultPressedContainer: {
       backgroundColor: DEFAULT_PRESSED_BG_COLOR
     },
     defaultContainerDisabled: {
@@ -38,15 +36,13 @@ export default createStyleSheet(function(theme) {
     },
     whiteContainer: {
       borderWidth: 1,
-      borderColor: theme.MAIN_COLOR
-    },
-    whiteContainerActive: {
+      borderColor: theme.MAIN_COLOR,
       backgroundColor: WHITE_BG_COLOR
     },
-    whiteHoverContainerActive: {
+    whiteContainerHovered: {
       backgroundColor: WHITE_HOVER_BG_COLOR
     },
-    whitePressedContainerActive: {
+    whitePressedContainer: {
       backgroundColor: WHITE_PRESSED_BG_COLOR
     },
     whiteContainerDisabled: {
@@ -66,7 +62,7 @@ export default createStyleSheet(function(theme) {
     defaultCaption: {
       color: theme.textColor(DEFAULT_BG_COLOR)
     },
-    defaultHoverCaption: {
+    defaultCaptionHovered: {
       color: theme.textColor(DEFAULT_HOVER_BG_COLOR)
     },
     defaultPressedCaption: {
@@ -75,7 +71,7 @@ export default createStyleSheet(function(theme) {
     whiteCaption: {
       color: theme.textColor(WHITE_BG_COLOR, 7)
     },
-    whiteHoverCaption: {
+    whiteCaptionHovered: {
       color: theme.textColor(WHITE_HOVER_BG_COLOR, 7)
     },
     whitePressedCaption: {
