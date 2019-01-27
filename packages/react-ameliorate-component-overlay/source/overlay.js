@@ -354,7 +354,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       return childStyle;
     }
 
-    render() {
+    render(_children) {
       var children = this.getState('children', []),
           hasChildren = !!(children && children.length);
 
@@ -366,7 +366,13 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
           onKeyDown={this.onKeyDown}
           tabIndex="-1"
         >
-          <View className={this.getRootClassName(componentName, 'children')}>{this.props.children}</View>
+          <View
+            className={this.getRootClassName(componentName, 'children')}
+            style={this.props.containerStyle}
+          >
+            {this.getChildren(_children)}
+          </View>
+
           <TransitionGroup
             className={this.getRootClassName(componentName, 'overlay')}
             style={this.style('overlay', (hasChildren) ? 'containerHasChildren' : 'containerNoChildren')}

@@ -27,6 +27,8 @@ export class TextInput extends React.Component {
     onChange: PropTypes.func,
     onChangeText: PropTypes.func,
     onKeyPress: PropTypes.func,
+    onKeyDown: PropTypes.func,
+    onKeyUp: PropTypes.func,
     onSubmitEditing: PropTypes.func,
     placeholder: PropTypes.string,
     secureTextEntry: PropTypes.bool
