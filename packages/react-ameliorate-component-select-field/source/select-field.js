@@ -48,6 +48,9 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
     }
 
     togglePopupVisibility(_set) {
+      if (this.props.renderOptionsInline && this.props.optionsAlwaysVisible)
+        return;
+
       var currentState = this.getState('popupVisible'),
           set = _set;
 
@@ -75,66 +78,6 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
         this.filterOptions('');
 
       this.setState(newState);
-    }
-
-    renderAllOptions() {
-      var focussedOption = this.getState('focussedOption'),
-          hoveredOption = this.getState('hoveredOption'),
-          value = this.value();
-
-      return (
-        <View style={this.style('optionsContainer')}>
-          {this.iterateOptions((option, index) => {
-            var isFocussed  = (focussedOption === index),
-                isHovered   = (hoveredOption === index),
-                isSelected  = (option.value === value);
-
-            return (
-              <TouchableOpacity
-                key={('' + index)}
-                className={this.getRootClassName(
-                  componentName, 'option',
-                  isFocussed && 'optionFocus',
-                  isHovered && 'optionHover',
-                  isSelected && 'optionSelected'
-                )}
-                style={this.style(
-                  'option',
-                  this.optionStyle,
-                  isFocussed && ['optionFocus', this.props.optionFocusStyle],
-                  isHovered && ['optionHover', this.props.optionHoverStyle],
-                  isSelected && ['optionSelected', this.props.optionSelectedStyle]
-                )}
-                onPress={this.onOptionSelect.bind(this, option, index)}
-                onMouseOver={this.onOptionMouseOver.bind(this, option, index)}
-                onMouseOut={this.onOptionMouseOut.bind(this, option, index)}
-              >
-                <Text>{option.caption}</Text>
-              </TouchableOpacity>
-            );
-          }, { maxOptions: this.props.maxOptions })}
-        </View>
-      );
-    }
-
-    renderOptions() {
-      if (this.props.renderOptionsInline === true)
-        return this.renderAllOptions();
-
-      return (
-        <Paper
-          anchorElement={this._nativeFieldReference}
-          anchorPosition={{
-            'bottom': 'top',
-            'left': 'left'
-          }}
-          onMounted={this.onPopupMounted}
-          onLeft={this.onPopupLeft}
-          id={this.getFieldID()}
-        >
-          {this.renderAllOptions()}
-        </Paper>
-      );
     }
 
     onOptionMouseOver(option, index, event) {
@@ -165,8 +108,12 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
       if (this.callProvidedCallback('onOptionSelect', { event, option, value: option.value, caption: option.caption, index }) === false)
         return;
 
-      this.value(option.value, { userInitiated: true });
+      var value = option.value;
+      this.value(value, { userInitiated: true });
+
       this.togglePopupVisibility(false);
+
+      return value;
     }
 
     onPopupMounted({ $element, anchor }) {
@@ -266,7 +213,75 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
       }
     }
 
-    render() {
+    renderAllOptions() {
+      var focussedOption = this.getState('focussedOption'),
+          hoveredOption = this.getState('hoveredOption'),
+          value = this.value();
+
+      return (
+        <View style={this.style('optionsContainer')}>
+          {this.iterateOptions((option, index) => {
+            var isFocussed  = (focussedOption === index),
+                isHovered   = (hoveredOption === index),
+                isSelected  = (option.value === value);
+
+            return (
+              <TouchableOpacity
+                key={('' + index)}
+                className={this.getRootClassName(
+                  componentName, 'option',
+                  isFocussed && 'optionFocus',
+                  isHovered && 'optionHover',
+                  isSelected && 'optionSelected'
+                )}
+                style={this.style(
+                  'option',
+                  this.optionStyle,
+                  isFocussed && ['optionFocus', this.props.optionFocusStyle],
+                  isHovered && ['optionHover', this.props.optionHoverStyle],
+                  isSelected && ['optionSelected', this.props.optionSelectedStyle]
+                )}
+                onPress={this.onOptionSelect.bind(this, option, index)}
+                onMouseOver={this.onOptionMouseOver.bind(this, option, index)}
+                onMouseOut={this.onOptionMouseOut.bind(this, option, index)}
+              >
+                <Text>{option.caption}</Text>
+              </TouchableOpacity>
+            );
+          }, { maxOptions: this.props.maxOptions })}
+        </View>
+      );
+    }
+
+    renderOptions() {
+      if (this.props.renderOptionsInline === true)
+        return this.renderAllOptions();
+
+      return (
+        <Paper
+          anchorElement={this._nativeFieldReference}
+          anchorPosition={{
+            'bottom': 'top',
+            'left': 'left'
+          }}
+          onMounted={this.onPopupMounted}
+          onLeft={this.onPopupLeft}
+          id={this.getFieldID()}
+        >
+          {this.renderAllOptions()}
+        </Paper>
+      );
+    }
+
+    renderIcon() {
+      return (
+        <TouchableOpacity style={this.style('arrowContainer')} onPress={this.onIconPress}>
+          <Icon icon="chevron-down" style={this.style('arrow')}/>
+        </TouchableOpacity>
+      );
+    }
+
+    render(_children) {
       var popupVisible  = this.getState('popupVisible'),
           waiting       = this.getState('waiting'),
           defaultValue  = this.getSelectedOptionCaption();
@@ -300,9 +315,7 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
               skipFormRegistration
             />
 
-            <TouchableOpacity style={this.style('arrowContainer')} onPress={this.onIconPress}>
-              <Icon icon="chevron-down" style={this.style('arrow')}/>
-            </TouchableOpacity>
+            {this.renderIcon()}
 
             {(waiting) && (
               <View style={this.style('waitingSpinnerContainer')}>
@@ -312,6 +325,8 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
           </TouchableOpacity>
 
           {(popupVisible || (this.props.renderOptionsInline && this.props.optionsAlwaysVisible)) && this.renderOptions()}
+
+          {this.getChildren(_children)}
         </View>
       );
     }

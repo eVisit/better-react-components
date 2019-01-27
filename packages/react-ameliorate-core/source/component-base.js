@@ -19,7 +19,8 @@ import {
   processElements,
   processRenderedElements,
   getUniqueComponentID,
-  isValidComponent
+  isValidComponent,
+  toNumber
 }                                     from '@react-ameliorate/utils';
 
 var logCache = {};
@@ -1237,6 +1238,24 @@ export default class ComponentBase {
       return cb.call(this, { app });
 
     return app;
+  }
+
+  getAnimationDuration(duration) {
+    if (global._raGlobalAnimationDurationOverride != null)
+      return global._raGlobalAnimationDurationOverride;
+
+    if (duration != null)
+      return toNumber(duration);
+
+    var theme = this.getTheme();
+    if (!theme)
+      return 250;
+
+    var themeProps = theme.getThemeProperties();
+    if (themeProps && themeProps.DEFAULT_ANIMATION_DURATION != null)
+      return themeProps.DEFAULT_ANIMATION_DURATION;
+
+    return 250;
   }
 
   static getAllComponentFlags() {

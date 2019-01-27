@@ -32,6 +32,7 @@ export default createStyleSheet(function(theme) {
       backgroundColor: DEFAULT_PRESSED_BG_COLOR
     },
     defaultContainerDisabled: {
+      borderColor: theme.GREY03_COLOR,
       backgroundColor: theme.GREY02_COLOR
     },
     whiteContainer: {
@@ -51,6 +52,7 @@ export default createStyleSheet(function(theme) {
     internalContainer: {
       minHeight: theme.DEFAULT_INPUT_HEIGHT - 2,
       padding: theme.DEFAULT_PADDING * 0.3,
+      flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center'
     },
@@ -69,7 +71,7 @@ export default createStyleSheet(function(theme) {
       color: theme.textColor(DEFAULT_PRESSED_BG_COLOR)
     },
     defaultCaptionDisabled: {
-      color: theme.textColor(DEFAULT_HOVER_BG_COLOR, 6)
+      color: theme.textColor(DEFAULT_HOVER_BG_COLOR, 3)
     },
     whiteCaption: {
       color: theme.textColor(WHITE_BG_COLOR, 7)

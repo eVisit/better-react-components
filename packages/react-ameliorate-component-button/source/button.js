@@ -40,22 +40,6 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       return this.props.theme || 'default';
     }
 
-    renderContents(children) {
-      if (children)
-        return children;
-
-      var caption = this.props.caption,
-          theme = this.getRequestedTheme(),
-          flags = this.getComponentFlagsAsArray();
-
-      if (!caption)
-        caption = '';
-
-      return (
-        <Text className={this.getRootClassName(componentName, 'caption')} style={this.style(this.generateStyleNames(theme, 'caption', flags), this.props.captionStyle)}>{caption}</Text>
-      );
-    }
-
     onMouseOut(event) {
       return super.onMouseOut(event, { pressed: false });
     }
@@ -99,6 +83,22 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           largestFlag = getLargestFlag(flags);
 
       return Object.assign({}, flags, { PRESSED: largestFlag << 1 });
+    }
+
+    renderContents(children) {
+      if (children)
+        return children;
+
+      var caption = this.props.caption,
+          theme = this.getRequestedTheme(),
+          flags = this.getComponentFlagsAsArray();
+
+      if (!caption)
+        caption = '';
+
+      return (
+        <Text className={this.getClassName(componentName, 'caption')} style={this.style(this.generateStyleNames(theme, 'caption', flags), this.props.captionStyle)}>{caption}</Text>
+      );
     }
 
     render(_children) {

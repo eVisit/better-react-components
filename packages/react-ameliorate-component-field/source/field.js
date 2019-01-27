@@ -32,6 +32,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
         PropTypes.func
       ]),
       optionMatcher: PropTypes.func,
+      getOptionCaption: PropTypes.func,
       maxOptions: PropTypes.number,
       fieldState: PropTypes.number,
       skipFormRegistration: PropTypes.bool

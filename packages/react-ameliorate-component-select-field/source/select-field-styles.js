@@ -5,12 +5,14 @@ export default createStyleSheet(function(theme) {
   const OPTION_BG_COLOR = theme.blendColors(theme.contrastColor(theme.MAIN_COLOR), theme.transparentColor(theme.GREY01_COLOR)),
         BORDER_COLOR = theme.blendColors(OPTION_BG_COLOR, theme.transparentColor(theme.GREY03_COLOR)),
         ARROW_CONTAINER_SIZE = theme.DEFAULT_INPUT_HEIGHT,
-        LOADING_SPINNER_SIZE = "small";
+        LOADING_SPINNER_SIZE = "small",
+        DEFAULT_OPTION_HEIGHT = theme.DEFAULT_INPUT_HEIGHT;
 
   return {
     OPTION_BG_COLOR,
     BORDER_COLOR,
     LOADING_SPINNER_SIZE,
+    DEFAULT_OPTION_HEIGHT,
     container: {
       flex: 1,
       flexDirection: 'column',
@@ -51,7 +53,7 @@ export default createStyleSheet(function(theme) {
     optionsContainer: {
       flex: 0,
       alignItems: 'stretch',
-      maxHeight: theme.DEFAULT_INPUT_HEIGHT * 10,
+      maxHeight: DEFAULT_OPTION_HEIGHT * 10,
       backgroundColor: OPTION_BG_COLOR,
       borderColor: BORDER_COLOR,
       borderStyle: 'solid',
@@ -69,7 +71,7 @@ export default createStyleSheet(function(theme) {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'flex-start',
-      height: theme.DEFAULT_INPUT_HEIGHT,
+      height: DEFAULT_OPTION_HEIGHT,
       borderColor: BORDER_COLOR,
       borderStyle: 'solid',
       borderBottomWidth: 1,
