@@ -444,9 +444,6 @@ export default class ComponentBase {
           value1 = obj[key],
           value2 = oldObj[key];
 
-      if (key === 'keyboardState')
-        console.log('PROP UPDATE keyboardState: ', value1, value2, value1 === value2);
-
       if (initial || value1 !== value2) {
         var updateFunc = this[methodName];
         if (typeof updateFunc === 'function')
@@ -983,10 +980,16 @@ export default class ComponentBase {
     return app._currentlyFocussedField;
   }
 
-  setCurrentlyFocussedField(field) {
+  setCurrentlyFocussedField(field, blurLastField) {
     var app = this.getApp();
     if (!app)
       return null;
+
+    if (field === app._currentlyFocussedField)
+      return;
+
+    if (blurLastField && app._currentlyFocussedField && typeof app._currentlyFocussedField.blur === 'function')
+      app._currentlyFocussedField.blur();
 
     app._currentlyFocussedField = field;
   }
