@@ -1,5 +1,8 @@
 /* global Quad */
 
+//###if(MOBILE) {###//
+import { Animated, Easing }           from 'react-native';
+//###} else {###//
 import React                          from 'react';
 import { utils as U }                 from 'evisit-js-utils';
 import { TweenMax }                   from 'gsap';
@@ -296,7 +299,7 @@ class Easing {
 }
 
 Animated.createAnimatedComponent = function(Klass) {
-  class AnimatedComponent extends Klass {
+  class AnimatedComponent {
     trackStyleValues(style, _newStyle, _alreadyTracked, _parentKeys) {
       const trackTransform = (transform) => {
         const enqueueTransformUpdate = (axisName, val) => {
@@ -393,17 +396,19 @@ Animated.createAnimatedComponent = function(Klass) {
           self = this;
 
       return (
-        <Klass
-          {...filterObjectKeys(/^(id$|ref$|key$|_)/, this.props)}
-          ref={function(elem) {
-            self._componentElement = findDOMNode(elem);
-            if (typeof self.props._internalref === 'function')
-              self.props._internalref.apply(this, arguments);
-          }}
-          style={trackedStyle}
-        >
-          {(typeof this.getChildren === 'function') ? this.getChildren(children) : (children || this.props.children || null)}
-        </Klass>
+        <React.Fragment>
+          <Klass
+            {...filterObjectKeys(/^(id$|ref$|key$|_)/, this.props)}
+            ref={function(elem) {
+              self._componentElement = findDOMNode(elem);
+              if (typeof self.props._internalref === 'function')
+                self.props._internalref.apply(this, arguments);
+            }}
+            style={trackedStyle}
+          >
+            {(typeof this.getChildren === 'function') ? this.getChildren(children) : (children || this.props.children || null)}
+          </Klass>
+        </React.Fragment>
       );
     }
   }
@@ -418,6 +423,7 @@ Animated.Value = Value;
 Animated.Text = Animated.createAnimatedComponent(_Text);
 Animated.View = Animated.createAnimatedComponent(_View);
 Animated.ScrollView = Animated.createAnimatedComponent(_ScrollView);
+//###}###//
 
 export {
   Easing,
