@@ -1,18 +1,27 @@
 //###if(MOBILE) {###//
-export { TextInput }            from 'react-native';
+import { TextInput }            from 'react-native';
 //###} else {###//
+import { utils as U }           from 'evisit-js-utils';
 import React                    from 'react';
 import { StyleSheetBuilder }    from '@react-ameliorate/styles';
 import PropTypes                from '@react-ameliorate/prop-types';
-import { stopEventPropagation } from '@react-ameliorate/utils';
+import {
+  preventEventDefault,
+  stopEventPropagation,
+  stopEventImmediatePropagation
+}                               from '@react-ameliorate/utils';
 
-export class TextInput extends React.Component {
+class TextInputShim extends React.Component {
   constructor(props, ...args) {
     super(props, ...args);
 
     this.state = {
       value: props.defaultValue
     };
+
+    // This is required to get Chrome to TRULY respect 'autoComplete="off"'
+    // https://stackoverflow.com/questions/12374442/chrome-ignores-autocomplete-off
+    this._autoCompleteRandomValue = U.uuid();
   }
 
   static propTypes = {
@@ -31,7 +40,82 @@ export class TextInput extends React.Component {
     onKeyUp: PropTypes.func,
     onSubmitEditing: PropTypes.func,
     placeholder: PropTypes.string,
-    secureTextEntry: PropTypes.bool
+    secureTextEntry: PropTypes.bool,
+    autoFill: PropTypes.bool,
+    name: PropTypes.string,
+    disabled: PropTypes.bool,
+    readOnly: PropTypes.bool
+  };
+
+  static getDerivedStateFromProps(nextProps, state) {
+    var value = state.value;
+
+    if (nextProps.value !== undefined)
+      value = nextProps.value;
+
+    return {
+      value
+    };
+  }
+
+  componentDidMount() {
+    if (this.props.autoFocus === true && this._inputRef)
+      this._inputRef.focus();
+
+    if (this.props.multiline && this._inputRef) {
+      this._inputRef.addEventListener('input', this.autoExpand);
+      this.autoExpand();
+    }
+  }
+
+  componentWillUnmount() {
+    if (this._inputRef)
+      this._inputRef.removeEventListener('input', this.autoExpand);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (!this._inputRef || prevProps.selection === this.props.selection)
+      return;
+
+    try {
+      var selection = this.props.selection,
+          start = (selection && selection.start),
+          end   = (selection && selection.end);
+
+      if (start == null)
+        start = 999999999;
+
+      if (end == null)
+        end = start;
+
+      this._inputRef.setSelectionRange(start, end);
+    } catch (e) {}
+  }
+
+  autoExpand = () => {
+    var textarea = this._inputRef;
+    if (!textarea)
+      return;
+
+    textarea.style.height = 'inherit';
+
+    var computed = window.getComputedStyle(textarea),
+        minHeight = parseInt(computed.getPropertyValue('min-height'), 10),
+        height = Math.max(minHeight, textarea.scrollHeight - 10) - 2;
+
+    textarea.style.height = height + 'px';
+  }
+
+  doSubmit = (event) => {
+    if (typeof this.props.onSubmitEditing === 'function') {
+      preventEventDefault(event);
+      stopEventImmediatePropagation(event);
+
+      this.props.onSubmitEditing.call(this, event);
+    }
+
+    if (this.props.blurOnSubmit && this._inputRef)
+      this._inputRef.blur();
   };
 
   onChange = (event) => {
@@ -42,26 +126,26 @@ export class TextInput extends React.Component {
     this.state.value = value;
 
     if (typeof this.props.onChange === 'function')
-      this.props.onChange({ event });
+      this.props.onChange.call(this, event);
 
     if (typeof this.props.onChangeText === 'function')
-      this.props.onChangeText({ event, value });
+      this.props.onChangeText.call(this, value, event);
   }
 
   onKeyDown = (event) => {
-    if (typeof this.props.onKeyDown === 'function' && this.props.onKeyDown({ event }) === false) {
+    if (typeof this.props.onKeyDown === 'function' && this.props.onKeyDown(event) === false) {
       stopEventPropagation(event);
       return;
     }
 
     // Keycode 9 never makes it to onKeyPress
     var nativeEvent = event.nativeEvent;
-    if (typeof this.props.onSubmitEditing === 'function' && nativeEvent.keyCode === 9)
-      this.props.onSubmitEditing({ event });
+    if (nativeEvent.keyCode === 9)
+      this.doSubmit(event);
   }
 
   onKeyUp = (event) => {
-    if (typeof this.props.onKeyUp === 'function' && this.props.onKeyUp({ event }) === false) {
+    if (typeof this.props.onKeyUp === 'function' && this.props.onKeyUp.call(this, event) === false) {
       stopEventPropagation(event);
       return;
     }
@@ -70,71 +154,110 @@ export class TextInput extends React.Component {
   onKeyPress = (event) => {
     var nativeEvent = event.nativeEvent;
 
-    if (typeof this.props.onKeyPress === 'function' && this.props.onKeyPress({ event }) === false) {
+    if (typeof this.props.onKeyPress === 'function' && this.props.onKeyPress.call(this, event) === false) {
       stopEventPropagation(event);
       return;
     }
 
-    if (typeof this.props.onSubmitEditing === 'function' && nativeEvent.keyCode === 13)
-      this.props.onSubmitEditing({ event });
+    if (nativeEvent.keyCode === 13)
+      this.doSubmit(event);
   }
 
-  onFocus = () => {
+  onFocus = (event) => {
     if (typeof this.props.onFocus === 'function')
-      this.props.onFocus({ event });
+      this.props.onFocus.call(this, event);
   }
 
-  onBlur = () => {
+  onBlur = (event) => {
     if (typeof this.props.onBlur === 'function')
-      this.props.onBlur({ event });
+      this.props.onBlur.call(this, event);
   }
 
-  inputRef = (reference) => {
-    if (reference && this.props.autoFocus === true)
-      reference.focus();
+  inputRef = (elem) => {
+    this._inputRef = elem;
+
+    if (elem && this.props.autoFocus === true)
+      elem.focus();
 
     if (typeof this.props.inputRef === 'function')
-      this.props.inputRef(reference);
+      this.props.inputRef.call(this, elem);
+  }
+
+  clear = () => {
+
+  }
+
+  focus = () => {
+    if (!this._inputRef)
+      return;
+
+    this._inputRef.focus();
+  }
+
+  blur = () => {
+    if (!this._inputRef)
+      return;
+
+    this._inputRef.blur();
   }
 
   render() {
-    var value = (this.props.value !== undefined) ? this.props.value : this.state.value,
-        multiline = this.props.multiline,
+    var providedProps = this.props,
+        value = (providedProps.value !== undefined) ? providedProps.value : this.state.value,
+        multiline = providedProps.multiline,
+        autoComplete = ((providedProps.autoFill !== false && providedProps.name) ? (providedProps.name || providedProps.field) : undefined),
         props = {
-          placeholder: this.props.placeholder,
+          autoComplete: (!autoComplete) ? this._autoCompleteRandomValue : autoComplete,
+          name: autoComplete,
+          placeholder: providedProps.placeholder,
           onChange: this.onChange,
           onKeyDown: this.onKeyDown,
           onKeyUp: this.onKeyUp,
           onKeyPress: this.onKeyPress,
           onFocus: this.onFocus,
           onBlur: this.onBlur,
-          ref: this.inputRef
+          ref: this.inputRef,
+          maxLength: providedProps.maxLength,
+          className: providedProps.className,
+          disabled: (providedProps.editable) ? undefined : true,
+          readOnly: providedProps.readOnly,
+          max: providedProps.max
         },
-        elemType = (multiline) ? 'textarea' : 'input',
+        elementName = (multiline) ? 'textarea' : 'input',
         baseStyle = [{
-          boxSizing: 'border-box',
-          display: 'flex',
-          flex: 1,
-          minHeight: 36,
-          minWidth: 50
-        }, this.props.style];
+          // boxSizing: 'border-box',
+          // display: 'flex',
+          // flex: 1,
+          // minHeight: 36,
+          // minWidth: 50
+        }, providedProps.style];
 
     if (value == null || (typeof value === 'number' && !isFinite(value)))
       value = '';
     else
       value = ('' + value);
 
-    if (this.props.editable === false)
+    if (providedProps.editable === false)
       props.disabled = "disabled";
 
-    if (!multiline) {
-      props.value = value;
-      props.type = (this.props.secureTextEntry) ? 'password' : 'text';
-    }
+    props.value = value;
+
+    if (!multiline)
+      props.type = (providedProps.secureTextEntry) ? 'password' : 'text';
+    else
+      props.rows = 1;
 
     props.style = StyleSheetBuilder.flattenInternalStyleSheet(baseStyle);
 
-    return React.createElement(elemType, props, (multiline) ? value : undefined);
+    return React.createElement(elementName, props);
   }
 }
+
+const TextInput = React.forwardRef((props, ref) => {
+  return (<TextInputShim {...props} inputRef={ref}/>);
+});
 //###}###//
+
+export {
+  TextInput
+};

@@ -158,6 +158,7 @@ export class ThemeProperties {
     };
 
     finalThemeProps.DEFAULT_FONT_SIZE = finalThemeProps.FONT_SIZE_SMALL;
+    finalThemeProps.DEFAULT_ICON_SIZE = finalThemeProps.DEFAULT_FONT_SIZE;
     finalThemeProps.REM = finalThemeProps.DEFAULT_FONT_SIZE;
 
     return Object.assign(finalThemeProps, themeProps);

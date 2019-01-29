@@ -9,6 +9,7 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
 
     static propTypes = {
       icon: PropTypes.string.isRequired,
+      container: PropTypes.bool,
       containerStyle: PropTypes.any
     }
 
@@ -52,12 +53,28 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
       return { fontFamily, glyph };
     }
 
-    render() {
+    renderIcon(glyphInfo) {
+      return (
+        <Text
+          className={this.getRootClassName(componentName, 'icon')}
+          style={this.style('icon', this.props.style, { fontFamily: glyphInfo.fontFamily })}
+          numberOfLines={1}
+        >
+          {glyphInfo.glyph}
+        </Text>
+      );
+    }
+
+    render(_children) {
       var glyphInfo = this.getIconGlyphInfo();
 
+      if (this.props.container === false)
+        return this.renderIcon(glyphInfo);
+
       return (
-        <View className={this.getRootClassName(componentName)} style={this.style('container', this.props.containerStyle)}>
-          <Text style={this.style('icon', this.props.style, { fontFamily: glyphInfo.fontFamily })} numberOfLines={1}>{glyphInfo.glyph}</Text>
+        <View className={this.getRootClassName(componentName, 'container')} style={this.style('container', this.props.containerStyle)}>
+          {this.renderIcon(glyphInfo)}
+          {this.getChildren(_children)}
         </View>
       );
     }

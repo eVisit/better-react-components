@@ -9,10 +9,14 @@ export default createStyleSheet(function(theme) {
       justifyContent: 'center'
     },
     icon: {
-      fontSize: theme.FONT_SIZE_SMALL,
+      fontSize: theme.DEFAULT_ICON_SIZE,
       color: theme.MAIN_COLOR,
       backgroundColor: 'transparent',
-      textAlign: 'center'
+      textAlign: 'center',
+      browser: {
+        WebkitFontSmoothing: 'auto',
+        WebkitUserSelect: 'none'
+      }
     }
   };
 });

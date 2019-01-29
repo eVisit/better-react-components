@@ -175,6 +175,12 @@ class Value {
         enumerable: false,
         configurable: true,
         value: []
+      },
+      '_isAnimatedValue': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: true
       }
     });
   }
@@ -357,7 +363,7 @@ Animated.createAnimatedComponent = function(Klass) {
 
         if (key === 'transform' && value && !(typeof value === 'string' || value instanceof String)) {
           trackTransform(value);
-        } else if (value instanceof Animated.Value) {
+        } else if (value && value._isAnimatedValue) {
           newStyle[key] = value.getValue();
 
           value.addTracker(this, ((key) => {

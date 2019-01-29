@@ -1,17 +1,24 @@
 //###if(MOBILE) {###//
-export { ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 //###} else {###//
-import { View }       from './view';
+import { View }               from './view';
+import { filterObjectKeys }   from '@react-ameliorate/utils';
 
-export class ScrollView extends View {
+class ScrollView extends View {
   getProps(providedProps) {
     var props = super.getProps(providedProps),
         style = (props && props.style);
 
-    if (style)
+    if (this.props.scrollEnabled === false)
+      style.overflow = 'hidden';
+    else
       style.overflow = 'auto';
 
-    return props;
+    return filterObjectKeys(/^(centerContent|showsVerticalScrollIndicator|automaticallyAdjustContentInsets|keyboardShouldPersistTaps|keyboardDismissMode|scrollEventThrottle|contentContainerStyle|contentInset|scrollEnabled|overScrollMode)$/, props);
   }
 }
 //###}###//
+
+export {
+  ScrollView
+};

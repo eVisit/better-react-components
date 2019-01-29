@@ -1,33 +1,31 @@
 //###if(MOBILE) {###//
-export { View }                     from 'react-native';
+import { View }                     from 'react-native';
 //###} else {###//
-import { utils as U, data as D }    from 'evisit-js-utils';
+import { utils as U }               from 'evisit-js-utils';
 import React                        from 'react';
-import { StyleSheetBuilder }        from '@react-ameliorate/styles';
 import {
   sendOnLayoutEvent,
   findDOMNode,
-  isElementOrDescendant
+  isElementOrDescendant,
+  filterObjectKeys
 }                                   from '@react-ameliorate/utils';
+import { flattenStyle }             from '../shim-utils';
 
-export class View extends React.Component {
+class View extends React.Component {
   getProps(providedProps) {
-    var style = StyleSheetBuilder.flattenInternalStyleSheet(providedProps.style),
-        className = [];
-
-    if (providedProps.className)
-      className.push(providedProps.className);
+    var style = flattenStyle(providedProps.style);
 
     if (style.flex === 0) {
       style.flex = 'none';
-    } else if (style.flex === 1) {
+    } else if (typeof style.flex === 'number') {
+      var flex = style.flex;
       delete style.flex;
 
       if (!style.hasOwnProperty('flexGrow'))
-        style.flexGrow = 1;
+        style.flexGrow = flex;
 
       if (!style.hasOwnProperty('flexShrink'))
-        style.flexShrink = 1;
+        style.flexShrink = flex;
 
       if (!style.hasOwnProperty('flexBasis'))
         style.flexBasis = 'auto';
@@ -36,9 +34,12 @@ export class View extends React.Component {
         style.flexBasis = 'auto';
     }
 
-    var filteredProps = D.extend(D.extend.FILTER, (key, value) => ((value != null && value !== '') && !(('' + key).match(/^(_|onLayout$|children$|ref$|layoutContext$)/))), {}, providedProps, {
-      className: className.join(' '),
-      style
+    var filteredProps = filterObjectKeys(/^(_|onLayout$|layoutContext$|enableAnimation$|testID$|elementName$)/, providedProps, {
+      className: providedProps.className,
+      style,
+      onMouseOver: (this.props.onMouseOver) ? this.onMouseOver : undefined,
+      onMouseOut: (this.props.onMouseOut) ? this.onMouseOut : undefined,
+      ref: this.viewRef
     });
 
     return filteredProps;
@@ -90,18 +91,14 @@ export class View extends React.Component {
   }
 
   render() {
-    var props = this.getProps(this.props);
+    var props = this.getProps.call(this, this.props),
+        elementName = this.props.elementName || 'div';
 
-    return (
-      <div
-        {...props}
-        onMouseOver={(this.props.onMouseOver) ? this.onMouseOver : undefined}
-        onMouseOut={(this.props.onMouseOut) ? this.onMouseOut : undefined}
-        ref={this.viewRef}
-      >
-        {this.props.children || null}
-      </div>
-    );
+    return React.createElement(elementName, props, this.props.children || null);
   }
 }
 //###}###//
+
+export {
+  View
+};

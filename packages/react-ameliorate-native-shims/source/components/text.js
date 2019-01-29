@@ -1,11 +1,11 @@
 //###if(MOBILE) {###//
-export { Text }                     from 'react-native';
+import { Text }                     from 'react-native';
 //###} else {###//
 import React                        from 'react';
-import { StyleSheetBuilder }        from '@react-ameliorate/styles';
+import { flattenStyle }             from '../shim-utils';
 import { filterObjectKeys }         from '@react-ameliorate/utils';
 
-export class Text extends React.Component {
+class Text extends React.Component {
   render() {
     var extraStyle = {};
 
@@ -20,10 +20,14 @@ export class Text extends React.Component {
     }
 
     return (
-      <span {...filterObjectKeys(/^(numberOfLines|ellipsizeMode)$/, this.props)} style={StyleSheetBuilder.flattenInternalStyleSheet([this.props.style, extraStyle])}>
+      <span {...filterObjectKeys(/^(_|data-ra-|numberOfLines$|ellipsizeMode$)/, this.props)} style={flattenStyle([this.props.style, extraStyle])}>
         {this.props.children}
       </span>
     );
   }
 }
 //###}###//
+
+export {
+  Text
+};

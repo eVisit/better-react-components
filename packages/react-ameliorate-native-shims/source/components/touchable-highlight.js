@@ -1,11 +1,15 @@
 //###if(MOBILE) {###//
-export { TouchableHighlight } from 'react-native';
+import { TouchableHighlight } from 'react-native';
 //###} else {###//
 import Touchable              from './touchable';
 
-export class TouchableHighlight extends Touchable {
+class TouchableHighlight extends Touchable {
   render(...args) {
     return super.render(...args);
   }
 }
 //###}###//
+
+export {
+  TouchableHighlight
+};

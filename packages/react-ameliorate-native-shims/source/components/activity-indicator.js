@@ -1,19 +1,21 @@
 //###if(MOBILE) {###//
-export { ActivityIndicator }        from 'react-native';
+import { ActivityIndicator }        from 'react-native';
 //###} else {###//
 import React                        from 'react';
-import {
-  Color,
-  StyleSheetBuilder
-}                                   from '@react-ameliorate/styles';
+import { Color }                    from '@react-ameliorate/styles';
 import {
   insertStyleSheet,
   toNumber
 }                                   from '@react-ameliorate/utils';
+import { flattenStyle }             from '../shim-utils';
 
-const SPIN_SPEED = '1.25s',
-      SMALL_SIZE = 24,
-      LARGE_SIZE = 48;
+const SPIN_SPEED = '1.25s';
+
+const SIZES = {
+  small: 30,
+  large: 75,
+  tiny: 20
+};
 
 function getColor(color, alpha) {
   var thisColor = new Color(color).rgb();
@@ -21,7 +23,7 @@ function getColor(color, alpha) {
   return thisColor.toString();
 }
 
-export class ActivityIndicator extends React.Component {
+class ActivityIndicator extends React.Component {
   static defaultProps = {
     animating: true,
     hidesWhenStopped: true,
@@ -33,13 +35,9 @@ export class ActivityIndicator extends React.Component {
     if (this.props.hidesWhenStopped && !this.props.animating)
       return null;
 
-    var size = this.props.size;
-    if (size === 'small')
-      size = SMALL_SIZE;
-    else if (size === 'large')
-      size = LARGE_SIZE;
-    else
-      size = Math.round(toNumber(size, SMALL_SIZE));
+    var size = SIZES[this.props.size];
+    if (!size)
+      size = Math.round(toNumber(size, SIZES.small));
 
     var borderSize = Math.round(size * 0.125),
         color = getColor(this.props.color, 1),
@@ -55,7 +53,7 @@ export class ActivityIndicator extends React.Component {
     return (
       <div
         className="applicationActivityIndicator"
-        style={StyleSheetBuilder.flattenInternalStyleSheet([this.props.style, style])}
+        style={flattenStyle([this.props.style, style])}
       />
     );
   }
@@ -79,3 +77,7 @@ insertStyleSheet('mainApplicationActivityIndicator', `
 `);
 }, 10);
 //###}###//
+
+export {
+  ActivityIndicator
+};
