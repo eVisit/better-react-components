@@ -342,7 +342,7 @@ export default class ComponentBase {
       return newElems;
     };
 
-    if (this._raUpdatesFrozenSemaphore > 0)
+    if (this.areUpdatesFrozen())
       return (this._raRenderCache !== undefined) ? this._raRenderCache : null;
 
     if (this._raRenderCacheInvalid !== true && this._raRenderCache !== undefined)
@@ -605,7 +605,10 @@ export default class ComponentBase {
 
   callProvidedCallback(_names, opts, defaultValue) {
     var names = (_names instanceof Array) ? _names : [_names],
-        args = (opts instanceof Array) ? opts : [Object.assign({ ref: this }, opts || {})];
+        args = (opts == null || opts instanceof Array) ? opts : [ Object.assign({ ref: this }, opts || {}) ];
+
+    if (args == null)
+      args = [];
 
     for (var i = 0, il = names.length; i < il; i++) {
       var callback = this.getProvidedCallback(names[i]);
@@ -635,7 +638,7 @@ export default class ComponentBase {
   }
 
   forceUpdate() {
-    if (!this.areUpdatesFrozen())
+    if (this.mounted() && !this.areUpdatesFrozen())
       this._raReactComponent.forceUpdate();
   }
 
@@ -654,9 +657,6 @@ export default class ComponentBase {
   }
 
   areUpdatesFrozen() {
-    if (!this.mounted())
-      return true;
-
     return (this._raUpdatesFrozenSemaphore > 0 || this._raQueueStateUpdatesSemaphore > 0);
   }
 
@@ -730,7 +730,7 @@ export default class ComponentBase {
   setState(_newState, doneCallback) {
     var newState = this.setStatePassive(_newState);
 
-    if (!this.areUpdatesFrozen())
+    if (this.mounted() && !this.areUpdatesFrozen())
       this._setReactComponentState(newState, doneCallback);
 
     return newState;
@@ -845,7 +845,7 @@ export default class ComponentBase {
     clearTimeout(this._componentDelayTimers[id]);
   }
 
-  memoize(cb, ...args) {
+  memoizeWithCacheID(cacheID, cb, args) {
     const isCacheValid = (cache) => {
       if (!cache)
         return false;
@@ -862,16 +862,23 @@ export default class ComponentBase {
       return true;
     };
 
-    var id = ('' + cb),
-        cache = this._raMemoizeCache[id];
-
+    var cache = this._raMemoizeCache[cacheID];
     if (isCacheValid(cache))
       return cache.value;
 
     var value = cb.apply(this, args);
-    this._raMemoizeCache[id] = { args, value };
+    this._raMemoizeCache[cacheID] = { args, value };
 
     return value;
+  }
+
+  memoize(cb, ...args) {
+    var id = ('' + cb);
+    return this.memoizeWithCacheID(id, cb, args);
+  }
+
+  invalidateMemoizeCache(cacheID) {
+    delete this._raMemoizeCache[cacheID];
   }
 
   shouldComponentUpdate(newState, oldState) {

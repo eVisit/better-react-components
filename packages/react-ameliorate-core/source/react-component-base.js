@@ -1,7 +1,8 @@
 import {
   areObjectsEqualShallow,
   copyPrototypeFuncs,
-  RAContext
+  RAContext,
+  calculateObjectDifferences
 }                                     from '@react-ameliorate/utils';
 
 import React                          from 'react';
@@ -84,6 +85,17 @@ export default class ReactComponentBase extends React.Component {
 
       if (!propsDiffer && !statesDiffer)
         return false;
+
+      if (this.constructor._raDebugRenders) {
+        if (propsDiffer !== statesDiffer) {
+          var diff = (propsDiffer) ? calculateObjectDifferences(nextProps, this.props, null, 1) : calculateObjectDifferences(nextState, this.state, null, 1),
+              whichDiffers = (propsDiffer) ? 'props' : 'state';
+
+          console.log(`----> ${this.constructor.displayName}: Rendering because of ${whichDiffers} updates: `, [ diff, (whichDiffers === 'props') ? nextProps : nextState, (whichDiffers === 'props') ? this.props : this.state ]);
+        } else {
+          console.log(`----> ${this.constructor.displayName}: Rendering because of props and state updates: `, [ calculateObjectDifferences(nextProps, this.props, null, 1), nextProps, this.props ], [ calculateObjectDifferences(nextState, this.state, null, 1), nextState, this.state ]);
+        }
+      }
 
       if (propsDiffer)
         this._propUpdateCounter++;

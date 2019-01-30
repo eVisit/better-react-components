@@ -556,6 +556,91 @@ export function isPromise(obj) {
   return (obj && ((obj instanceof Promise) || typeof obj.then === 'function'));
 }
 
+export function calculateObjectDifferences(_obj1, _obj2, filter, maxDepth, _currentDepth) {
+  const isPrimative = (obj) => {
+    if (obj == null)
+      return true;
+
+    var type = typeof obj;
+    if (['string', 'number', 'boolean'].indexOf(type) >= 0)
+      return true;
+
+    return false;
+  };
+
+  const convertToPrimative = (obj) => {
+    if (obj instanceof String || obj instanceof Number || obj instanceof Boolean)
+      return obj.valueOf();
+
+    return obj;
+  };
+
+  var currentDepth = _currentDepth || 0,
+      obj1 = convertToPrimative(_obj1),
+      obj2 = convertToPrimative(_obj2);
+
+  if (obj1 === obj2)
+    return;
+
+  if (!obj1 || !obj2)
+    return [ obj1, obj2 ];
+
+  if (isPrimative(obj1) || isPrimative(obj2))
+    return (obj1 !== obj2) ? [ obj1, obj2 ] : undefined;
+
+  if (obj1.constructor !== obj2.constructor)
+    return [ obj1, obj2 ];
+
+  if (maxDepth != null && currentDepth >= maxDepth)
+    return (obj1 !== obj2) ? [ obj1, obj2 ] : undefined;
+
+  var allKeys = Object.keys([].concat(Object.keys(obj1), Object.keys(obj2)).reduce((obj, keyName) => {
+        obj[keyName] = true;
+        return obj;
+      }, {})),
+      isArray = (obj1 instanceof Array),
+      diffObj = (isArray) ? new Array(allKeys.length) : {},
+      isDiff = false,
+      filterIsRE = (filter instanceof RegExp),
+      filterIsFunc = (typeof filter === 'function'),
+      matchesFilter = (key) => {
+        if (filterIsRE) {
+          filter.lastIndex = 0;
+          if (!filter.test(key))
+            return false;
+        } else if (filterIsFunc) {
+          if (!filter(key))
+            return false;
+        }
+
+        return true;
+      };
+
+  for (var i = 0, il = allKeys.length; i < il; i++) {
+    if (isArray)
+      diffObj[i] = undefined;
+
+    var key = allKeys[i],
+        prop1 = obj1[key],
+        prop2 = obj2[key];
+
+    if (prop1 !== prop2) {
+      if (!isPrimative(prop1) && !isPrimative(prop2)) {
+        var ret = calculateObjectDifferences(prop1, prop2, filter, maxDepth, currentDepth + 1);
+        if (ret !== undefined && matchesFilter(key)) {
+          isDiff = true;
+          diffObj[key] = ret;
+        }
+      } else if (matchesFilter(key)) {
+        isDiff = true;
+        diffObj[key] = [ prop1, prop2 ];
+      }
+    }
+  }
+
+  return (isDiff) ? diffObj : undefined;
+}
+
 export {
   insertStyleSheet
 };

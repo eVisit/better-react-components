@@ -5,7 +5,8 @@ import {
   copyPrototypeFuncs,
   areObjectsEqualShallow,
   getPrototypeKeys,
-  isValidComponent
+  isValidComponent,
+  calculateObjectDifferences
 }                                 from '@react-ameliorate/utils';
 
 import PropTypes                  from '@react-ameliorate/prop-types';
@@ -24,13 +25,6 @@ export {
   ThemeProperties
 }                                 from '@react-ameliorate/styles';
 
-export {
-  copyStaticProperties,
-  copyPrototypeFuncs,
-  areObjectsEqualShallow,
-  isValidComponent,
-  PropTypes
-};
 
 // This needs to be smarter and needs to stack classes intelligently so that super properly works
 function mixinClasses(args) {
@@ -369,5 +363,11 @@ export function rebaseComponent(component, parentClassSelector) {
 
 export {
   ComponentBase,
-  ReactComponentBase
+  ReactComponentBase,
+  copyStaticProperties,
+  copyPrototypeFuncs,
+  areObjectsEqualShallow,
+  isValidComponent,
+  PropTypes,
+  calculateObjectDifferences
 };
