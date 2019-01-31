@@ -479,8 +479,8 @@ export default class ComponentBase {
     this._raReferenceCaptureHookCache = {};
     this._raMemoizeCache = {};
     this._raRenderCache = null;
-    this._raResolvedPropsCache = {};
-    this._raCompponentFlagsCache = {};
+    this._raResolvedPropsCache = null;
+    this._raCompponentFlagsCache = null;
   }
 
   _invokeComponentWillUnmount() {
