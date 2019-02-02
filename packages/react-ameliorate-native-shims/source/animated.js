@@ -299,7 +299,7 @@ class Easing {
 }
 
 Animated.createAnimatedComponent = function(Klass) {
-  class AnimatedComponent {
+  class AnimatedComponent extends Klass {
     trackStyleValues(style, _newStyle, _alreadyTracked, _parentKeys) {
       const trackTransform = (transform) => {
         const enqueueTransformUpdate = (axisName, val) => {
@@ -398,7 +398,7 @@ Animated.createAnimatedComponent = function(Klass) {
       return (
         <React.Fragment>
           <Klass
-            {...filterObjectKeys(/^(id$|ref$|key$|_)/, this.props)}
+            {...filterObjectKeys(/^(id$|ref$|key$|_|_internalref$)/, this.props)}
             ref={function(elem) {
               self._componentElement = findDOMNode(elem);
               if (typeof self.props._internalref === 'function')

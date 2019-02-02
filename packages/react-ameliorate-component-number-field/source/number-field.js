@@ -39,10 +39,8 @@ export const NumberField = componentFactory('NumberField', ({ Parent, componentN
           return num;
         };
 
-        if (args.focussed) {
-          console.log('Focussed!');
+        if (args.focussed)
           return newValue;
-        }
 
         var precision = this.props.precision,
             num = parseFloat(('' + newValue).trim().replace(/(\S+).*/g, '$1').replace(/[^\d.-]+/g, ''));

@@ -66,6 +66,22 @@ export const TextField = componentFactory('TextField', ({ Parent, componentName 
       this.callProvidedCallback('onKeyPress', { event });
     }
 
+    _onNativeChangeText(value, event) {
+      return this.onChangeText({ event, value });
+    }
+
+    _onNativeKeyDown(event) {
+      return this.onKeyDown({ event });
+    }
+
+    _onNativeKeyUp(event) {
+      return this.onKeyUp({ event });
+    }
+
+    _onNativeKeyPress(event) {
+      return this.onKeyPress({ event });
+    }
+
     renderLabel() {
       return (
         <label
@@ -95,14 +111,14 @@ export const TextField = componentFactory('TextField', ({ Parent, componentName 
           autoFocus={autoFocus}
           secureTextEntry={(type === 'password')}
           caption={caption}
-          inputRef={this.setNativeFieldReference}
-          onFocus={this.onFocus}
-          onBlur={this.onBlur}
-          onChangeText={this.onChangeText}
-          onSubmitEditing={this.onSubmitEditing}
-          onKeyDown={this.onKeyDown}
-          onKeyUp={this.onKeyUp}
-          onKeyPress={this.onKeyPress}
+          ref={this.setNativeFieldReference}
+          onFocus={this._onNativeFocus}
+          onBlur={this._onNativeBlur}
+          onChangeText={this._onNativeChangeText}
+          onSubmitEditing={this._onNativeSubmitEditing}
+          onKeyDown={this._onNativeKeyDown}
+          onKeyUp={this._onNativeKeyUp}
+          onKeyPress={this._onNativeKeyPress}
           defaultValue={(type === 'password') ? value : undefined}
           value={(type === 'password') ? undefined : value}
           style={this.style('inputField', this.props.fieldStyle, (flags.error && 'fieldStateError'))}

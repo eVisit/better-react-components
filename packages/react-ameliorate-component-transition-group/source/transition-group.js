@@ -30,10 +30,15 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
       onRenderChild: PropTypes.func,
     };
 
-    construct(...args) {
-      super.construct(...args);
+    construct() {
+      super.construct.apply(this, arguments);
 
-      Object.defineProperty(this, '_componentState', this._getNewChildStateObject(null, null));
+      Object.defineProperty(this, '_componentState', {
+        writable: false,
+        enumerable: false,
+        configurable: true,
+        value: this._getNewChildStateObject(null, null)
+      });
     }
 
     _getNewChildStateObject(id, element, animation, state) {

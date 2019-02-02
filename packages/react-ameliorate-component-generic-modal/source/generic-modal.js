@@ -127,7 +127,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
     }
 
     renderButtons(_buttons) {
-      var buttons = this.getValidChildrenAsArray(_buttons);
+      var buttons = this.getChildren(_buttons, true);
 
       return (
         <LayoutContainer

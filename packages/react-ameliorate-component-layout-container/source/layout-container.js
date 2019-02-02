@@ -16,7 +16,7 @@ export const LayoutContainer = componentFactory('LayoutContainer', ({ Parent, co
     render(_children) {
       var direction = capitalize(this.props.direction || 'horizontal'),
           spacing = this.props.spacing || 0,
-          children = this.getValidChildrenAsArray(_children),
+          children = this.getChildren(_children, true),
           isVertical = (direction !== 'Horizontal');
 
       return (

@@ -191,6 +191,29 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       this.callProvidedCallback('onBlur', { event, value: this.value() });
     }
 
+    onSubmitEditing({ event }) {
+      var value = this.value();
+
+      if (this.callProvidedCallback('onSubmit', { event, value }) === false)
+        return;
+
+      var parentForm = this.getParentForm();
+      if (parentForm && typeof parentForm.focusNext === 'function')
+        parentForm.focusNext(this);
+    }
+
+    _onNativeFocus(event) {
+      return this.onFocus({ event });
+    }
+
+    _onNativeBlur(event) {
+      return this.onBlur({ event });
+    }
+
+    _onNativeSubmitEditing(event) {
+      return this.onSubmitEditing({ event });
+    }
+
     value(_set, opts = {}) {
       var set = _set,
           value = this.getState('value'),
@@ -285,17 +308,6 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
         field.blur();
 
       return true;
-    }
-
-    onSubmitEditing({ event }) {
-      var value = this.value();
-
-      if (this.callProvidedCallback('onSubmit', { event, value }) === false)
-        return;
-
-      var parentForm = this.getParentForm();
-      if (parentForm && typeof parentForm.focusNext === 'function')
-        parentForm.focusNext(this);
     }
 
     getAllOptions() {
