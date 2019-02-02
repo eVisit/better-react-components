@@ -168,7 +168,7 @@ export function cloneComponents(children, propsHelper, cloneHelper, recurseHelpe
       return thisShouldRecurse;
     };
 
-    if (child === false || child == null)
+    if (child === false || child === true || child == null)
       return child;
 
     var clonedChild = child,
@@ -205,7 +205,7 @@ export function cloneComponents(children, propsHelper, cloneHelper, recurseHelpe
   if (!(children instanceof Array))
     return cloneChild(children, 0);
 
-  return children.map(cloneChild).filter((c) => (c != null && c !== false));
+  return children.map(cloneChild);
 }
 
 export function filterObjectKeys(filter, ...args) {

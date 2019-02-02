@@ -529,7 +529,7 @@ export default class ComponentBase {
 
   getChildren(_children, asArray) {
     function filterChildren(_children) {
-      return ((_children instanceof Array) ? _children : [_children]).filter((child) => (child !== false && child != null));
+      return ((_children instanceof Array) ? _children : [_children]).filter((child) => (child !== false && child !== true && child != null));
     }
 
     var children = _children;
@@ -543,17 +543,6 @@ export default class ComponentBase {
       children = [children];
 
     return filterChildren(children);
-  }
-
-  getValidChildrenAsArray(_children) {
-    var children = this.getChildren(_children);
-
-    if (!(children instanceof Array))
-      children = [children];
-
-    children = children.filter(Boolean);
-
-    return children;
   }
 
   getResolvableProps(...args) {
@@ -634,7 +623,7 @@ export default class ComponentBase {
   }
 
   getTheme() {
-    return this.theme || this.context.theme;
+    return this.theme || this.props.raTheme || this.context.theme;
   }
 
   forceUpdate() {
