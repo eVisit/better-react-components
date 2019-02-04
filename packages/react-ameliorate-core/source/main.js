@@ -362,6 +362,7 @@ export function rebaseComponent(component, parentClassSelector) {
 }
 
 export {
+  RAContext,
   ComponentBase,
   ReactComponentBase,
   copyStaticProperties,

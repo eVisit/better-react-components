@@ -948,7 +948,8 @@ export default class ComponentBase {
     var prefix = this.getClassNamePrefix(),
         base = (_componentName) ? _componentName : this.getComponentName();
 
-    return this.generateNames({ prefix, base }, ...args).join(' ');
+    var className = this.generateNames({ prefix, base }, ...args).join(' ')
+    return (!className) ? undefined : className;
   }
 
   getRootClassName(_componentName, ...args) {
