@@ -7,6 +7,17 @@ import {
 
 import React                          from 'react';
 
+function getContextObject(context) {
+  Object.defineProperty(context, 'toString', {
+    writable: true,
+    enumerable: false,
+    configurable: true,
+    value: () => ''
+  });
+
+  return context;
+}
+
 export default class ReactComponentBase extends React.Component {
   static proxyComponentInstanceMethod(propName) {
     if (propName in React.Component.prototype)
@@ -70,7 +81,7 @@ export default class ReactComponentBase extends React.Component {
         writable: true,
         enumerable: false,
         configurable: true,
-        value: {}
+        value: getContextObject({})
       }
     });
 
@@ -134,8 +145,9 @@ export default class ReactComponentBase extends React.Component {
         providedContext = this._providedContext,
         instanceProvidedContext = (typeof contextProvider === 'function') ? Object.assign({}, baseContext, contextProvider.call(this._componentInstance) || {}) : null;
 
-    if (instanceProvidedContext && !areObjectsEqualShallow(instanceProvidedContext, providedContext))
-      this._providedContext = providedContext = Object.assign({}, baseContext, instanceProvidedContext);
+    if (instanceProvidedContext && !areObjectsEqualShallow(instanceProvidedContext, providedContext)) {
+      this._providedContext = providedContext = getContextObject(Object.assign({}, baseContext, instanceProvidedContext));
+    }
 
     return providedContext;
   }

@@ -149,6 +149,7 @@ export class ThemeProperties {
       DEFAULT_BORDER_RADIUS: 4,
       DEFAULT_BUTTON_HEIGHT: 48,
       DEFAULT_FIELD_HEIGHT: 30,
+      DEFAULT_HOVER_OPACITY: 0.2,
 
       NO_SELECT: (IS_MOBILE) ? {} : {
         MozUserSelect: 'none',
