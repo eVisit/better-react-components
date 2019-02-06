@@ -49,10 +49,14 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       this.setState({ activeTab: tabIndex });
     }
 
+    getDirection() {
+      return (this.props.direction || 'horizontal').toLowerCase();
+    }
+
     renderTabButton(tab, index) {
       var activeTab                 = this.getState('activeTab'),
           active                    = (activeTab === index),
-          direction                 = this.props.direction || 'horizontal',
+          direction                 = this.getDirection(),
           flags                     = { active },
           tabContainerNames         = this.generateStyleNames(direction, 'tabContainer', flags),
           tabIconContainerNames     = this.generateStyleNames(direction, 'tabIconContainer', flags),
@@ -91,15 +95,16 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
     }
 
     getContainerStyle(...args) {
-      var direction = this.props.direction || 'horizontal';
-      return this.style('container', this.generateStyleNames(direction, 'container'), ...args);
+      var direction = this.getDirection();
+      return this.style('container', this.generateStyleNames(direction, 'container'), ...args, this.props.style);
     }
 
     render() {
-      var tabs = this.props.tabs || [];
+      var direction = this.getDirection(),
+          tabs = this.props.tabs || [];
 
       return (
-        <View className={this.getRootClassName(componentName)} style={this.getContainerStyle()}>
+        <View className={this.getRootClassName(componentName, this.generateStyleNames(direction, 'container'))} style={this.getContainerStyle()}>
           {tabs.map(this.renderTabButton)}
         </View>
       );

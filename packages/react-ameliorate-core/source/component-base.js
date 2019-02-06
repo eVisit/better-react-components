@@ -499,6 +499,13 @@ export default class ComponentBase {
     return filterObjectKeys.call(this, filter, this.props, ...args);
   }
 
+  passProps(filter, ...args) {
+    if (filter instanceof RegExp || typeof filter === 'function')
+      return this.filterProps(filter, ...args);
+    else
+      return this.getProps(...args);
+  }
+
   _getLayoutContextName(layoutContext) {
     return layoutContext;
   }

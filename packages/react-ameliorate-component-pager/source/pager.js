@@ -9,42 +9,114 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
     static styleSheet = styleSheet;
 
     static propTypes = {
-      pages: PropTypes.array,
-      page: PropTypes.any,
-      onRequestPageChange: PropTypes.func
+      // Props for PagerBar
+      showIcons: PropTypes.bool,
+      showCaptions: PropTypes.bool,
+      activeTab: PropTypes.number,
+      tabs: PropTypes.oneOfType([PropTypes.array, PropTypes.func]).isRequired,
+      onTabPress: PropTypes.func,
+      tabStyle: PropTypes.any,
+      tabIconStyle: PropTypes.any,
+      tabCaptionStyle: PropTypes.any,
+      tabContainerStyle: PropTypes.any,
+      tabIconContainerStyle: PropTypes.any,
+      tabCaptionContainerStyle: PropTypes.any,
+      activeTabStyle: PropTypes.any,
+      activeTabIconStyle: PropTypes.any,
+      activeTabCaptionStyle: PropTypes.any,
+      activeTabContainerStyle: PropTypes.any,
+      activeTabIconContainerStyle: PropTypes.any,
+      activeTabCaptionContainerStyle: PropTypes.any,
+
+      // Props for Pager
+      onPageChange: PropTypes.func,
+      tabBarStyle: PropTypes.any,
+      pagerBarPlacement: PropTypes.oneOf(['north', 'south', 'west', 'east'])
+    };
+
+    static defaultProps = {
+      pagerBarPlacement: 'north'
     };
 
     constructor(props, ...args) {
       super(props, ...args);
-
-      this._currentPage = null;
     }
 
-    onTabPress({ tab, event }) {
-      if (tab === this._currentPage)
+    onPropUpdated_activeTab(value) {
+      this.setState({ activeTab: value });
+    }
+
+    resolveState() {
+      return {
+        ...super.resolveState.apply(this, arguments),
+        ...this.getState({
+          activeTab: 0
+        })
+      };
+    }
+
+    getTabBarPlacement() {
+      return (this.props.pagerBarPlacement || 'north').toLowerCase();
+    }
+
+    onTabPress({ tab, tabIndex, event }) {
+      if (tabIndex === this.getState('activeTab'))
         return;
 
-      this._currentPage = tab;
+      if (this.callProvidedCallback('onPageChange', { event, tab, tabIndex }) === false)
+        return false;
 
-      return this.callProvidedCallback('onRequestPageChange', { event, page: tab });
+      this.setState({ activeTab: tabIndex });
     }
 
-    render(children) {
-      return (
-        <View className={this.getRootClassName(componentName)} style={this.style('container')}>
-          <PagerBar
-            className={this.getRootClassName(componentName, 'pagerTabs')}
-            tabs={this.props.pages}
-            tab={this.props.page}
-            onTabPress={this.onTabPress}
-          />
+    getPagerBarComponent() {
+      return PagerBar;
+    }
 
-          <View
-            className={this.getRootClassName(componentName, 'pagerPageContainer')}
-            style={this.style('pageContainer')}
-          >
-            {this.getChildren(children)}
+    renderPagerBar({ pagerBarPlacement }) {
+      var PagerBarComponent = this.getPagerBarComponent();
+
+      return (
+        <PagerBarComponent
+          {...this.passProps(this.props)}
+          className={this.getClassName(componentName, 'tabs', this.props.className)}
+          style={this.props.tabBarStyle}
+          direction={(pagerBarPlacement.match(/north|south/i)) ? 'horizontal' : 'vertical'}
+        />
+      );
+    }
+
+    renderPage({ component, tab, tabIndex, children, pagerBarPlacement }) {
+
+    }
+
+    renderPages({ children, pagerBarPlacement }) {
+      return children.map((page, index) => {
+        var tab = this.props.tab[index],
+            tabIndex = index;
+
+        return this.renderPage({ page, tab, tabIndex, children, pagerBarPlacement });
+      });
+    }
+
+    render(_children) {
+      var pagerBarPlacement = this.getTabBarPlacement(),
+          children = this.getChildren(_children, true),
+          containerNames = this.generateStyleNames(pagerBarPlacement, 'container'),
+          pageContainerNames = this.generateStyleNames(pagerBarPlacement, 'pageContainer'),
+          renderPagerBarFirst = !!pagerBarPlacement.match(/west|north/i);
+
+      console.log('PAGER CONTAINER NAMES: ', containerNames);
+
+      return (
+        <View className={this.getRootClassName(componentName, containerNames)} style={this.style(containerNames)}>
+          {(renderPagerBarFirst) && this.renderPagerBar({ pagerBarPlacement })}
+
+          <View className={this.getClassName(componentName, pageContainerNames)} style={this.style(pageContainerNames)}>
+            {this.renderPages({ children, pagerBarPlacement })}
           </View>
+
+          {(!renderPagerBarFirst) && this.renderPagerBar({ pagerBarPlacement })}
         </View>
       );
     }

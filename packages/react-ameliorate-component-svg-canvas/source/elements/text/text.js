@@ -12,7 +12,7 @@ export const SVGText = componentFactory('SVGText', ({ Parent, componentName }) =
 
     render(_children) {
       return (
-        <text {...this.props}>{this.getChildren(_children)}</text>
+        <text {...this.passProps(this.props)}>{this.getChildren(_children)}</text>
       );
     }
   };

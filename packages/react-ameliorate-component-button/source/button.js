@@ -115,7 +115,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           onPressEnd={this.onPressEnd}
           tooltip={this.props.tooltip}
           tooltip-side={this.props.tooltipSide || 'bottom'}
-          {...(Object.assign({}, this.getHoverableProps()))}
+          {...this.passProps(this.getHoverableProps())}
         >
           <View className={this.getRootClassName(componentName, 'internalContainer')} style={this.style(this.generateStyleNames(theme, 'internalContainer', flags), this.props.containerStyle)}>
             {this.renderContents(children)}

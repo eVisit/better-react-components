@@ -135,7 +135,7 @@ export const DroppableView = componentFactory('DroppableView', ({ Parent, compon
     render(children) {
       return super.render(
         <View
-          {...this.filterProps((key) => {
+          {...this.passProps((key) => {
             return (!!key.match(/^(on[A-Z])/));
           })}
           ref={this.captureReference('rootElement', findDOMNode)}

@@ -298,7 +298,7 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
           >
             <TextField
               componentFlags={this.getComponentFlags()}
-              {...this.filterProps(/^(on[A-Z]|defaultValue$|value$)/)}
+              {...this.passProps(/^(on[A-Z]|defaultValue$|value$)/, this.props)}
               defaultValue={defaultValue}
               field="_autoCompleteInternal"
               onChangeText={this.onChangeText}

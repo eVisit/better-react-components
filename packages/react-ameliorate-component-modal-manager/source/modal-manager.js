@@ -84,7 +84,7 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
 
       return (
         <Paper
-          {...this.props}
+          {...this.passProps(this.props)}
           id={this.getID()}
           className={this.getRootClassName(componentName)}
           style={this.style('fullSize', this.props.style)}

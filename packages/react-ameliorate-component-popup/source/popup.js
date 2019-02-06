@@ -46,7 +46,7 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       // TODO: Add arrow
 
       return super.render(
-        <Paper {...this.props} id={this.props.id} onMounted={this.onMounted} className={this.getRootClassName(componentName)}>
+        <Paper {...this.passProps(this.props)} id={this.props.id} onMounted={this.onMounted} className={this.getRootClassName(componentName)}>
           <View style={this.style('container', `container${sideX}`, `container${sideY}`)}>
             <View style={this.style('innerContainer', `innerContainer${sideX}`, `innerContainer${sideY}`)}>
               {this.getChildren(children)}

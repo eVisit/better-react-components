@@ -40,7 +40,7 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
         return this.renderModal(children);
 
       return (
-        <Paper {...this.props} id={this.props.id} onMounted={this.onMounted} className={this.getRootClassName(componentName)}>
+        <Paper {...this.passProps(this.props)} id={this.props.id} onMounted={this.onMounted} className={this.getRootClassName(componentName)}>
           {this.renderModal(children)}
         </Paper>
       );

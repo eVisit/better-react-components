@@ -96,7 +96,7 @@ export const DraggableView = componentFactory('DraggableView', ({ Parent, compon
     render(children) {
       return super.render(
         <View
-          {...this.filterProps((key) => {
+          {...this.passProps((key) => {
             if (key.match(/^(onPress)$/))
               return false;
 
