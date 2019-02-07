@@ -185,6 +185,26 @@ export default class ComponentBase {
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
   }
 
+  _raCreateElement() {
+    if ((typeof this._interceptElement === 'function')) {
+      var element = arguments[0],
+          plainElement = (typeof element === 'string'),
+          name = (plainElement) ? element : (element && element.displayName || element.name),
+          ret = this._interceptElement(name, (plainElement) ? null : element);
+
+      if (ret) {
+        var args = new Array(arguments.length);
+
+        args[0] = ret;
+        for (var i = 1, il = arguments.length; i < il; i++)
+          args[i] = arguments[i];
+
+        return React.createElement(...args);
+      }
+    }
+    return React.createElement.apply(React, arguments);
+  }
+
   generateUniqueComponentID(prefix) {
     return getUniqueComponentID(prefix);
   }

@@ -58,6 +58,6 @@
   },
   "peerDependencies": {
     "react": "^16.7.0",
-    "babel-preset-react-ameliorate": ">=0.57.0"
+    "babel-preset-react-ameliorate": ">=0.51.1"
   }
 }

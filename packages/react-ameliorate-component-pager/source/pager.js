@@ -69,15 +69,9 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       this.setState({ activeTab: tabIndex });
     }
 
-    getPagerBarComponent() {
-      return PagerBar;
-    }
-
     renderPagerBar({ pagerBarPlacement }) {
-      var PagerBarComponent = this.getPagerBarComponent();
-
       return (
-        <PagerBarComponent
+        <PagerBar
           {...this.passProps(this.props)}
           className={this.getClassName(componentName, 'tabs', this.props.className)}
           style={this.props.tabBarStyle}
