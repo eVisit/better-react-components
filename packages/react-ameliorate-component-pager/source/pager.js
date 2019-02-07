@@ -80,20 +80,25 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       this.setState({ activeTab: tabIndex });
     }
 
-    renderPagerBar({ pagerBarPlacement }) {
+    renderPagerBar({ pagerBarPlacement, direction }) {
       return (
         <PagerBar
           {...this.passProps(this.props)}
           className={this.getClassName(componentName, 'tabs', this.props.className)}
           style={this.props.tabBarStyle}
-          direction={(pagerBarPlacement.match(/north|south/i)) ? 'horizontal' : 'vertical'}
+          direction={direction}
           onTabPress={this.onTabPress}
         />
       );
     }
 
-    renderPage({ activeTab, tab, children, pagerBarPlacement }) {
-      return this.callProvidedCallback('renderPage', { activeTab, tab, children, pagerBarPlacement });
+    _renderPagerBar({ pagerBarPlacement }) {
+      var direction = (pagerBarPlacement.match(/north|south/i)) ? 'horizontal' : 'vertical';
+      return this.renderPagerBar({ pagerBarPlacement, direction });
+    }
+
+    renderPage(args) {
+      return this.callProvidedCallback('renderPage', args);
     }
 
     _renderPage({ children, pagerBarPlacement }) {
@@ -103,7 +108,7 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
 
       return (
         <View className={this.getClassName(componentName, pageContainerNames)} style={this.style(pageContainerNames)}>
-          {this.renderPage({ activeTab, tab, children, pagerBarPlacement })}
+          {this.renderPage({ activeTab, tab, children, pagerBarPlacement, pageContainerNames })}
         </View>
       );
     }
@@ -114,15 +119,13 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
           containerNames = this.generateStyleNames(pagerBarPlacement, 'container'),
           renderPagerBarFirst = !!pagerBarPlacement.match(/west|north/i);
 
-      console.log('PAGER CONTAINER NAMES: ', containerNames);
-
       return (
         <View className={this.getRootClassName(componentName, containerNames)} style={this.style(containerNames)}>
-          {(renderPagerBarFirst) && this.renderPagerBar({ pagerBarPlacement })}
+          {(renderPagerBarFirst) && this._renderPagerBar({ pagerBarPlacement })}
 
           {this._renderPage({ children, pagerBarPlacement })}
 
-          {(!renderPagerBarFirst) && this.renderPagerBar({ pagerBarPlacement })}
+          {(!renderPagerBarFirst) && this._renderPagerBar({ pagerBarPlacement })}
         </View>
       );
     }
