@@ -33,6 +33,16 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       this.setState({ activeTab: value });
     }
 
+    resolveProps() {
+      var props = super.resolveProps.apply(this, arguments),
+          tabs  = props.tabs;
+
+      if (typeof tabs === 'function')
+        props.tabs = tabs.call(this);
+
+      return props;
+    }
+
     resolveState() {
       return {
         ...super.resolveState.apply(this, arguments),

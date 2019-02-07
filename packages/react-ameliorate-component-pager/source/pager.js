@@ -31,7 +31,8 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       // Props for Pager
       onPageChange: PropTypes.func,
       tabBarStyle: PropTypes.any,
-      pagerBarPlacement: PropTypes.oneOf(['north', 'south', 'west', 'east'])
+      pagerBarPlacement: PropTypes.oneOf(['north', 'south', 'west', 'east']),
+      renderPage: PropTypes.func
     };
 
     static defaultProps = {
@@ -44,6 +45,16 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
 
     onPropUpdated_activeTab(value) {
       this.setState({ activeTab: value });
+    }
+
+    resolveProps() {
+      var props = super.resolveProps.apply(this, arguments),
+          tabs  = props.tabs;
+
+      if (typeof tabs === 'function')
+        props.tabs = tabs.call(this);
+
+      return props;
     }
 
     resolveState() {
@@ -76,28 +87,31 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
           className={this.getClassName(componentName, 'tabs', this.props.className)}
           style={this.props.tabBarStyle}
           direction={(pagerBarPlacement.match(/north|south/i)) ? 'horizontal' : 'vertical'}
+          onTabPress={this.onTabPress}
         />
       );
     }
 
-    renderPage({ component, tab, tabIndex, children, pagerBarPlacement }) {
-
+    renderPage({ activeTab, tab, children, pagerBarPlacement }) {
+      return this.callProvidedCallback('renderPage', { activeTab, tab, children, pagerBarPlacement });
     }
 
-    renderPages({ children, pagerBarPlacement }) {
-      return children.map((page, index) => {
-        var tab = this.props.tab[index],
-            tabIndex = index;
+    _renderPage({ children, pagerBarPlacement }) {
+      var activeTab = this.getState('activeTab', 0),
+          tab = this.props.tabs[activeTab],
+          pageContainerNames = this.generateStyleNames(pagerBarPlacement, 'pageContainer');
 
-        return this.renderPage({ page, tab, tabIndex, children, pagerBarPlacement });
-      });
+      return (
+        <View className={this.getClassName(componentName, pageContainerNames)} style={this.style(pageContainerNames)}>
+          {this.renderPage({ activeTab, tab, children, pagerBarPlacement })}
+        </View>
+      );
     }
 
     render(_children) {
       var pagerBarPlacement = this.getTabBarPlacement(),
           children = this.getChildren(_children, true),
           containerNames = this.generateStyleNames(pagerBarPlacement, 'container'),
-          pageContainerNames = this.generateStyleNames(pagerBarPlacement, 'pageContainer'),
           renderPagerBarFirst = !!pagerBarPlacement.match(/west|north/i);
 
       console.log('PAGER CONTAINER NAMES: ', containerNames);
@@ -106,9 +120,7 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
         <View className={this.getRootClassName(componentName, containerNames)} style={this.style(containerNames)}>
           {(renderPagerBarFirst) && this.renderPagerBar({ pagerBarPlacement })}
 
-          <View className={this.getClassName(componentName, pageContainerNames)} style={this.style(pageContainerNames)}>
-            {this.renderPages({ children, pagerBarPlacement })}
-          </View>
+          {this._renderPage({ children, pagerBarPlacement })}
 
           {(!renderPagerBarFirst) && this.renderPagerBar({ pagerBarPlacement })}
         </View>
