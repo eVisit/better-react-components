@@ -234,6 +234,23 @@ export function filterObjectKeys(filter, ...args) {
   return newProps;
 }
 
+const acceptableElementProps = [
+  'className',
+  'style',
+];
+
+export function filterToNativeElementProps(props) {
+  return filterObjectKeys((key, value) => {
+    if (acceptableElementProps.indexOf(key) >= 0)
+      return (value !== null);
+
+    if ((/^on(Press|Layout$)/).test(key))
+      return false;
+
+    return (/^(on[A-Z]|[^A-Z]+$)/g).test(key);
+  }, props);
+}
+
 export function removeDuplicateStrings(thisArray) {
   if (!thisArray || !thisArray.length)
     return thisArray;

@@ -8,6 +8,7 @@ import {
   toNumber
 }                                   from '@react-ameliorate/utils';
 import { flattenStyle }             from '../shim-utils';
+import ActivityIndicatorPropTypes   from '../prop-types/activity-indicator';
 
 const SPIN_SPEED = '1.25s';
 
@@ -24,15 +25,15 @@ function getColor(color, alpha) {
 }
 
 class ActivityIndicator extends React.Component {
+  static propTypes = ActivityIndicatorPropTypes;
   static defaultProps = {
     animating: true,
-    hidesWhenStopped: true,
     color: 'gray',
     size: 'small'
   };
 
   render() {
-    if (this.props.hidesWhenStopped && !this.props.animating)
+    if (!this.props.animating)
       return null;
 
     var size = SIZES[this.props.size];

@@ -1,12 +1,11 @@
 //###if(MOBILE) {###//
-import { TouchableHighlight } from 'react-native';
+import { TouchableHighlight }       from 'react-native';
 //###} else {###//
-import Touchable              from './touchable';
+import Touchable                    from './touchable';
+import TouchableHighlightPropTypes  from '../prop-types/touchable-highlight';
 
 class TouchableHighlight extends Touchable {
-  render(...args) {
-    return super.render(...args);
-  }
+  static propTypes = TouchableHighlightPropTypes;
 }
 //###}###//
 

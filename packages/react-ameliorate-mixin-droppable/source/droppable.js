@@ -1,9 +1,6 @@
 import { preventEventDefault } from '@react-ameliorate/utils';
 
 export class Droppable {
-  construct() {
-  }
-
   getDroppableProps(...args) {
     return {
       onDragEnter: this.onDragEnter.bind(this, ...args),

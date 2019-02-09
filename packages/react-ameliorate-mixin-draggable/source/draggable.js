@@ -1,7 +1,4 @@
 export class Draggable {
-  construct() {
-  }
-
   getDraggableProps(...args) {
     return {
       onDragStart: this.onDragStart.bind(this, ...args),

@@ -523,7 +523,7 @@ export default class ComponentBase {
     if (filter instanceof RegExp || typeof filter === 'function')
       return this.filterProps(filter, ...args);
     else
-      return this.getProps(...args);
+      return this.getProps(filter, ...args);
   }
 
   _getLayoutContextName(layoutContext) {
@@ -1283,6 +1283,10 @@ export default class ComponentBase {
       return themeProps.DEFAULT_ANIMATION_DURATION;
 
     return 250;
+  }
+
+  filterByPropTypesFactory(Component) {
+    // TODO: complete to filter by component propTypes
   }
 
   static getAllComponentFlags() {

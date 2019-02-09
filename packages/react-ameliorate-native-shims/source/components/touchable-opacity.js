@@ -1,12 +1,11 @@
 //###if(MOBILE) {###//
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity }       from 'react-native';
 //###} else {###//
-import Touchable            from './touchable';
+import Touchable                  from './touchable';
+import TouchableOpacityPropTypes  from '../prop-types/touchable-opacity';
 
 class TouchableOpacity extends Touchable {
-  render(...args) {
-    return super.render(...args);
-  }
+  static propTypes = TouchableOpacityPropTypes;
 }
 //###}###//
 

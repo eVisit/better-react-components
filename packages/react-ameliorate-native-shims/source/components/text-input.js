@@ -1,15 +1,15 @@
 //###if(MOBILE) {###//
-import { TextInput }            from 'react-native';
+import { TextInput }              from 'react-native';
 //###} else {###//
-import { utils as U }           from 'evisit-js-utils';
-import React                    from 'react';
-import { StyleSheetBuilder }    from '@react-ameliorate/styles';
-import PropTypes                from '@react-ameliorate/prop-types';
+import { utils as U }             from 'evisit-js-utils';
+import React                      from 'react';
+import { flattenStyle }           from '../shim-utils';
 import {
   preventEventDefault,
   stopEventPropagation,
   stopEventImmediatePropagation
-}                               from '@react-ameliorate/utils';
+}                                 from '@react-ameliorate/utils';
+import TextInputPropTypes         from '../prop-types/text-input';
 
 class TextInputShim extends React.Component {
   constructor(props, ...args) {
@@ -24,28 +24,7 @@ class TextInputShim extends React.Component {
     this._autoCompleteRandomValue = U.uuid();
   }
 
-  static propTypes = {
-    defaultValue: PropTypes.string,
-    value: PropTypes.string,
-    editable: PropTypes.bool,
-    maxLength: PropTypes.number,
-    multiline: PropTypes.bool,
-    numberOfLines: PropTypes.number,
-    onFocus: PropTypes.func,
-    onBlur: PropTypes.func,
-    onChange: PropTypes.func,
-    onChangeText: PropTypes.func,
-    onKeyPress: PropTypes.func,
-    onKeyDown: PropTypes.func,
-    onKeyUp: PropTypes.func,
-    onSubmitEditing: PropTypes.func,
-    placeholder: PropTypes.string,
-    secureTextEntry: PropTypes.bool,
-    autoFill: PropTypes.bool,
-    name: PropTypes.string,
-    disabled: PropTypes.bool,
-    readOnly: PropTypes.bool
-  };
+  static propTypes = TextInputPropTypes;
 
   static getDerivedStateFromProps(nextProps, state) {
     var value = state.value;
@@ -246,7 +225,7 @@ class TextInputShim extends React.Component {
     else
       props.rows = 1;
 
-    props.style = StyleSheetBuilder.flattenInternalStyleSheet(baseStyle);
+    props.style = flattenStyle(baseStyle);
 
     return React.createElement(elementName, props);
   }

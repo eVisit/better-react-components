@@ -1,11 +1,14 @@
 //###if(MOBILE) {###//
-import { Text }                     from 'react-native';
+import { Text }                       from 'react-native';
 //###} else {###//
-import React                        from 'react';
-import { flattenStyle }             from '../shim-utils';
-import { filterObjectKeys }         from '@react-ameliorate/utils';
+import React                          from 'react';
+import { flattenStyle }               from '../shim-utils';
+import { filterToNativeElementProps } from '@react-ameliorate/utils';
+import TextPropTypes                  from '../prop-types/text';
 
 class Text extends React.Component {
+  static propTypes = TextPropTypes;
+
   render() {
     var extraStyle = {};
 
@@ -20,9 +23,7 @@ class Text extends React.Component {
     }
 
     return (
-      <span {...filterObjectKeys(/^(_|data-ra-|numberOfLines$|ellipsizeMode$)/, this.props)} style={flattenStyle([this.props.style, extraStyle])}>
-        {this.props.children}
-      </span>
+      <span {...filterToNativeElementProps(this.props)} style={flattenStyle([this.props.style, extraStyle])}>{this.props.children}</span>
     );
   }
 }

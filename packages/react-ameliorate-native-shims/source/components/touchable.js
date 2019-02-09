@@ -1,17 +1,17 @@
-import { utils as U, data as D }  from 'evisit-js-utils';
+import { utils as U }             from 'evisit-js-utils';
 import { isElementOrDescendant }  from '@react-ameliorate/utils';
 import { View }                   from './view';
-import { filterObjectKeys }       from '@react-ameliorate/utils';
 
 export default class Touchable extends View {
   getProps(providedProps) {
     var props = super.getProps(providedProps);
 
-    return filterObjectKeys(/^(activeOpacity|underlayColor|onShowUnderlay|onHideUnderlay|onLayout|onPress|onPressStart|onPressEnd|rootElement)$/, props, {
+    return {
+      ...props,
       onClick: this.onClick,
       onMouseDown: this.onMouseDown,
       onMouseUp: this.onMouseUp
-    });
+    };
   }
 
   getRootElement = () => {

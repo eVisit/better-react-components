@@ -1,31 +1,31 @@
 "use strict";
 
 //###if(MOBILE) {###//
-import { WebView }        from 'react-native';
+import { WebView }      from 'react-native';
 //###} else {###//
-import React              from 'react';
-import { data as D }      from 'evisit-js-utils';
-import { flattenStyle }   from '../shim-utils';
+import { View }         from './view';
+import WebViewPropTypes from '../prop-types/web-view';
 
-function getComponentProps(providedProps) {
-  return D.extend(D.extend.FILTER, (key) => !(('' + key).match(/^(activeOpacity|underlayColor|onShowUnderlay|onHideUnderlay|onPress|onLayout|theme|verbiage|autoHeight|source|automaticallyAdjustContentInsets|contentInset|dataDetectorTypes|javaScriptEnabled|scalesPageToFit|scrollEnabled|onShouldStartLoadWithRequest|onNavigationStateChange|webviewCSS|onMessage|testID)$/)), {}, providedProps);
-}
+class WebView extends View {
+  static propTypes = WebViewPropTypes;
+  static defaultProps = {
+    javaScriptEnabled: true,
+    thirdPartyCookiesEnabled: true,
+    scalesPageToFit: true,
+    saveFormDataDisabled: false
+  };
 
-class WebView extends React.Component {
-  render() {
-    var props = getComponentProps(this.props),
-        source = this.props.source;
+  getProps(providedProps) {
+    var props = super.getProps(providedProps),
+        source = props.source;
 
     if (source && source.html)
       source = { __html: source.html };
 
-    return (
-      <div
-        {...props}
-        dangerouslySetInnerHTML={source}
-        style={flattenStyle(props.style)}
-      />
-    );
+    return {
+      ...props,
+      dangerouslySetInnerHTML: source
+    };
   }
 }
 //###}###//

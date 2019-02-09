@@ -32,8 +32,7 @@ export default createStyleSheet(function(theme) {
     },
     tabContainer: {
       flex: 0,
-      paddingLeft: theme.DEFAULT_PADDING * 0.2,
-      paddingRight: theme.DEFAULT_PADDING * 0.2,
+      padding: theme.DEFAULT_PADDING * 0.2,
       textAlign: 'center',
       alignItems: 'center',
       justifyContent: 'center'
@@ -61,6 +60,12 @@ export default createStyleSheet(function(theme) {
       flex: 0,
       alignItems: 'center',
       justifyContent: 'center'
+    },
+    horizontalTabCaptionContainer: {
+      paddingLeft: theme.DEFAULT_PADDING * 0.2,
+    },
+    verticalTabCaptionContainer: {
+      paddingTop: theme.DEFAULT_PADDING * 0.2,
     },
     tabCaption: {
       fontSize: theme.FONT_SIZE_SMALL,

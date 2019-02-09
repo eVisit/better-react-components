@@ -2,11 +2,10 @@
 import { TouchableWithoutFeedback } from 'react-native';
 //###} else {###//
 import Touchable                    from './touchable';
+import TouchablePropTypes           from '../prop-types/touchable';
 
 class TouchableWithoutFeedback extends Touchable {
-  render(...args) {
-    return super.render(...args);
-  }
+  static propTypes = TouchablePropTypes;
 }
 //###}###//
 

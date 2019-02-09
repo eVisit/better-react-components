@@ -1,7 +1,4 @@
 export class Application {
-  construct() {
-  }
-
   pushModal(_modal) {
     const onClose = (args) => {
       var modalProps = _modal.props,

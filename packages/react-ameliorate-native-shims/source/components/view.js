@@ -7,11 +7,14 @@ import {
   sendOnLayoutEvent,
   findDOMNode,
   isElementOrDescendant,
-  filterObjectKeys
+  filterToNativeElementProps
 }                                   from '@react-ameliorate/utils';
 import { flattenStyle }             from '../shim-utils';
+import ViewPropTypes                from '../prop-types/view';
 
 class View extends React.Component {
+  static propTypes = ViewPropTypes;
+
   getProps(providedProps) {
     var style = flattenStyle(providedProps.style);
 
@@ -34,15 +37,13 @@ class View extends React.Component {
         style.flexBasis = 'auto';
     }
 
-    var filteredProps = filterObjectKeys(/^(_|onLayout$|layoutContext$|enableAnimation$|testID$|elementName$)/, providedProps, {
-      className: providedProps.className,
+    return {
+      ...providedProps,
       style,
       onMouseOver: (this.props.onMouseOver) ? this.onMouseOver : undefined,
       onMouseOut: (this.props.onMouseOut) ? this.onMouseOut : undefined,
       ref: this.viewRef
-    });
-
-    return filteredProps;
+    };
   }
 
   onWindowResize = (event) => {
@@ -90,11 +91,12 @@ class View extends React.Component {
       return this.props.onMouseOut.call(this, event);
   }
 
-  render() {
-    var props = this.getProps.call(this, this.props),
-        elementName = this.props.elementName || 'div';
+  render(_props, _children) {
+    var props = (_props) ? _props : this.getProps.call(this, this.props),
+        elementName = this.props.elementName || 'div',
+        filteredProps = filterToNativeElementProps(props);
 
-    return React.createElement(elementName, props, this.props.children || null);
+    return React.createElement(elementName, filteredProps, (_children || this.props.children || null));
   }
 }
 //###}###//

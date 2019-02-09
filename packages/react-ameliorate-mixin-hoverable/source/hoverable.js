@@ -1,15 +1,4 @@
 export class Hoverable {
-  construct() {
-    Object.defineProperties(this, {
-      '_hoverClearTime': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: 0
-      }
-    });
-  }
-
   getHoverableProps() {
     return {
       onMouseOver: this._onMouseOver,
@@ -17,8 +6,15 @@ export class Hoverable {
     };
   }
 
-  _hoverableSetClearTimeout(time) {
-    this._hoverClearTime = time || 0;
+  _hoverableSetClearTime(time) {
+    Object.defineProperties(this, {
+      '_hoverClearTime': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: time || 0
+      }
+    });
   }
 
   _onMouseOver(event) {
@@ -30,11 +26,12 @@ export class Hoverable {
   }
 
   onMouseOver(args = {}) {
+    var hoverClearTimeout = this._hoverClearTimeout;
+    if (hoverClearTimeout)
+      hoverClearTimeout.cancel();
+
     if (this.isComponentFlag('hovered'))
       return;
-
-    if (this._hoverClearTimeout)
-      this._hoverClearTimeout.cancel();
 
     if (this.callProvidedCallback('onMouseOver', args) === false)
       return;
@@ -49,8 +46,17 @@ export class Hoverable {
     if (this.callProvidedCallback('onMouseOut', args) === false)
       return;
 
-    this._hoverClearTimeout = this.delay(() => {
+    var delay = this.delay(() => {
       this.setComponentFlagsFromObject(Object.assign({ hovered: false }, args.extraState || {}));
-    }, this._hoverClearTime);
+    }, this._hoverClearTime || 0);
+
+    Object.defineProperties(this, {
+      '_hoverClearTimeout': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: delay
+      }
+    });
   }
 }
