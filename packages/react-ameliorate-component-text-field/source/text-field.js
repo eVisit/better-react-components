@@ -122,6 +122,7 @@ export const TextField = componentFactory('TextField', ({ Parent, componentName 
           defaultValue={(type === 'password') ? value : undefined}
           value={(type === 'password') ? undefined : value}
           style={this.style('inputField', this.props.fieldStyle, (flags.error && 'fieldStateError'))}
+          editable={(this.props.disabled !== true)}
         />
       );
     }

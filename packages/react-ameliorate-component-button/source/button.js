@@ -106,9 +106,6 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           theme = this.getRequestedTheme(),
           flags = this.getComponentFlagsAsArray();
 
-      if (theme === 'white')
-        console.log('STUFF: ', this.props.style);
-
       return (
         <TouchableOpacity
           {...this.props}
