@@ -194,6 +194,10 @@ export class Theme {
     return this.platform;
   }
 
+  setPlatform(platform) {
+    this.platform = platform;
+  }
+
   getThemeID() {
     return this._themeID;
   }

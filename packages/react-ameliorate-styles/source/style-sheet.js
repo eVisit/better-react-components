@@ -58,7 +58,8 @@ export class StyleSheetBuilder {
       if (!U.noe(platform))
         return platform;
 
-      return (this.theme) ? this.theme.getPlatform() : undefined;
+      var currentTheme = this.getTheme();
+      return (currentTheme) ? currentTheme.getPlatform() : undefined;
     });
   }
 
@@ -124,6 +125,10 @@ export class StyleSheetBuilder {
     });
 
     return styleFunction;
+  }
+
+  getTheme() {
+    return this.theme;
   }
 
   createInternalStyleSheet(styleObj) {
@@ -289,7 +294,8 @@ export class StyleSheetBuilder {
   }
 
   resolveDependencies(dependencies) {
-    var styles = [];
+    var styles = [],
+        currentTheme = this.getTheme();
 
     // Resolve dependent styles
     for (var i = 0, il = dependencies.length; i < il; i++) {
@@ -299,8 +305,8 @@ export class StyleSheetBuilder {
 
       if (thisStyle instanceof StyleSheetBuilder) {
         thisStyle = thisStyle.getRawStyle();
-      } else if (typeof thisStyle === 'function' && this.theme) {
-        thisStyle = thisStyle(this.theme, this.platform);
+      } else if (typeof thisStyle === 'function' && currentTheme) {
+        thisStyle = thisStyle(currentTheme, this.platform);
         if (thisStyle instanceof StyleSheetBuilder)
           thisStyle = thisStyle.getRawStyle();
       }
@@ -319,13 +325,15 @@ export class StyleSheetBuilder {
   }
 
   getRawStyle() {
-    var lut = (this.theme) ? this.theme.lastUpdateTime() : 0;
+    var currentTheme = this.getTheme(),
+        lut = (currentTheme) ? currentTheme.lastUpdateTime() : 0;
+
     if (this._rawStyle && lut <= this._lastRawStyleUpdateTime)
       return this._rawStyle;
 
     this._lastRawStyleUpdateTime = lut;
 
-    var currentTheme = (this.theme) ? this.theme.getThemeProperties() : {},
+    var currentTheme = (currentTheme) ? currentTheme.getThemeProperties() : {},
         mergeStyles = this.resolveDependencies(this._mergeStyles || []),
         nonMergeStyles = this.resolveDependencies(this._resolveStyles || []),
         args = mergeStyles.concat(nonMergeStyles),
@@ -342,7 +350,7 @@ export class StyleSheetBuilder {
   }
 
   getInternalStyleSheet(_theme) {
-    var theme = _theme || this.theme,
+    var theme = _theme || this.getTheme(),
         lut = (theme) ? theme.lastUpdateTime() : 0;
 
     if (this._style && lut <= this._lastStyleUpdateTime)
@@ -381,6 +389,7 @@ export class StyleSheetBuilder {
 
   getAllPlatforms() {
     return {
+      'tablet': ['mobile'],
       'mobile': ['android', 'ios', 'microsoft'],
       'android': ['mobile'],
       'ios': ['mobile'],
