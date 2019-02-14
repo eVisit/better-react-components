@@ -198,11 +198,11 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         this.closeAll();
     }
 
-    componentDidMount() {
+    componentMounted() {
       window.addEventListener('resize', this.onWindowResize);
     }
 
-    componentWillUnmount() {
+    componentUnmounting() {
       window.removeEventListener('resize', this.onWindowResize);
     }
 

@@ -53,8 +53,8 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       this.setState({ value: this.getDefaultValue() });
     }
 
-    componentDidMount() {
-      super.componentDidMount();
+    componentMounted() {
+      super.componentMounted();
 
       if (this.props.skipFormRegistration)
         return;
@@ -64,8 +64,8 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
         parentForm.registerField(this);
     }
 
-    componentWillUnmount() {
-      super.componentWillUnmount();
+    componentUnmounting() {
+      super.componentUnmounting();
 
       var parentForm = this.getParentForm();
       if (parentForm)

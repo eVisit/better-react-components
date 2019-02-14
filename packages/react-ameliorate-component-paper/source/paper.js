@@ -39,14 +39,14 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       overlay.removeChild(this);
     }
 
-    componentDidMount() {
-      super.componentDidMount();
+    componentMounted() {
+      super.componentMounted();
       this.addToOverlay();
     }
 
-    componentWillUnmount() {
+    componentUnmounting() {
       this.removeFromOverlay();
-      super.componentWillUnmount();
+      super.componentUnmounting();
     }
 
     onPropsUpdated(...args) {

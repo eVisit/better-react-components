@@ -15,16 +15,16 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
       this._registeredFields = {};
     }
 
-    componentDidMount() {
-      super.componentDidMount();
+    componentMounted() {
+      super.componentMounted();
 
       var parentForm = this.getParentForm();
       if (parentForm)
         parentForm.registerField(this);
     }
 
-    componentWillUnmount() {
-      super.componentWillUnmount();
+    componentUnmounting() {
+      super.componentUnmounting();
 
       var parentForm = this.getParentForm();
       if (parentForm)

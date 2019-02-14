@@ -252,6 +252,7 @@ export default class ComponentBase {
     }
 
     this._invokeResolveState(false, false, true, this._raReactProps);
+    this._invokeComponentWillMount();
   }
 
   construct() {
@@ -487,8 +488,12 @@ export default class ComponentBase {
     // do nothing
   }
 
+  _invokeComponentWillMount() {
+    this.componentMounting();
+  }
+
   _invokeComponentDidMount() {
-    this.componentDidMount();
+    this.componentMounted();
   }
 
   _raCleanup() {
@@ -505,7 +510,7 @@ export default class ComponentBase {
 
   _invokeComponentWillUnmount() {
     try {
-      return this.componentWillUnmount();
+      return this.componentUnmounting();
     } finally {
       this._raCleanup();
     }
@@ -639,10 +644,13 @@ export default class ComponentBase {
     return this._raID;
   }
 
-  componentDidMount() {
+  componentMounting() {
   }
 
-  componentWillUnmount() {
+  componentMounted() {
+  }
+
+  componentUnmounting() {
   }
 
   getPlatform() {

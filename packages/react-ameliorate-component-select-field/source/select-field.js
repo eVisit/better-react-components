@@ -26,12 +26,12 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
       optionsAlwaysVisible: PropTypes.bool
     };
 
-    componentDidMount() {
-      super.componentDidMount();
+    componentMounted() {
+      super.componentMounted();
     }
 
-    componentWillUnmount() {
-      super.componentWillUnmount();
+    componentUnmounting() {
+      super.componentUnmounting();
     }
 
     resolveState() {
