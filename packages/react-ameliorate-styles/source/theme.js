@@ -59,7 +59,7 @@ export class ThemeProperties {
       }
     }
 
-    Object.assign(this, this.getThemeProps(themeProps, paletteProps), paletteProps.palette);
+    Object.assign(this, this.getThemeProps(themeProps, paletteProps));
   }
 
   pixels(count = 1) {
@@ -162,7 +162,7 @@ export class ThemeProperties {
     finalThemeProps.DEFAULT_ICON_SIZE = finalThemeProps.DEFAULT_FONT_SIZE;
     finalThemeProps.REM = finalThemeProps.DEFAULT_FONT_SIZE;
 
-    return Object.assign(finalThemeProps, themeProps);
+    return Object.assign(finalThemeProps, themeProps, paletteProps.palette);
   }
 }
 
