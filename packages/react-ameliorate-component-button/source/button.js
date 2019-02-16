@@ -86,9 +86,6 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
     }
 
     renderContents(children) {
-      if (children)
-        return children;
-
       var caption = this.props.caption,
           theme = this.getRequestedTheme(),
           flags = this.getComponentFlagsAsArray();
@@ -97,7 +94,10 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
         caption = '';
 
       return (
-        <Text className={this.getClassName(componentName, 'caption')} style={this.style(this.generateStyleNames(theme, 'caption', flags), this.props.captionStyle)}>{caption}</Text>
+        <React.Fragment>
+          {(!!caption) && <Text className={this.getClassName(componentName, 'caption')} style={this.style(this.generateStyleNames(theme, 'caption', flags), this.props.captionStyle)}>{caption}</Text>}
+          {children}
+        </React.Fragment>
       );
     }
 
