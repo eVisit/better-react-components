@@ -136,6 +136,9 @@ export function copyStaticProperties(source, target, filterFunc, rebindStaticMet
   var keys = Object.getOwnPropertyNames(source);
   for (var i = 0, il = keys.length; i < il; i++) {
     var key = keys[i];
+    if (key === 'arguments' || key === 'callee' || key === 'caller')
+      continue;
+
     if (key === 'prototype' || key === 'constructor' && Object.prototype.hasOwnProperty(key))
       continue;
 
