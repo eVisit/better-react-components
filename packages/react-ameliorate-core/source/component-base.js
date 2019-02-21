@@ -751,8 +751,6 @@ export default class ComponentBase {
 
     if (this.mounted() && !this.areUpdatesFrozen())
       this._setReactComponentState(newState, doneCallback);
-    else
-      console.log('Not updating react state!!!!', this.mounted(), this.areUpdatesFrozen(), this.getComponentName());
 
     return newState;
   }
