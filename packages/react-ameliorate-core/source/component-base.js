@@ -86,6 +86,12 @@ export default class ComponentBase {
         configurable: true,
         value: {}
       },
+      '_raStateUpdateCounter': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: 0
+      },
       '_raReactProps': {
         enumerable: false,
         configurable: true,
@@ -139,18 +145,6 @@ export default class ComponentBase {
         enumerable: false,
         configurable: true,
         value: {}
-      },
-      '_raIsMounted': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: false
-      },
-      'isMounted': {
-        enumerable: false,
-        configurable: true,
-        get: () => this._raIsMounted,
-        set: () => {}
       },
       'props': {
         writable: true,
@@ -422,35 +416,32 @@ export default class ComponentBase {
       return formattedProps;
     };
 
+    var oldProps = this.props,
+        props = getResolvedProps(),
+        newState,
+        shouldRender;
+
+    // Enable queued state updates (so any call to this.setState inside the state resolution
+    // callbacks gets queued in-order, instead of the order getting messed up during resolution)
+    this.queueStateUpdates(true);
+
+    // Queue the final state resolution to be first on the stack
+    this.setStatePassive(() => newState);
+
     try {
-      this.freezeUpdates();
-
-      var oldProps = this.props,
-          props = getResolvedProps(),
-          newState;
-
-      // Enable queued state updates (so any call to this.setState inside the state resolution
-      // callbacks gets queued in-order, instead of the order getting messed up during resolution)
-      this.queueStateUpdates(true);
-
-      // Queue the final state resolution to be first on the stack
-      this.setStatePassive(() => newState);
-
       newState = this._resolveState.call(this, initial, props, oldProps, ...args);
-
-      // Now flush the queue of state updates
-      this.queueStateUpdates(false);
-
-      if (initial || props !== this._raResolvedPropsCache) {
-        this.props = this._raResolvedPropsCache = props;
-        this._invokePropUpdates(initial, props, oldProps, ...args);
-        return true;
-      }
-
-      return (propsUpdated || stateUpdated);
     } finally {
-      this.unfreezeUpdates(false);
+      // Now flush the queue of state updates
+      shouldRender = this.queueStateUpdates(false);
     }
+
+    if (initial || props !== this._raResolvedPropsCache) {
+      this.props = this._raResolvedPropsCache = props;
+      this._invokePropUpdates(initial, props, oldProps, ...args);
+      return true;
+    }
+
+    return (propsUpdated || stateUpdated || shouldRender);
   }
 
   _invokeStateOrPropKeyUpdates(stateUpdate, initial, obj, oldObj) {
@@ -687,15 +678,15 @@ export default class ComponentBase {
   queueStateUpdates(enable, doUpdate) {
     if (enable) {
       this._raQueueStateUpdatesSemaphore++;
-      return;
+      return false;
     }
 
     if (this._raQueueStateUpdatesSemaphore <= 0)
-      return;
+      return false;
 
     this._raQueueStateUpdatesSemaphore--;
     if (this._raQueueStateUpdatesSemaphore <= 0)
-      this.flushStateUpdates(doUpdate);
+      return this.flushStateUpdates(doUpdate);
   }
 
   flushStateUpdates(doUpdate) {
@@ -706,7 +697,7 @@ export default class ComponentBase {
         oldState = this._raInternalState;
 
     if (!stateUpdates.length)
-      return;
+      return false;
 
     for (var i = 0, il = stateUpdates.length; i < il; i++) {
       var stateUpdate = stateUpdates[i];
@@ -714,10 +705,12 @@ export default class ComponentBase {
     }
 
     if (doUpdate === false)
-      return;
+      return true;
 
     this._invokeStateOrPropKeyUpdates(true, false, this.getState(), oldState);
     this._invalidateRenderCache();
+
+    return true;
   }
 
   setStatePassive(_newState, initial, invokeUpdates) {
@@ -740,6 +733,8 @@ export default class ComponentBase {
     var oldState = this._raInternalState,
         currentState = this._raInternalState = Object.assign({}, oldState, newState);
 
+    this._raStateUpdateCounter++;
+
     if (typeof this._debugStateUpdates === 'function')
       this._debugStateUpdates(currentState, oldState, newState);
 
@@ -756,6 +751,8 @@ export default class ComponentBase {
 
     if (this.mounted() && !this.areUpdatesFrozen())
       this._setReactComponentState(newState, doneCallback);
+    else
+      console.log('Not updating react state!!!!', this.mounted(), this.areUpdatesFrozen(), this.getComponentName());
 
     return newState;
   }

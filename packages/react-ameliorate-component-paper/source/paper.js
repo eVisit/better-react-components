@@ -52,7 +52,7 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
     onPropsUpdated(...args) {
       super.onPropsUpdated(...args);
 
-      if (this.isMounted)
+      if (this.mounted())
         this.addToOverlay();
     }
 

@@ -92,7 +92,7 @@ export default class ReactComponentBase extends React.Component {
     const handleUpdate = () => {
       // Props have changed... update componentInstance
       var propsDiffer = !areObjectsEqualShallow(nextProps, this.props),
-          statesDiffer = !areObjectsEqualShallow(nextState, this.state);
+          statesDiffer = (this._componentInstance._raStateUpdateCounter > this._stateUpdateCounter);
 
       if (!propsDiffer && !statesDiffer)
         return false;
@@ -112,9 +112,15 @@ export default class ReactComponentBase extends React.Component {
         this._propUpdateCounter++;
 
       if (statesDiffer)
-        this._stateUpdateCounter++;
+        this._stateUpdateCounter = this._componentInstance._raStateUpdateCounter;
 
-      return this._componentInstance._invokeResolveState.call(this._componentInstance, propsDiffer, statesDiffer, false, nextProps);
+      var shouldUpdate = this._componentInstance._invokeResolveState.call(this._componentInstance, propsDiffer, statesDiffer, false, nextProps);
+      if (this._stateUpdateCounter < this._componentInstance._raStateUpdateCounter) {
+        this._stateUpdateCounter = this._componentInstance._raStateUpdateCounter;
+        shouldUpdate = true;
+      }
+
+      return shouldUpdate;
     };
 
     var shouldUpdate = handleUpdate(),
@@ -125,13 +131,11 @@ export default class ReactComponentBase extends React.Component {
 
   componentDidMount() {
     this._mounted = true;
-    this._componentInstance._raIsMounted = true;
     this._componentInstance._invokeComponentDidMount();
   }
 
   componentWillUnmount() {
     this._componentInstance._invokeComponentWillUnmount();
-    this._componentInstance._raIsMounted = false;
     this._mounted = false;
   }
 
