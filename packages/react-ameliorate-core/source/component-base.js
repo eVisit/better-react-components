@@ -42,7 +42,22 @@ export default class ComponentBase {
     return 'application';
   }
 
-  constructor(props, reactComponent) {
+  constructor(props, _reactComponent) {
+    var reactComponent = _reactComponent;
+    if (!reactComponent) {
+      reactComponent = {
+        state: {},
+        props: {},
+        _renderCount: 0,
+        _mounted: false,
+        _propUpdateCounter: 0,
+        _stateUpdateCounter: 0,
+        _providedContext: {},
+        setState: () => {},
+        forceUpdate: () => {}
+      };
+    }
+
     Object.defineProperties(this, {
       '_raID': {
         writable: true,
@@ -251,6 +266,10 @@ export default class ComponentBase {
 
   construct() {
 
+  }
+
+  _renderCount() {
+    return this._raReactComponent._renderCount;
   }
 
   _fetchContext() {

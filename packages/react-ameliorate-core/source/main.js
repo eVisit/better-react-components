@@ -296,6 +296,12 @@ export function componentFactory(_name, definer, _options) {
       configurable: true,
       value: () => displayName
     },
+    'getComponentClass': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: () => ComponentClass
+    },
     'getParentComponent': {
       writable: true,
       enumerable: false,
@@ -330,10 +336,10 @@ export function componentFactory(_name, definer, _options) {
     }
   }
 
-  if (!global._components)
-    global._components = {};
+  if (!global._raComponents)
+    global._raComponents = {};
 
-  global._components[name] = ReactComponentClass;
+  global._raComponents[name] = ReactComponentClass;
 
   return ReactComponentClass;
 }
