@@ -24,6 +24,7 @@ class WebView extends View {
 
     return {
       ...props,
+      className: this.getClassName('raWebView', props.className),
       dangerouslySetInnerHTML: source
     };
   }

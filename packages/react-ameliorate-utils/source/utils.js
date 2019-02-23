@@ -242,15 +242,46 @@ const acceptableElementProps = [
   'style',
 ];
 
-export function filterToNativeElementProps(props) {
+export function filterToNativeElementProps(props, elementType) {
+  const isEventSupported = (eventName) => {
+    /* Some of this code borrowed from Facebook's react-dom package */
+
+    if (eventName in document)
+      return true;
+
+    var specialEvents = [
+      'onchange',
+      'onreset',
+      'onload',
+      'onerror',
+      'onselect'
+    ];
+
+    if (specialEvents.indexOf(eventName) >= 0)
+      return true;
+
+    var element = document.createElement(elementType || 'div');
+    element.setAttribute(eventName, 'return;');
+    return (typeof element[eventName] === 'function');
+  };
+
   return filterObjectKeys((key, value) => {
     if (acceptableElementProps.indexOf(key) >= 0)
       return (value !== null);
 
-    if ((/^on(Press|Layout$)/).test(key))
+    // Whitelist
+    if ((/^(dangerouslySetInnerHTML$)/).test(key))
+      return true;
+
+    // Blacklist
+    if ((/^on(Press|Layout$|dangerouslySetInnerHTML$)/).test(key))
       return false;
 
-    return (/^(on[A-Z]|[^A-Z]+$)/g).test(key);
+    // Events
+    if ((/^on[A-Z]/).test(key))
+      return isEventSupported(key.toLowerCase());
+
+    return (/^[^A-Z]+$/g).test(key);
   }, props);
 }
 

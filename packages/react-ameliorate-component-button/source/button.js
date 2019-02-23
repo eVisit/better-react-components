@@ -15,7 +15,8 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
     static propTypes = {
       caption: PropTypes.string,
       onPress: PropTypes.func,
-      disabled: PropTypes.bool
+      disabled: PropTypes.bool,
+      internalContainerStyle: PropTypes.any
     };
 
     constructor(props, ...args) {
@@ -118,7 +119,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           tooltip-side={this.props.tooltipSide || 'bottom'}
           {...this.getHoverableProps()}
         >
-          <View className={this.getRootClassName(componentName, 'internalContainer')} style={this.style(this.generateStyleNames(theme, 'internalContainer', flags), this.props.containerStyle)}>
+          <View className={this.getRootClassName(componentName, 'internalContainer')} style={this.style(this.generateStyleNames(theme, 'internalContainer', flags), this.props.internalContainerStyle)}>
             {this.renderContents(children)}
           </View>
         </TouchableOpacity>

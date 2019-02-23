@@ -16,8 +16,19 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
     static styleSheet = styleSheet;
     static propTypes = {
       title: PropTypes.string,
-      message: PropTypes.string,
-      buttons: PropTypes.array
+      buttons: PropTypes.array,
+      allowScrolling: PropTypes.bool,
+      scrollViewProps: PropTypes.object,
+      contentContainerStyle: PropTypes.any,
+      buttonContainerProps: PropTypes.object,
+      buttonContainerStyle: PropTypes.any,
+      buttonProps: PropTypes.object,
+      buttonStyle: PropTypes.any,
+      buttonInternalContainerStyle: PropTypes.any,
+      closeButton: PropTypes.bool,
+      closeButtonProps: PropTypes.object,
+      closeButtonStyle: PropTypes.any,
+      closeButtonContainerStyle: PropTypes.any,
     };
 
     static resolvableProps = ['buttons', 'title', 'message'];
@@ -79,66 +90,100 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       var elem = findDOMNode(_elem),
           currentReference = this.getReference('titleBar');
 
-      if (elem && !currentReference) {
-        window.document.addEventListener('mousedown', this.onTitleBarMouseDown);
-        window.document.addEventListener('mouseup', this.onTitleBarMouseUp);
-        window.document.addEventListener('mousemove', this.onTitleBarMouseMove);
-      } else if (currentReference) {
+      if (currentReference) {
         window.document.removeEventListener('mousemove', this.onTitleBarMouseMove);
         window.document.removeEventListener('mouseup', this.onTitleBarMouseUp);
         window.document.removeEventListener('mousedown', this.onTitleBarMouseDown);
       }
 
+      if (elem) {
+        window.document.addEventListener('mousedown', this.onTitleBarMouseDown);
+        window.document.addEventListener('mouseup', this.onTitleBarMouseUp);
+        window.document.addEventListener('mousemove', this.onTitleBarMouseMove);
+      }
+
       return elem;
     }
 
-    renderTitleBar(children) {
+    renderTitleBar() {
       return (
         <View
           ref={this.captureReference('titleBar', this.convertTitleBarReference)}
           key="generic-modal-title-bar"
           style={this.style('titleBar')}
         >
-          {(children || null)}
+          <View key="generic-modal-title" style={this.style('titleBarTitle')}>{this.getTitle({ title: this.props.title })}</View>
+          {this._renderCloseButton()}
         </View>
       );
     }
 
-    renderCloseButton(children) {
+    _renderTitleBar(args = {}) {
+      return this.renderTitleBar(args);
+    }
+
+    onCloseButtonPress(args) {
+      this.close({ ...args, result: -1 });
+    }
+
+    renderCloseButton({ children }) {
       return (
         <Button
           theme="white"
+          testID="genericModalClose"
+          {...(this.props.closeButtonProps || {})}
           key="generic-modal-close-button"
-          onPress={this.requestClose}
-          style={this.style('closeButton')}
-          containerStyle={this.style('closeButtonContainer')}
+          onPress={this.onCloseButtonPress}
+          style={this.style('closeButton', this.props.closeButtonStyle)}
+          internalContainerStyle={this.style('closeButtonContainer', this.props.closeButtonContainerStyle)}
         >
           {(children) ? children : (<Icon style={this.style('closeButtonIcon')} icon="close|cancel"/>)}
         </Button>
       );
     }
 
-    renderModalContent(children) {
+    _renderCloseButton(args = {}) {
+      if (this.props.closeButton === false)
+        return null;
+
+      return this.renderCloseButton(args);
+    }
+
+    renderContent({ children }) {
+      if (this.props.allowScrolling === false) {
+       return (
+         <View key="generic-modal-content" style={this.style('contentContainer', this.props.contentContainerStyle)}>
+          {children}
+         </View>
+       );
+      }
+
       return (
-        <ScrollView key="generic-modal-content" style={this.style('contentContainer')}>
-          {(children || null)}
+        <ScrollView
+          {...(this.props.scrollViewProps || {})}
+          key="generic-modal-content"
+          style={this.style('contentContainer', 'contentScrollContainer', this.props.contentContainerStyle)}
+        >
+          {children}
         </ScrollView>
       );
     }
 
-    renderButtons(_buttons) {
-      var buttons = this.getChildren(_buttons, true);
+    _renderContent(args = {}) {
+      return this.renderContent(args);
+    }
+
+    renderButtons() {
+      var modelButtons = this.getButtons();
 
       return (
         <LayoutContainer
-          key="generic-modal-button-container"
-          style={this.style('buttonContainer')}
           spacing={this.styleProp('MODAL_BUTTON_SPACING')}
+          {...(this.props.buttonContainerProps || {})}
+          key="generic-modal-button-container"
+          style={this.style('buttonContainer', this.props.buttonContainerStyle)}
         >
-          {buttons.map((button, index) => {
-            if (!button)
-              return null;
-
+          {modelButtons.map((button, index) => {
             if (this.isValidElement(button))
               return button;
 
@@ -147,17 +192,20 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
 
             return (
               <Button
-                key={button.key || ('' + index)}
                 theme={button.theme || 'white'}
+                {...(this.props.buttonProps || {})}
+                testID={button.testID}
+                key={button.key || (('' + index) + button.caption)}
                 caption={button.caption}
-                style={this.style('button', button.style)}
+                style={this.style('button', this.props.buttonStyle, button.style)}
+                internalContainerStyle={this.style('buttonInternalContainer', this.props.buttonInternalContainerStyle)}
                 onPress={(_args) => {
-                  var args = Object.assign({}, args || {}, { button, index, });
+                  var args = Object.assign({}, args || {}, { button, index });
 
                   if (typeof button.onPress === 'function' && button.onPress.call(this, args) === false)
                     return;
 
-                  this.requestClose(args);
+                  this.close(args);
                 }}
               />
             );
@@ -166,24 +214,35 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       );
     }
 
-    render(_children) {
-      var { title, message, buttons } = this.props,
-          children = this.getChildren(_children);
+    _renderButtons(args = {}) {
+      return this.renderButtons(args);
+    }
 
+    getTitle({ title }) {
       if (!this.isValidElement(title))
-        title = (<Text key="generic-modal-title-text" style={this.style('titleBarTitleText')}>{(title || '')}</Text>);
+        return (<Text key="generic-modal-title-text" style={this.style('titleBarTitleText')}>{(title || '')}</Text>);
 
-      if (!children)
-        children = (<Text key="generic-modal-content-text" style={this.style('contentTitleText')}>{(message || '')}</Text>);
+      return title;
+    }
 
-      return super.render([
-        this.renderTitleBar([
-          <View key="generic-modal-title" style={this.style('titleBarTitle')}>{title}</View>,
-          this.renderCloseButton()
-        ]),
-        this.renderModalContent(children),
-        this.renderButtons(buttons)
-      ]);
+    getContent({ children }) {
+      return children;
+    }
+
+    getButtons() {
+      return this.props.buttons || [];
+    }
+
+    render(_children) {
+      var children  = this.getContent({ children: this.getChildren(_children) });
+
+      return super.render(
+        <React.Fragment>
+          {this._renderTitleBar()}
+          {this._renderContent({ children })}
+          {this._renderButtons()}
+        </React.Fragment>
+      );
     }
   };
 }, Modal);

@@ -8,34 +8,51 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
   return class Modal extends Parent {
     static styleSheet = styleSheet;
     static propTypes = [Paper.propTypes, {
-      autoClose: PropTypes.bool
+      autoClose: PropTypes.bool,
+      disallowReposition: PropTypes.bool
     }];
 
     static defaultProps = {
       autoClose: true
     };
 
-    requestClose(args) {
-      this.callProvidedCallback('onClose', args);
+    provideContext() {
+      var parentContext = (typeof super.provideContext === 'function') ? super.provideContext.apply(this, arguments) : {};
+
+      return {
+        ...parentContext,
+        masterLayoutContext: 'modal'
+      };
+    }
+
+    close(args) {
+      if (this.callProvidedCallback('onClose', args) === false)
+        return false;
+
+      this.setState({ visible: false });
     }
 
     resolveState() {
       return {
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
+          visible: true
         })
       };
     }
 
     renderModal(children) {
       return (
-        <View className={this.getRootClassName(componentName)} style={this.style('container', this.getState('modalPositionStyle'))}>
+        <View className={this.getRootClassName(componentName)} style={this.style('container', this.props.style, (!this.props.disallowReposition) ? this.getState('modalPositionStyle') : null)}>
           {this.getChildren(children)}
         </View>
       );
     }
 
     render(children) {
+      if (!this.getState('visible'))
+        return null;
+
       if (this.context._raModalManager)
         return this.renderModal(children);
 

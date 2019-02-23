@@ -15,6 +15,10 @@ import ViewPropTypes                from '../prop-types/view';
 class View extends React.Component {
   static propTypes = ViewPropTypes;
 
+  getClassName(...args) {
+    return args.filter(Boolean).join(' ');
+  }
+
   getProps(providedProps) {
     var style = flattenStyle(providedProps.style);
 
@@ -50,8 +54,8 @@ class View extends React.Component {
     sendOnLayoutEvent.call(this, this.props.onLayout, this.rootElement);
   }
 
-  viewRef = (elem) => {
-    this.rootElement = findDOMNode(elem);
+  viewRef = (_elem) => {
+    this.rootElement = findDOMNode(_elem);
   }
 
   componentMounted() {

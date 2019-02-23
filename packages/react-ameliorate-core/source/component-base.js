@@ -42,6 +42,10 @@ export default class ComponentBase {
     return 'application';
   }
 
+  static propTypes = {
+    id: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
+  };
+
   constructor(props, _reactComponent) {
     var reactComponent = _reactComponent;
     if (!reactComponent) {
@@ -569,22 +573,23 @@ export default class ComponentBase {
     return elements;
   }
 
-  getChildren(_children, asArray) {
-    function filterChildren(_children) {
-      return ((_children instanceof Array) ? _children : [_children]).filter((child) => (child !== false && child !== true && child != null));
+  getComponents(_components, asArray) {
+    function filterChildren(_components) {
+      return ((_components instanceof Array) ? _components : [_components]).filter((component) => (component !== false && component !== true && component != null));
     }
 
-    var children = _children;
-    if (children === undefined)
-      children = this.props.children;
+    var components = _components;
+    if (asArray !== true && !(components instanceof Array))
+      return components;
 
-    if (asArray !== true && !(children instanceof Array))
-      return children;
+    if (asArray && !(components instanceof Array))
+      components = [components];
 
-    if (asArray && !(children instanceof Array))
-      children = [children];
+    return filterChildren(components);
+  }
 
-    return filterChildren(children);
+  getChildren(children, asArray) {
+    return this.getComponents((children === undefined) ? this.props.children : children, asArray);
   }
 
   getResolvableProps(...args) {

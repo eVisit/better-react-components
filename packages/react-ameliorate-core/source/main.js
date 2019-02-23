@@ -313,6 +313,12 @@ export function componentFactory(_name, definer, _options) {
       enumerable: false,
       configurable: true,
       value: () => definer
+    },
+    'getMixins': {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: () => mixins
     }
   };
 
@@ -354,16 +360,27 @@ export function rebaseComponent(component, parentClassSelector) {
       parent = rebaseWithParent(parent, parentParent);
 
     // Rebase parent class (if callback requests it)
-    parent = parentClassSelector.call(this, parent.getComponentName(), parent, component.getComponentName(), component);
+    var ret = parentClassSelector.call(this, {
+      parentName: (parent && parent.getComponentName()),
+      parent,
+      isNaturalParent: (parent === naturalParent),
+      componentName: component.getComponentName(),
+      component
+    });
+
+    if (ret != null)
+      parent = ret;
 
     // Construct component with a new parent
     return componentFactory({
       name: component.getComponentInternalName(),
       displayName: component.getComponentName()
-    }, component.getFactory(), { parent });
+    }, component.getFactory(), { parent, mixins: component.getMixins() });
   }
 
-  var newComponent = rebaseWithParent(component, component.getParentComponent());
+  var naturalParent = component.getParentComponent(),
+      newComponent = rebaseWithParent(component, naturalParent);
+
   return newComponent;
 }
 

@@ -8,6 +8,7 @@ export default class Touchable extends View {
 
     return {
       ...props,
+      className: this.getClassName('raTouchable', props.className),
       onClick: this.onClick,
       onMouseDown: this.onMouseDown,
       onMouseUp: this.onMouseUp

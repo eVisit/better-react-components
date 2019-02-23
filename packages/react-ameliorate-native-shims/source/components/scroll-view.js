@@ -18,6 +18,7 @@ class ScrollView extends View {
 
     return {
       ...props,
+      className: this.getClassName('raScrollView', this.props.className),
       style
     };
   }

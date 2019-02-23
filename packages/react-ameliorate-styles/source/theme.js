@@ -104,11 +104,12 @@ export class ThemeProperties {
         width = safeNumber(themeProps.SCREEN_WIDTH, screenInfo.width),
         height = safeNumber(themeProps.SCREEN_HEIGHT, screenInfo.width),
         IS_MOBILE = (this.getPlatform() !== 'browser'),
-        FONT_SCALAR = themeProps.FONT_SCALAR || 1;
+        FONT_SCALAR = themeProps.FONT_SCALAR || 1,
+        SCREEN_WIDTH = width,
+        SCREEN_HEIGHT = height;
 
     var finalThemeProps = {
-      SCREEN_WIDTH: width,
-      SCREEN_HEIGHT: height,
+
       SCREEN_RATIO: (height) ? (width / height) : 1,
       PLATFORM: this.getPlatform(),
       ONE_PIXEL: screenInfo.pixelRatio,
@@ -150,6 +151,7 @@ export class ThemeProperties {
       DEFAULT_BUTTON_HEIGHT: 48,
       DEFAULT_FIELD_HEIGHT: 30,
       DEFAULT_HOVER_OPACITY: 0.2,
+      MAX_DIALOG_CONTENT_HEIGHT: (IS_MOBILE) ? (SCREEN_HEIGHT * 0.75) : '75vh',
 
       NO_SELECT: (IS_MOBILE) ? {} : {
         MozUserSelect: 'none',

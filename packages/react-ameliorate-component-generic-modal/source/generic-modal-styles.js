@@ -15,9 +15,12 @@ export default createStyleSheet(function(theme) {
       flexDirection: 'column'
     },
     contentContainer: {
-      flex: 1,
+      flex: 0,
       alignItems: 'center',
       justifyContent: 'center'
+    },
+    contentScrollContainer: {
+      maxHeight: theme.MAX_DIALOG_CONTENT_HEIGHT
     },
     titleBar: {
       flex: 0,
@@ -33,9 +36,6 @@ export default createStyleSheet(function(theme) {
     },
     titleBarTitleText: {
       fontSize: theme.FONT_SIZE_XSMALL,
-      color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 7)
-    },
-    contentTitleText: {
       color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 7)
     },
     closeButton: {
