@@ -135,8 +135,8 @@ export default class ReactComponentBase extends React.Component {
   }
 
   componentWillUnmount() {
-    this._componentInstance._invokeComponentWillUnmount();
     this._mounted = false;
+    this._componentInstance._invokeComponentWillUnmount();
   }
 
   // The context object reference must stay the same or React

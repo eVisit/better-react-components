@@ -16,6 +16,19 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
       autoClose: true
     };
 
+    constructor(...args) {
+      super(...args);
+
+      Object.defineProperties(this, {
+        '_closing': {
+          writable: true,
+          enumerable: false,
+          configurable: true,
+          value: false
+        }
+      });
+    }
+
     provideContext() {
       var parentContext = (typeof super.provideContext === 'function') ? super.provideContext.apply(this, arguments) : {};
 
@@ -25,11 +38,26 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
       };
     }
 
-    close(args) {
-      if (this.callProvidedCallback('onClose', args) === false)
+    componentUmounting() {
+      this._closing = true;
+      this.callProvidedCallback('onClose', { event: null, result: -2 });
+    }
+
+    async close(args) {
+      if (this._closing)
+        return;
+
+      this._closing = true;
+
+      var result = await this.callProvidedCallback((args.eventName) ? args.eventName : 'onClose', args);
+      if (result === false) {
+        this._closing = false;
         return false;
+      }
 
       this.setState({ visible: false });
+
+      return result;
     }
 
     resolveState() {

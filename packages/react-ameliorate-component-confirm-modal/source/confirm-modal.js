@@ -10,6 +10,7 @@ export const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componen
     static propTypes = {
       message: PropTypes.string,
       defaultAction: PropTypes.oneOf(['yes', 'no']),
+      onDeny: PropTypes.func,
       onConfirm: PropTypes.func
     };
 
@@ -17,34 +18,45 @@ export const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componen
       title: 'Confirm',
       closeButtonProps: {
         testID: 'confirmModalClose'
-      }
+      },
+      closeButtonEventName: 'onDeny'
     };
 
     getButtons() {
+      async function confirmOrDenyCallback(eventName, result, args) {
+        if (closing)
+          return false;
+
+        closing = true;
+
+        var callbackResult = await this.callProvidedCallback(eventName, args);
+        if (callbackResult === false) {
+          closing = false;
+          return false;
+        }
+
+        this.close({ ...args, result });
+
+        return false;
+      }
+
       if (this.props.buttons)
         return this.props.buttons;
+
+      var closing = false;
 
       return [
         {
           caption: 'No',
           testID: 'confirmModalDeny',
           focussed: (this.props.defaultAction === 'no'),
-          onPress: (args) => {
-            this.close({ ...args, result: 0 });
-            return false;
-          }
+          onPress: confirmOrDenyCallback.bind(this, 'onDeny', 0)
         },
         {
           caption: 'Yes',
           testID: 'confirmModalConfirm',
           focussed: (this.props.defaultAction === 'yes'),
-          onPress: (args) => {
-            if (this.callProvidedCallback('onConfirm', args) === false)
-              return false;
-
-            this.close({ ...args, result: 1 });
-            return false;
-          }
+          onPress: confirmOrDenyCallback.bind(this, 'onConfirm', 1)
         }
       ];
     }

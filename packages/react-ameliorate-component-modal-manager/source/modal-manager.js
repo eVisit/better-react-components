@@ -77,10 +77,12 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
       }
     }
 
-    render(children) {
+    render(_children) {
       var modals = this.getAllModals();
       if (!(modals instanceof Array) || !modals.length)
         return null;
+
+      console.log('MODALS!', modals);
 
       return (
         <Paper
@@ -105,7 +107,8 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
               >
                 {modals}
               </TransitionGroup>
-              {this.getChildren(children)}
+
+              {this.getChildren(_children)}
             </ContextProvider>
           </TouchableOpacity>
         </Paper>

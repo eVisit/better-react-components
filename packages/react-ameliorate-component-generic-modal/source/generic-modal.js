@@ -26,6 +26,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       buttonStyle: PropTypes.any,
       buttonInternalContainerStyle: PropTypes.any,
       closeButton: PropTypes.bool,
+      closeButtonEventName: PropTypes.string,
       closeButtonProps: PropTypes.object,
       closeButtonStyle: PropTypes.any,
       closeButtonContainerStyle: PropTypes.any,
@@ -123,7 +124,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
     }
 
     onCloseButtonPress(args) {
-      this.close({ ...args, result: -1 });
+      this.close({ ...args, eventName: this.props.closeButtonEventName, result: -1 });
     }
 
     renderCloseButton({ children }) {
@@ -174,7 +175,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
     }
 
     renderButtons() {
-      var modelButtons = this.getButtons();
+      var modalButtons = this.getButtons();
 
       return (
         <LayoutContainer
@@ -183,12 +184,14 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
           key="generic-modal-button-container"
           style={this.style('buttonContainer', this.props.buttonContainerStyle)}
         >
-          {modelButtons.map((button, index) => {
+          {modalButtons.map((button, index) => {
             if (this.isValidElement(button))
               return button;
 
             if (typeof button.onShouldShow === 'function' && !button.onShouldShow.call(this, { button, index }))
               return null;
+
+            var closing = false;
 
             return (
               <Button
@@ -199,11 +202,21 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
                 caption={button.caption}
                 style={this.style('button', this.props.buttonStyle, button.style)}
                 internalContainerStyle={this.style('buttonInternalContainer', this.props.buttonInternalContainerStyle)}
-                onPress={(_args) => {
+                onPress={async (_args) => {
+                  if (closing)
+                    return;
+
+                  closing = true;
+
                   var args = Object.assign({}, args || {}, { button, index });
 
-                  if (typeof button.onPress === 'function' && button.onPress.call(this, args) === false)
-                    return;
+                  if (typeof button.onPress === 'function') {
+                    var result = await button.onPress.call(this, args);
+                    if (result === false) {
+                      closing = false;
+                      return;
+                    }
+                  }
 
                   this.close(args);
                 }}
