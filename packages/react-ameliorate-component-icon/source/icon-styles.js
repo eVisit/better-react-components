@@ -14,8 +14,7 @@ export default createStyleSheet(function(theme) {
       backgroundColor: 'transparent',
       textAlign: 'center',
       browser: {
-        WebkitFontSmoothing: 'auto',
-        WebkitUserSelect: 'none'
+        WebkitFontSmoothing: 'auto'
       }
     }
   };

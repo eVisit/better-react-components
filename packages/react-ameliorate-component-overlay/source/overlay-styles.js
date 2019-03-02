@@ -4,8 +4,11 @@ export default createStyleSheet(function(theme) {
   return {
     container: {
       flex: 0,
-      width: '100%',
-      height: '100%',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
       overflow: 'hidden'
     },
     overlay: {
@@ -20,7 +23,7 @@ export default createStyleSheet(function(theme) {
       bottom: 0,
       zIndex: 100,
       browser: {
-        pointerEvents: 'none'
+
       }
     },
     containerHasChildren: {
@@ -29,10 +32,7 @@ export default createStyleSheet(function(theme) {
     },
     childContainer: {
       position: 'absolute',
-      zIndex: 1,
-      browser: {
-        pointerEvents: 'auto'
-      }
+      zIndex: 1
     },
     defaultPaperStyle: {
       position: 'absolute',

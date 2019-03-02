@@ -3,10 +3,10 @@
 //###if(MOBILE) {###//
 import { WebView }      from 'react-native';
 //###} else {###//
-import { View }         from './view';
+import React            from 'react';
 import WebViewPropTypes from '../prop-types/web-view';
 
-class WebView extends View {
+class WebView extends React.Component {
   static propTypes = WebViewPropTypes;
   static defaultProps = {
     javaScriptEnabled: true,

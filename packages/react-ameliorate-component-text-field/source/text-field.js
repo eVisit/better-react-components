@@ -3,6 +3,7 @@ import React                            from 'react';
 import { componentFactory, PropTypes }  from '@react-ameliorate/core';
 import { View, TextInput }              from '@react-ameliorate/native-shims';
 import { Field }                        from '@react-ameliorate/component-field';
+import { capitalize }                   from '@react-ameliorate/utils';
 import styleSheet                       from './text-field-styles';
 
 export const TextField = componentFactory('TextField', ({ Parent, componentName }) => {
@@ -128,10 +129,10 @@ export const TextField = componentFactory('TextField', ({ Parent, componentName 
     }
 
     render(children) {
-      var labelPosition = this.props.labelPosition;
+      var labelPosition = `label${capitalize(this.props.labelPosition)}`;
 
       return super.render(
-        <View className={this.getRootClassName(componentName)} style={this.style('container')} label-side={labelPosition}>
+        <View className={this.getRootClassName(componentName, labelPosition)} style={this.style('container')}>
           {(!!labelPosition.match(/^(left|top)$/)) && this.renderLabel()}
           {this.renderTextInput()}
           {(!labelPosition.match(/^(left|top)$/)) && this.renderLabel()}

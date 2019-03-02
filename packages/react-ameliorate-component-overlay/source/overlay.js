@@ -1,13 +1,13 @@
-import { utils as U }             from 'evisit-js-utils';
-import React                      from 'react';
-import { componentFactory }       from '@react-ameliorate/core';
-import { View, TouchableOpacity } from '@react-ameliorate/native-shims';
-import { TransitionGroup }        from '@react-ameliorate/component-transition-group';
+import { utils as U }                     from 'evisit-js-utils';
+import React                              from 'react';
+import { componentFactory }               from '@react-ameliorate/core';
+import { View, TouchableWithoutFeedback } from '@react-ameliorate/native-shims';
+import { TransitionGroup }                from '@react-ameliorate/component-transition-group';
 import {
   findDOMNode,
   isDescendantElement
-}                                 from '@react-ameliorate/utils';
-import styleSheet                 from './overlay-styles';
+}                                         from '@react-ameliorate/utils';
+import styleSheet                         from './overlay-styles';
 
 const SIDE_VALUES = {
         left: -1,
@@ -359,7 +359,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
           hasChildren = !!(children && children.length);
 
       return (
-        <TouchableOpacity
+        <TouchableWithoutFeedback
           className={this.getRootClassName(componentName)}
           style={this.style('container', this.props.style)}
           onPress={this.onPress}
@@ -371,39 +371,40 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
             style={this.props.containerStyle}
           >
             {this.getChildren(_children)}
+
+            <TransitionGroup
+              className={this.getRootClassName(componentName, 'overlay')}
+              style={this.style('overlay', (hasChildren) ? 'containerHasChildren' : 'containerNoChildren')}
+              onAnimationStyle={this.onAnimationStyle}
+              onEntering={this.onChildEntering}
+              onMounted={this.onChildMounted}
+              onEntered={this.onChildEntered}
+              onLeaving={this.onChildLeaving}
+              onLeft={this.onChildLeft}
+              ref={this.captureReference('overlayRoot', findDOMNode)}
+              pointerEvents="none"
+            >
+              {children.map((child, index) => {
+                if (!child)
+                  return null;
+
+                var childInstance = child.instance,
+                    childProps = childInstance.props || {};
+
+                return (
+                  <View
+                    id={(childProps.id || ('' + index))}
+                    key={(childProps.id || ('' + index))}
+                    style={childProps.style}
+                    _child={child}
+                  >
+                    {childProps.children}
+                  </View>
+                );
+              })}
+            </TransitionGroup>
           </View>
-
-          <TransitionGroup
-            className={this.getRootClassName(componentName, 'overlay')}
-            style={this.style('overlay', (hasChildren) ? 'containerHasChildren' : 'containerNoChildren')}
-            onAnimationStyle={this.onAnimationStyle}
-            onEntering={this.onChildEntering}
-            onMounted={this.onChildMounted}
-            onEntered={this.onChildEntered}
-            onLeaving={this.onChildLeaving}
-            onLeft={this.onChildLeft}
-            ref={this.captureReference('overlayRoot', findDOMNode)}
-          >
-            {children.map((child, index) => {
-              if (!child)
-                return null;
-
-              var childInstance = child.instance,
-                  childProps = childInstance.props || {};
-
-              return (
-                <View
-                  id={(childProps.id || ('' + index))}
-                  key={(childProps.id || ('' + index))}
-                  style={childProps.style}
-                  _child={child}
-                >
-                  {childProps.children}
-                </View>
-              );
-            })}
-          </TransitionGroup>
-        </TouchableOpacity>
+        </TouchableWithoutFeedback>
       );
     }
   };

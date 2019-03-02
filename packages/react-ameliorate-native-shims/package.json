@@ -50,7 +50,8 @@
     "evisit-js-utils": "^0.7.1",
     "gsap": "^2.0.2",
     "@react-ameliorate/styles": "^0.9.6",
-    "@react-ameliorate/utils": "^0.9.6"
+    "@react-ameliorate/utils": "^0.9.6",
+    "react-native-web": "^0.10.0"
   },
   "peerDependencies": {
     "react": "^16.7.0",

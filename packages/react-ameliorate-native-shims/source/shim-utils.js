@@ -15,8 +15,8 @@ export function flattenStyle(style, _finalStyle) {
       finalStyle = { ...finalStyle, ...thisStyle };
   }
 
-  if (finalStyle.flex === 0)
-    finalStyle.flex = 'none';
+  // if (finalStyle.flex === 0)
+  //   finalStyle.flex = 'none';
 
   return finalStyle;
 }

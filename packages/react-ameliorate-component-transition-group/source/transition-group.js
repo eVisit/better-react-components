@@ -28,6 +28,8 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
       onLeft: PropTypes.func,
       onRender: PropTypes.func,
       onRenderChild: PropTypes.func,
+      pointerEvents: PropTypes.string,
+      childProps: PropTypes.object
     };
 
     construct() {
@@ -294,6 +296,8 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
     defaultRenderChild({ child }) {
       return (
         <Animated.View
+          pointerEvents="auto"
+          {...(this.props.childProps || {})}
           key={child.id}
           style={this.style('childContainer', this.props.containerStyle, this.getAnimationStyle(child))}
           ref={this._onChildMounted.bind(this, child)}
@@ -316,6 +320,7 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
         <Animated.View
           className={this.getRootClassName(componentName, this.props.className)}
           style={this.style('container', this.props.style, this.getAnimationStyle(this._componentState))}
+          pointerEvents={this.props.pointerEvents}
         >
           {children}
         </Animated.View>
