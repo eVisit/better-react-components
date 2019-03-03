@@ -550,8 +550,8 @@ export class StyleSheetBuilder {
         finalStyle = Object.assign(finalStyle, (thisStyle || {}));
     }
 
-    if (!finalStyle.flexBasis || finalStyle.flexBasis === 0 || finalStyle.flexBasis === '0%')
-      finalStyle.flexBasis = 'auto';
+    // if (!finalStyle.flexBasis || finalStyle.flexBasis === 0 || finalStyle.flexBasis === '0%')
+    //   finalStyle.flexBasis = 'auto';
 
     // if (!finalStyle.minWidth)
     //   finalStyle.minWidth = 'auto';
