@@ -14,7 +14,8 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       onMounted: PropTypes.func,
       onEntered: PropTypes.func,
       onLeaving: PropTypes.func,
-      onLeft: PropTypes.func
+      onLeft: PropTypes.func,
+      calculateStyle: PropTypes.func
     };
 
     provideContext() {

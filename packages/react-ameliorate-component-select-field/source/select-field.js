@@ -118,11 +118,13 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
       return value;
     }
 
-    onPopupMounted({ $element, anchor }) {
-      if (!$element || !anchor || !anchor.rect)
-        return;
+    popupCalculateStyle({ anchor }) {
+      if (!anchor || !anchor.rect)
+        return null;
 
-      $element.style.minWidth = `${anchor.rect.width}px`;
+      return {
+        minWidth: anchor.rect.width
+      };
     }
 
     onPopupLeft() {
@@ -271,7 +273,7 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
             'bottom': 'top',
             'left': 'left'
           }}
-          onMounted={this.onPopupMounted}
+          calculateStyle={this.popupCalculateStyle}
           onLeft={this.onPopupLeft}
           id={this.getFieldID()}
         >

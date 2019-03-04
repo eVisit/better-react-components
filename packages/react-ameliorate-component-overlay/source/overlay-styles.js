@@ -11,6 +11,11 @@ export default createStyleSheet(function(theme) {
       bottom: 0,
       overflow: 'hidden'
     },
+    internalContainer: {
+      browser: {
+        cursor: 'default'
+      }
+    },
     overlay: {
       flex: 0,
       position: 'absolute',

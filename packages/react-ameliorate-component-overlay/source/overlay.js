@@ -305,10 +305,10 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
           func = child[eventName] || childProps[eventName];
 
       if (typeof func === 'function') {
-        var domElement = (stateObject.instance) ? findDOMNode(stateObject.instance) : null,
-            anchor = (position.anchor) ? position.anchor : { element: childProps.anchorElement };
+        var anchor = (position.anchor) ? position.anchor : { element: childProps.anchorElement };
+            //domElement = (stateObject.instance) ? findDOMNode(stateObject.instance) : null;
 
-        func.call(this, Object.assign({}, stateObject, { $element: domElement, anchor, position }));
+        func.call(this, Object.assign({}, stateObject, { anchor, position }));
       }
     }
 
@@ -317,6 +317,10 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
     }
 
     onChildMounted(stateObject) {
+      // var domElement = (stateObject.instance) ? findDOMNode(stateObject.instance) : null;
+      // stateObject['$element'] = domElement;
+      // debugger;
+
       return this.callProxyToOriginalEvent('onMounted', stateObject);
     }
 
@@ -339,6 +343,8 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
 
       var childProps = this._getChildPropsFromChild(child),
           position = this._getChildPosition(child),
+          anchor = (position.anchor) ? position.anchor : { element: childProps.anchorElement },
+          extraStyle = (typeof childProps.calculateStyle === 'function') ? childProps.calculateStyle(Object.assign({}, stateObject, { anchor, position })) : null,
           childStyle = this.style(
             'childContainer',
             childProps.style,
@@ -348,7 +354,8 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
                 outputRange: [0, 1]
               })
             },
-            (position.style) ? position.style : this.style('defaultPaperStyle')
+            (position.style) ? position.style : this.style('defaultPaperStyle'),
+            extraStyle
           );
 
       return childStyle;
@@ -368,7 +375,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         >
           <View
             className={this.getRootClassName(componentName, 'children')}
-            style={this.props.containerStyle}
+            style={this.style('internalContainer', this.props.containerStyle)}
           >
             {this.getChildren(_children)}
 

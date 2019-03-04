@@ -12,6 +12,8 @@ export {
   Text,
   ScrollView,
   TextInput,
+  FlatList,
+  SectionList,
   WebView
 } from 'react-native';
 //###} else {###//
@@ -26,7 +28,9 @@ export {
   TouchableWithoutFeedback,
   Text,
   ScrollView,
-  TextInput
+  TextInput,
+  FlatList,
+  SectionList
 } from 'react-native-web';
 
 import React from 'react';
