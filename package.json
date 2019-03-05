@@ -1,6 +1,6 @@
 {
   "name": "react-ameliorate",
-  "version": "0.9.6",
+  "version": "0.10.0",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "index.js",
   "scripts": {
@@ -51,10 +51,6 @@
     "eslint-plugin-react-native": "^3.5.0",
     "jest": "^23.5.0",
     "react": "^16.4.2"
-  },
-  "dependencies": {
-    "@react-ameliorate/core": "^0.9.4",
-    "@react-ameliorate/native-shims": "^0.9.4"
   },
   "peerDependencies": {
     "react": "^16.7.0",
