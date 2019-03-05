@@ -48,7 +48,7 @@ function updateAllPackageJSONs() {
     filter: ({ isDirectory }) => isDirectory
   });
 
-  execSync(`git commit -am "Update to version v${masterPackageJSON}"`, {
+  execSync(`git commit -am "Update to version v${masterVersion}"`, {
     cwd: PATH.resolve(__dirname, '..')
   });
 }
