@@ -1,6 +1,6 @@
 {
   "name": "@react-ameliorate/prop-types",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "index.js",
   "scripts": {
@@ -44,5 +44,6 @@
     "eslint-plugin-react": "^7.9.1",
     "eslint-plugin-react-native": "^3.2.1",
     "jest": "^23.5.0"
-  }
+  },
+  "scope": "@react-ameliorate"
 }

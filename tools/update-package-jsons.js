@@ -29,6 +29,8 @@ function updateAllPackageJSONs() {
         jsonContent = ('' + FS.readFileSync(packageJSONFileName)),
         json = JSON.parse(jsonContent);
 
+    json.scope = '@react-ameliorate';
+    json.version = masterVersion;
     json.repository = `https://github.com/eVisit/react-ameliorate/tree/master/packages/${packageName}`;
     json.name = `@react-ameliorate/${packageName.replace(/^react-ameliorate-/, '')}`;
     json.homepage = `https://github.com/eVisit/react-ameliorate/tree/master/packages/${packageName}#readme`;

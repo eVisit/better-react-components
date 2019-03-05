@@ -1,6 +1,6 @@
 {
   "name": "@react-ameliorate/styles",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "index.js",
   "scripts": {
@@ -55,5 +55,6 @@
     "react": "^16.7.0",
     "babel-preset-react-ameliorate": ">=0.57.0",
     "@react-ameliorate/utils": "^0.10.0"
-  }
+  },
+  "scope": "@react-ameliorate"
 }

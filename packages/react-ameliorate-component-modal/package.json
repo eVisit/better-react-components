@@ -1,6 +1,6 @@
 {
   "name": "@react-ameliorate/component-modal",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "./source/modal.js",
   "scripts": {
@@ -58,5 +58,6 @@
     "@react-ameliorate/styles": "^0.10.0",
     "@react-ameliorate/utils": "^0.10.0",
     "@react-ameliorate/native-shims": "^0.10.0"
-  }
+  },
+  "scope": "@react-ameliorate"
 }
