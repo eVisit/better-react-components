@@ -6,5 +6,5 @@ export * from './source/utils';
  * so lets make the world a better place by not allowing them to freeze anything.
  */
 
-if (__DEV__)
-  Object.freeze = (obj) => obj;
+Object.freeze = (obj) => obj;
+Object.seal = (obj) => obj;

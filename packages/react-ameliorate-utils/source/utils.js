@@ -372,9 +372,9 @@ export function postRenderProcessChild(args) {
     return child;
 
   var thisChildren = (childProps.children instanceof Array) ? childProps.children : [childProps.children],
-      clonedChild = defaultCloneElement(child, childProps, ...thisChildren);
+      clonedChild = defaultCloneElement.call(this, child, childProps, ...thisChildren);
 
-  getElementLayoutContext(Object.assign({}, args, { child: clonedChild }));
+  getElementLayoutContext.call(this, Object.assign({}, args, { child: clonedChild }));
 
   return clonedChild;
 }
