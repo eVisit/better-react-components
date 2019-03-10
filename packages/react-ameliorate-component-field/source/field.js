@@ -482,8 +482,8 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
           style={this.style('rootContainer', this.props.style)}
           onMouseOver={this.onMouseOver}
           onMouseOut={this.onMouseOut}
-          tooltip={this.props.tooltip}
-          tooltip-side={this.props.tooltipSide || 'bottom'}
+          data-tooltip={this.props.tooltip}
+          data-tooltip-side={this.props.tooltipSide || 'bottom'}
         >
           {this.getChildren(children)}
         </View>

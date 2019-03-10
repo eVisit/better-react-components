@@ -1,6 +1,6 @@
 {
   "name": "@react-ameliorate/mixin-hoverable",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "./source/hoverable.js",
   "scripts": {
@@ -53,9 +53,10 @@
   "peerDependencies": {
     "react": "^16.7.0",
     "babel-preset-react-ameliorate": ">=0.57.0",
-    "@react-ameliorate/core": "^0.9.6",
-    "@react-ameliorate/styles": "^0.9.6",
-    "@react-ameliorate/utils": "^0.9.6",
-    "@react-ameliorate/native-shims": "^0.9.6"
-  }
+    "@react-ameliorate/core": "^0.10.0",
+    "@react-ameliorate/styles": "^0.10.0",
+    "@react-ameliorate/utils": "^0.10.0",
+    "@react-ameliorate/native-shims": "^0.10.0"
+  },
+  "scope": "@react-ameliorate"
 }

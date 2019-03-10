@@ -132,7 +132,7 @@ export const TextField = componentFactory('TextField', ({ Parent, componentName 
       var labelPosition = `label${capitalize(this.props.labelPosition)}`;
 
       return super.render(
-        <View className={this.getRootClassName(componentName, labelPosition)} style={this.style('container')}>
+        <View className={this.getRootClassName(componentName)} style={this.style('container')} data-label-side={labelPosition}>
           {(!!labelPosition.match(/^(left|top)$/)) && this.renderLabel()}
           {this.renderTextInput()}
           {(!labelPosition.match(/^(left|top)$/)) && this.renderLabel()}
