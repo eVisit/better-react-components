@@ -163,7 +163,8 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
         <ScrollView
           {...(this.props.scrollViewProps || {})}
           key="generic-modal-content"
-          style={this.style('contentContainer', 'contentScrollContainer', this.props.contentContainerStyle)}
+          style={this.style('contentContainer')}
+          contentContainerStyle={this.style('contentScrollContainer', this.props.contentContainerStyle)}
         >
           {children}
         </ScrollView>
@@ -176,6 +177,8 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
 
     renderButtons() {
       var modalButtons = this.getButtons();
+      if (!modalButtons || !modalButtons.length)
+        return null;
 
       return (
         <LayoutContainer
@@ -197,6 +200,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
               <Button
                 theme={button.theme || 'white'}
                 {...(this.props.buttonProps || {})}
+                {...button}
                 testID={button.testID}
                 key={button.key || (('' + index) + button.caption)}
                 caption={button.caption}

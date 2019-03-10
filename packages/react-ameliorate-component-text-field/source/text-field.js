@@ -12,7 +12,8 @@ export const TextField = componentFactory('TextField', ({ Parent, componentName 
 
     static propTypes = {
       type: PropTypes.string,
-      labelStyle: PropTypes.any
+      labelStyle: PropTypes.any,
+      maxLength: PropTypes.number
     }
 
     static defaultProps = {
@@ -124,12 +125,13 @@ export const TextField = componentFactory('TextField', ({ Parent, componentName 
           value={(type === 'password') ? undefined : value}
           style={this.style('inputField', this.props.fieldStyle, (flags.error && 'fieldStateError'))}
           editable={(this.props.disabled !== true)}
+          maxLength={this.props.maxLength}
         />
       );
     }
 
     render(children) {
-      var labelPosition = `label${capitalize(this.props.labelPosition)}`;
+      var labelPosition = this.props.labelPosition;
 
       return super.render(
         <View className={this.getRootClassName(componentName)} style={this.style('container')} data-label-side={labelPosition}>

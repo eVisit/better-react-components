@@ -1,7 +1,7 @@
 import { createStyleSheet } from '@react-ameliorate/styles';
 import { textFieldStyles }  from '@react-ameliorate/component-text-field';
 
-export default createStyleSheet(function(theme, textFieldStyles) {
+export default createStyleSheet(function(theme) {
   const FIELD_SIDE_PADDING = textFieldStyles.FIELD_SIDE_PADDING;
 
   return {

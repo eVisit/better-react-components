@@ -153,6 +153,11 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       return (value === undefined) ? null : value;
     }
 
+    clearErrorState() {
+      this.setComponentFlagsFromObject({ error: false });
+      this.setState({ errorMessage: null });
+    }
+
     setErrorState(message) {
       this.setComponentFlagsFromObject({ error: (message != null) });
       this.setState({ errorMessage: message });
@@ -229,13 +234,17 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       var oldValue = value;
 
       // Unformat (get the raw value) the value and call event callbacks
-      value = this._formatValue(value, set, (formatType) ? formatType : 'unformat', opts);
+      value = this._formatValue(value, set, 'format', opts);
+      value = this._formatValue(value, value, 'unformat', opts);
+
       if (value === undefined)
         value = null;
 
       if (oldValue !== value) {
-        if (opts.userInitiated)
+        if (opts.userInitiated) {
+          this.clearErrorState();
           this.onChange({ event: opts.event, value, _value: oldValue });
+        }
 
         this.onValueChange({ event: opts.event, value, _value: oldValue });
 

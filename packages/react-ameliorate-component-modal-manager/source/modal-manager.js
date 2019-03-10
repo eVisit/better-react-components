@@ -89,12 +89,12 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
           {...this.passProps(this.props)}
           id={this.getID()}
           className={this.getRootClassName(componentName)}
-          style={this.style('fullSize', this.props.style)}
+          style={this.style('fullSize', 'overlay', this.props.style)}
           onShouldClose={this.onShouldClose}
         >
           <TouchableWithoutFeedback
-            className={this.getRootClassName(componentName, 'overlay')}
-            style={this.style('fullSize', 'overlay')}
+            className={this.getRootClassName(componentName)}
+            style={this.style('fullSize')}
             onPress={this.onShouldClose}
             onKeyDown={this.onKeyDown}
             tabIndex="-1"

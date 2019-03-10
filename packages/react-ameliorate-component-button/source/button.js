@@ -38,6 +38,9 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
     }
 
     getRequestedTheme() {
+      if (this.isFlagFocussed())
+        return 'default';
+
       return this.props.theme || 'default';
     }
 

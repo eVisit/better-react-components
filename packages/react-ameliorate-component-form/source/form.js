@@ -9,6 +9,15 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
     static styleSheet = styleSheet;
 
     static propTypes = {
+      columns: PropTypes.number,
+      horizontalSpacing: PropTypes.number,
+      verticalSpacing: PropTypes.number,
+      calcChildColspan: PropTypes.func,
+      calcChildKey: PropTypes.func
+    };
+
+    static defaultProps = {
+      columns: 1
     };
 
     construct() {
@@ -150,13 +159,196 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
       return (errors.length) ? { errors, message: errors.map((error) => (error && error.message)).filter(Boolean).join('. ') } : undefined;
     }
 
-    render(children) {
+    getChildColSpan(args) {
+      return this.callProvidedCallback('calcChildColspan', args, 1);
+    }
+
+    getChildKey(args) {
+      var { index } = args;
+      return this.callProvidedCallback('calcChildKey', args, `child-${index}`);
+    }
+
+    getRowCount(args) {
+      var { children, columns } = args;
+
+      var totalColumns = 0;
+      for (var i = 0, il = children.length; i < il; i++) {
+        var child = children[i],
+            colSpan = this.getChildColSpan(Object.assign({}, args, { child, index: i }));
+
+        totalColumns += colSpan;
+      }
+
+      return Math.ceil(totalColumns / columns);
+    }
+
+    getChildColumn(args) {
+      var { children, index } = args;
+
+      var column = 0;
+
+      for (var i = 0, il = children.length; i < il; i++) {
+        if (i >= index)
+          break;
+
+        var child = children[i],
+            colSpan = this.getChildColSpan(Object.assign({}, args, { child }));
+
+        column += colSpan;
+      }
+
+      return column;
+    }
+
+    getChildRow(args) {
+      var { column, columns } = args;
+      if (column == null)
+        column = this.getChildColumn(args);
+
+      return Math.floor(column / columns);
+    }
+
+    getChildWrapperStyle(args) {
+      var colSpan = this.getChildColSpan(args);
+      return {
+        flex: colSpan,
+        flexGrow: colSpan,
+        flexShrink: colSpan
+      };
+    }
+
+    renderHorizontalSpacer({ row, column, horizontalSpacing }) {
+      return (
+        <View
+          className={this.getClassName(componentName, 'horizontalSpacer')}
+          style={this.style('horizontalSpacer', { width: horizontalSpacing })}
+          key={`horizontal-spacer-${row}-${column}`}
+        />
+      );
+    }
+
+    renderVerticalSpacer({ row, verticalSpacing }) {
+      return (
+        <View
+          className={this.getClassName(componentName, 'horizontalSpacer')}
+          style={this.style('verticalSpacer', { height: verticalSpacing })}
+          key={`vertical-spacer-${row}-0`}
+        />
+      );
+    }
+
+    renderChild(args) {
+      var { child } = args,
+          key = this.getChildKey(args),
+          wrapperStyle = this.getChildWrapperStyle(args);
+
+      if (!child)
+        child = null;
+
+      return (
+        <View
+          className={this.getClassName(componentName, 'childWrapper', (child === null) && 'blankChildWrapper')}
+          style={this.style('childWrapper', wrapperStyle)}
+          key={key}
+        >
+          {child}
+        </View>
+      );
+    }
+
+    renderChildren(args) {
+      var {
+            children,
+            horizontalSpacing,
+            verticalSpacing,
+            columns
+          }                 = args,
+          rowCount          = this.getRowCount(args),
+          oldRow            = 0,
+          totalColumns      =  rowCount * columns,
+          totalUsedColumns  = this.getChildColumn(Object.assign({}, args, {
+            children,
+            child: null,
+            index: children.length + 1,
+            rowCount
+          })),
+          currentRow        = [],
+          allRows           = [currentRow];
+
+      const renderChild = (child, index) => {
+        var thisArgs = Object.assign({}, args, {
+          child,
+          index,
+          rowCount
+        });
+
+        var column = thisArgs.column = this.getChildColumn(thisArgs),
+            row = thisArgs.row = this.getChildRow(thisArgs),
+            renderHorizontalSpacer = false;
+
+        if (row !== oldRow) {
+          oldRow = row;
+          currentRow = [];
+          allRows.push(currentRow);
+        }
+
+        if (currentRow.length && horizontalSpacing && (column % columns) !== 0)
+          renderHorizontalSpacer = true;
+
+        if (renderHorizontalSpacer)
+          currentRow.push(this.renderHorizontalSpacer(thisArgs));
+
+        currentRow.push(this.renderChild(thisArgs));
+      };
+
+      // Render children
+      for (var i = 0, il = children.length; i < il; i++) {
+        var child = children[i];
+        renderChild(child, i);
+      }
+
+      // Add blank columns (if any)
+      for (var i = 0, il = (totalColumns - totalUsedColumns); i < il; i++)
+        renderChild(null, totalUsedColumns + i);
+
+      var finalChildren = [];
+      for (var i = 0, il = allRows.length; i < il; i++) {
+        var thisRow = allRows[i],
+            thisArgs = Object.assign({}, args, {
+              row: i,
+              rowCount
+            });
+
+        if (i > 0 && verticalSpacing)
+          finalChildren.push(this.renderVerticalSpacer(thisArgs));
+
+        finalChildren.push(
+          <View
+            className={this.getClassName(componentName, 'row')}
+            style={this.style('row')}
+            key={`form-row-${i}`}
+          >
+            {thisRow}
+          </View>
+        );
+      }
+
+      return finalChildren;
+    }
+
+    render(_children) {
+      var children          = this.getChildren(_children, true),
+          horizontalSpacing = this.props.horizontalSpacing || 0,
+          verticalSpacing   = this.props.verticalSpacing || 0,
+          columns           = this.props.columns;
+
       return super.render(
         <View
           className={this.getRootClassName(componentName)}
           style={this.style('rootContainer')}
+          data-columns={columns}
         >
-          {this.getChildren(children)}
+          {this.renderChildren({ children, horizontalSpacing, verticalSpacing, columns })}
         </View>
       );
     }

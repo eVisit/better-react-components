@@ -2,10 +2,7 @@ import { createStyleSheet } from '@react-ameliorate/styles';
 import { fieldStyles }      from '@react-ameliorate/component-field';
 
 export default createStyleSheet(function(theme) {
-  const FIELD_SIDE_PADDING = Math.round(theme.DEFAULT_PADDING * 0.25);
-
   return {
-    FIELD_SIDE_PADDING,
     container: {
       flex: 1,
       flexDirection: 'row',
