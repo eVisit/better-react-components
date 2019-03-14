@@ -196,6 +196,10 @@ export default class ComponentBase {
 
     // Setup the styleSheet getter to build style-sheets when requested
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
+
+    // If there is no React instance, construct now
+    if (!_reactComponent)
+      this._construct();
   }
 
   _raCreateElement() {
@@ -298,10 +302,8 @@ export default class ComponentBase {
   }
 
   _getStyleSheetFromFactory(theme, _styleSheetFactory) {
-    if (!theme) {
-      this._logger('warn', 'Warning: "theme" not specified when trying to get style for component @');
-      return { styleWithHelper: () => null };
-    }
+    if (!theme)
+      throw new Error('"theme" is required to create a style-sheet');
 
     var styleCache = theme._cachedStyles;
     if (!styleCache) {
@@ -1286,7 +1288,7 @@ export default class ComponentBase {
   }
 
   getApp(cb) {
-    var app = this.application || this.context.application;
+    var app = this.application || this.props.raApplication || this.context.application;
 
     if (typeof cb === 'function')
       return cb.call(this, { app });

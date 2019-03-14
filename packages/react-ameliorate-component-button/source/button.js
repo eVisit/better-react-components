@@ -14,9 +14,15 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
 
     static propTypes = {
       caption: PropTypes.string,
+      captionStyle: PropTypes.any,
+      onPressStart: PropTypes.func,
       onPress: PropTypes.func,
+      onPressEnd: PropTypes.func,
       disabled: PropTypes.bool,
-      internalContainerStyle: PropTypes.any
+      internalContainerStyle: PropTypes.any,
+      theme: PropTypes.string,
+      tooltip: PropTypes.string,
+      tooltipSide: PropTypes.string
     };
 
     constructor(props, ...args) {

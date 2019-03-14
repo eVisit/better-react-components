@@ -16,7 +16,7 @@ function isValidElement(object) {
 /* global Symbol */
 
 function factory(isValidElement, throwOnDirectAccess) {
-  const IS_DEVELOPMENT = (typeof process !== 'undefined' && process && process.env && process.env.NODE_ENV !== 'production'),
+  const IS_DEVELOPMENT = (__DEV__),
         REACT_CREATIVE_SECRET = 'SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED',
         ITERATOR_SYMBOL = (typeof Symbol === 'function' && Symbol.iterator),
         FAUX_ITERATOR_SYMBOL = '@@iterator', // Before Symbol spec,
