@@ -94,7 +94,7 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
               </View>
             )}
 
-            {(!!tab.icon && this.props.showCaptions !== false) && (
+            {(!!tab.caption && this.props.showCaptions !== false) && (
               <View className={this.getClassName(componentName, tabCaptionContainerNames)} style={this.style(tabCaptionContainerNames, this.props.tabCaptionContainerStyle, active && this.props.activeTabCaptionContainerStyle)}>
                 <Text className={this.getClassName(componentName, tabCaptionNames)} style={this.style(tabCaptionNames, this.props.tabCaptionStyle, active && this.props.activeTabCaptionStyle)}>{tab.caption || ''}</Text>
               </View>
