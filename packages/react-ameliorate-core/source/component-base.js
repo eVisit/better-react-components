@@ -51,7 +51,7 @@ export default class ComponentBase {
     if (!reactComponent) {
       reactComponent = {
         state: {},
-        props: {},
+        props: props,
         _renderCount: 0,
         _mounted: false,
         _propUpdateCounter: 0,
@@ -1004,8 +1004,13 @@ export default class ComponentBase {
     var prefix = this.getClassNamePrefix(),
         base = (_componentName) ? _componentName : this.getComponentName();
 
-    var className = this.generateNames({ prefix, base }, ...args).join(' ')
+    var className = this.generateNames({ prefix, base }, ...args).join(' ');
     return (!className) ? undefined : className;
+  }
+
+  getDefaultClassName() {
+    var prefix = this.getClassNamePrefix();
+    return `${prefix}${capitalize(this.getComponentID())}`;
   }
 
   getRootClassName(_componentName, ...args) {
@@ -1014,7 +1019,7 @@ export default class ComponentBase {
         classNames = this.generateNames({ prefix, base }, '', ...args);
 
     var specifiedClassName = this.props.className;
-    return removeDuplicateStrings(classNames.concat((!specifiedClassName) ? [] : specifiedClassName.split(/\s+/g), `${prefix}${capitalize(this.getComponentID())}`)).join(' ');
+    return removeDuplicateStrings(classNames.concat((!specifiedClassName) ? [] : specifiedClassName.split(/\s+/g), this.getDefaultClassName())).join(' ');
   }
 
   style(...args) {
