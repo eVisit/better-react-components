@@ -33,7 +33,10 @@ export default createStyleSheet(function(theme) {
     },
     defaultContainerDisabled: {
       borderColor: theme.GREY03_COLOR,
-      backgroundColor: theme.GREY02_COLOR
+      backgroundColor: theme.GREY02_COLOR,
+      browser: {
+        cursor: 'default'
+      }
     },
     whiteContainer: {
       borderWidth: 1,
@@ -47,7 +50,10 @@ export default createStyleSheet(function(theme) {
       backgroundColor: WHITE_PRESSED_BG_COLOR
     },
     whiteContainerDisabled: {
-      backgroundColor: theme.GREY02_COLOR
+      backgroundColor: theme.GREY02_COLOR,
+      browser: {
+        cursor: 'default'
+      }
     },
     internalContainer: {
       minHeight: theme.DEFAULT_INPUT_HEIGHT - 2,

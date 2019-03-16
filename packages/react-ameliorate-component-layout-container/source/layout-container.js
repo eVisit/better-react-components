@@ -22,13 +22,14 @@ export const LayoutContainer = componentFactory('LayoutContainer', ({ Parent, co
       return (
         <View className={this.getRootClassName(componentName)} style={this.style('container', this.props.style, `container${direction}`)}>
           {children.map((child, index) => {
-            var isLastChild = !((index + 1) < children.length),
-                spacingStyle = (isVertical) ? { paddingBottom: spacing } : { paddingRight: spacing };
+            var spacingStyle        = (isVertical) ? { height: spacing } : { width: spacing },
+                shouldRenderSpacer  = (index !== 0);
 
             return (
-              <View className={this.getClassName(componentName, 'childWrapper')} key={('' + index)} style={this.style('childContainer', (isLastChild) ? null : spacingStyle)}>
+              <React.Fragment key={('' + index)}>
+                {(shouldRenderSpacer) && <View className={this.getClassName(componentName, `${direction}Spacer`)} style={this.style('spacer', spacingStyle)}/>}
                 {child}
-              </View>
+              </React.Fragment>
             );
           })}
         </View>

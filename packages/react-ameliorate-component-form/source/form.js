@@ -80,6 +80,22 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
       delete this._registeredFields[field.getFieldID()];
     }
 
+    focusNext(currentField) {
+      var registeredFields  = this._registeredFields,
+          fieldIDs          = Object.keys(registeredFields).sort(),
+          currentFieldID    = currentField.getFieldID(),
+          currentFieldIndex = fieldIDs.indexOf(currentFieldID);
+
+      if (currentFieldIndex < 0)
+        return;
+
+      var nextFieldID = fieldIDs[(currentFieldIndex + 1) % fieldIDs.length],
+          field       = registeredFields[nextFieldID];
+
+      if (field && typeof field.focus === 'function')
+        field.focus();
+    }
+
     value() {
       var fields = this._registeredFields,
           keys = Object.keys(fields),

@@ -28,6 +28,35 @@ function getScreenInfo() {
   };
 }
 
+// Thanks to "lostsource" from Stack Overflow for the following
+// https://stackoverflow.com/questions/13382516/getting-scroll-bar-width-using-javascript
+//###if(!MOBILE) {###//
+function getScrollbarWidth() {
+    var outer = document.createElement("div");
+    outer.style.visibility = "hidden";
+    outer.style.width = "100px";
+    outer.style.msOverflowStyle = "scrollbar"; // needed for WinJS apps
+
+    document.body.appendChild(outer);
+
+    var widthNoScroll = outer.offsetWidth;
+    // force scrollbars
+    outer.style.overflow = "scroll";
+
+    // add innerdiv
+    var inner = document.createElement("div");
+    inner.style.width = "100%";
+    outer.appendChild(inner);
+
+    var widthWithScroll = inner.offsetWidth;
+
+    // remove divs
+    outer.parentNode.removeChild(outer);
+
+    return widthNoScroll - widthWithScroll;
+}
+//###}###//
+
 export class ThemeProperties {
   static ColorConstants = ColorConstants;
   static Color = Color;
@@ -106,9 +135,15 @@ export class ThemeProperties {
         IS_MOBILE = (this.getPlatform() !== 'browser'),
         FONT_SCALAR = themeProps.FONT_SCALAR || 1,
         SCREEN_WIDTH = width,
-        SCREEN_HEIGHT = height;
+        SCREEN_HEIGHT = height,
+        SCROLLBAR_WIDTH = 0;
+
+    //###if(!MOBILE) {###//
+    SCROLLBAR_WIDTH = getScrollbarWidth();
+    //###}###//
 
     var finalThemeProps = {
+      SCROLLBAR_WIDTH,
       SCREEN_WIDTH,
       SCREEN_HEIGHT,
       SCREEN_RATIO: (height) ? (width / height) : 1,

@@ -12,7 +12,7 @@ export default createStyleSheet(function(theme) {
     containerVertical: {
       flexDirection: 'column'
     },
-    childContainer: {
+    spacer: {
       flex: 0
     }
   };

@@ -43,6 +43,7 @@ class View extends React.Component {
 
     return {
       ...providedProps,
+      className: this.getClassName('raView', this.props.className),
       style,
       onMouseOver: (this.props.onMouseOver) ? this.onMouseOver : undefined,
       onMouseOut: (this.props.onMouseOut) ? this.onMouseOut : undefined,
