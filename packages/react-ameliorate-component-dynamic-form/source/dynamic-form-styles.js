@@ -1,18 +1,13 @@
 import { createStyleSheet } from '@react-ameliorate/styles';
+import { formStyles }       from '@react-ameliorate/component-form';
 
 export default createStyleSheet(function(theme) {
   return {
     rootContainer: {
       position: 'relative',
-      flexDirection: 'column',
-      alignItems: 'stretch'
-    },
-    row: {
-      flex: 0,
-      flexDirection: 'row'
-    },
-    childWrapper: {
-      flexBasis: 0
+      flexDirection: 'column'
     }
   };
+}, {
+  mergeStyles: formStyles
 });
