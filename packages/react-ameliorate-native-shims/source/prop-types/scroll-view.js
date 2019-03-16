@@ -2,6 +2,8 @@ import PropTypes            from '@react-ameliorate/prop-types';
 import ViewPropTypes        from './view';
 import EdgeInsetsPropType   from './edge-insets';
 import PointPropType        from './point';
+import StyleSheetPropType   from './style-sheet';
+import ViewStylePropTypes   from './view-style';
 
 const ScrollViewPropTypes = {
   ...ViewPropTypes,
@@ -10,6 +12,7 @@ const ScrollViewPropTypes = {
   automaticallyAdjustContentInsets: PropTypes.bool,
   contentInset: EdgeInsetsPropType,
   contentOffset: PointPropType,
+  contentContainerStyle: StyleSheetPropType(ViewStylePropTypes),
   bounces: PropTypes.bool,
   bouncesZoom: PropTypes.bool,
   alwaysBounceHorizontal: PropTypes.bool,

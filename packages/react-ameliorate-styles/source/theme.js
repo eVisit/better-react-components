@@ -109,7 +109,8 @@ export class ThemeProperties {
         SCREEN_HEIGHT = height;
 
     var finalThemeProps = {
-
+      SCREEN_WIDTH,
+      SCREEN_HEIGHT,
       SCREEN_RATIO: (height) ? (width / height) : 1,
       PLATFORM: this.getPlatform(),
       ONE_PIXEL: screenInfo.pixelRatio,

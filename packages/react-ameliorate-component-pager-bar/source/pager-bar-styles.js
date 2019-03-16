@@ -21,7 +21,7 @@ export default createStyleSheet(function(theme) {
       browser: {
         cursor: 'pointer'
       },
-      //alignItems: 'stretch',
+      alignItems: 'stretch',
       justifyContent: 'center'
     },
     horizontalTabTouchableContainer: {
@@ -33,6 +33,7 @@ export default createStyleSheet(function(theme) {
     tabContainer: {
       flex: 0,
       padding: theme.DEFAULT_PADDING * 0.2,
+      textAlign: 'center',
       alignItems: 'center',
       justifyContent: 'center'
     },

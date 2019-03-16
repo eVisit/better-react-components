@@ -109,6 +109,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
     renderTitleBar() {
       return (
         <View
+          className={this.getClassName(componentName, 'titleBar')}
           ref={this.captureReference('titleBar', this.convertTitleBarReference)}
           key="generic-modal-title-bar"
           style={this.style('titleBar')}

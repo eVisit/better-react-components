@@ -100,6 +100,8 @@ class View extends React.Component {
         elementName = this.props.elementName || 'div',
         filteredProps = filterToNativeElementProps(props);
 
+    filteredProps.style = flattenStyle(filteredProps.style);
+
     return React.createElement(elementName, filteredProps, (_children || this.props.children || null));
   }
 }

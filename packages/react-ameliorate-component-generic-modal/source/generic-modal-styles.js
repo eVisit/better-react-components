@@ -3,6 +3,7 @@ import { modalStyles }      from '@react-ameliorate/component-modal';
 
 export default createStyleSheet(function(theme) {
   const TITLE_BAR_PADDING     = Math.round(theme.DEFAULT_PADDING * 0.25),
+        CONTENT_PADDING       = Math.round(theme.DEFAULT_PADDING * 0.25),
         BUTTON_PADDING        = Math.round(theme.DEFAULT_PADDING * 0.25),
         TITLE_BAR_BUTTON_SIZE = 30;
 
@@ -21,6 +22,9 @@ export default createStyleSheet(function(theme) {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
+      paddingLeft: CONTENT_PADDING,
+      paddingRight: CONTENT_PADDING,
+      paddingBottom: CONTENT_PADDING,
       maxHeight: theme.MAX_DIALOG_CONTENT_HEIGHT
     },
     titleBar: {

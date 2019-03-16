@@ -7,8 +7,8 @@ export default createStyleSheet(function(theme) {
       flex: 0,
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'flex-start',
-      overflow: 'hidden'
+      justifyContent: 'flex-start'
+      //overflow: 'hidden'
     }
   };
 });

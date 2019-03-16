@@ -240,6 +240,8 @@ export function filterObjectKeys(filter, ...args) {
 const acceptableElementProps = [
   'className',
   'style',
+  'ref',
+  'children'
 ];
 
 export function filterToNativeElementProps(props, elementType) {
@@ -266,12 +268,9 @@ export function filterToNativeElementProps(props, elementType) {
   };
 
   return filterObjectKeys((key, value) => {
+    // Whitelist
     if (acceptableElementProps.indexOf(key) >= 0)
       return (value !== null);
-
-    // Whitelist
-    if ((/^(dangerouslySetInnerHTML$)/).test(key))
-      return true;
 
     // Blacklist
     if ((/^on(Press|Layout$|dangerouslySetInnerHTML$)/).test(key))
@@ -281,7 +280,12 @@ export function filterToNativeElementProps(props, elementType) {
     if ((/^on[A-Z]/).test(key))
       return isEventSupported(key.toLowerCase());
 
-    return (/^[^A-Z]+$/g).test(key);
+    // var allowed = (/^[^A-Z]+$/g).test(key);
+    // if (allowed)
+    //   console.log('ALLOWING PROP: ', key);
+
+    // return allowed;
+    return (/^(data-|aria-)/).test(key);
   }, props);
 }
 

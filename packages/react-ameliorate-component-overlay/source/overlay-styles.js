@@ -28,16 +28,24 @@ export default createStyleSheet(function(theme) {
       bottom: 0,
       zIndex: 100,
       browser: {
-
       }
     },
     containerHasChildren: {
+      browser: {
+        pointerEvents: 'none'
+      }
     },
     containerNoChildren: {
+      browser: {
+        pointerEvents: 'none'
+      }
     },
     childContainer: {
       position: 'absolute',
-      zIndex: 1
+      zIndex: 1,
+      browser: {
+        pointerEvents: 'auto'
+      }
     },
     defaultPaperStyle: {
       position: 'absolute',
