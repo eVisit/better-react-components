@@ -15,11 +15,12 @@ export default createStyleSheet(function(theme) {
       flexDirection: 'column'
     },
     contentContainer: {
-      flex: 0,
-      alignItems: 'center',
-      justifyContent: 'center'
+      flex: 0
     },
     contentScrollContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
       maxHeight: theme.MAX_DIALOG_CONTENT_HEIGHT
     },
     titleBar: {

@@ -1,11 +1,10 @@
 import { createStyleSheet } from '@react-ameliorate/styles';
-import { fieldStyles }      from '@react-ameliorate/component-field';
+import { textFieldStyles }  from '@react-ameliorate/component-text-field';
 
-export default createStyleSheet(function(theme) {
-  const FIELD_SIDE_PADDING = Math.round(theme.DEFAULT_PADDING * 0.25);
+export default createStyleSheet(function(theme, textFieldStyles) {
+  const FIELD_SIDE_PADDING = textFieldStyles.FIELD_SIDE_PADDING;
 
   return {
-    FIELD_SIDE_PADDING,
     container: {
       flex: 1,
       flexDirection: 'row',
@@ -26,12 +25,8 @@ export default createStyleSheet(function(theme) {
       paddingRight: FIELD_SIDE_PADDING,
       paddingTop: FIELD_SIDE_PADDING,
       color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 7)
-    },
-    fieldStateError: {
-      color: theme.ERROR_COLOR,
-      borderColor: theme.ERROR_COLOR
     }
   };
 }, {
-  mergeStyles: fieldStyles
+  mergeStyles: textFieldStyles
 });

@@ -1,6 +1,6 @@
 import React                            from 'react';
 import { componentFactory, PropTypes }  from '@react-ameliorate/core';
-import { TouchableOpacity }             from '@react-ameliorate/native-shims';
+import { TouchableWithoutFeedback }     from '@react-ameliorate/native-shims';
 import { ContextProvider }              from '@react-ameliorate/component-context-provider';
 import { Paper }                        from '@react-ameliorate/component-paper';
 import { TransitionGroup }              from '@react-ameliorate/component-transition-group';
@@ -89,12 +89,12 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
           {...this.passProps(this.props)}
           id={this.getID()}
           className={this.getRootClassName(componentName)}
-          style={this.style('fullSize', this.props.style)}
+          style={this.style('fullSize', 'overlay', this.props.style)}
           onShouldClose={this.onShouldClose}
         >
-          <TouchableOpacity
-            className={this.getRootClassName(componentName, 'overlay')}
-            style={this.style('fullSize', 'overlay')}
+          <TouchableWithoutFeedback
+            className={this.getRootClassName(componentName)}
+            style={this.style('fullSize')}
             onPress={this.onShouldClose}
             onKeyDown={this.onKeyDown}
             tabIndex="-1"
@@ -110,7 +110,7 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
 
               {this.getChildren(_children)}
             </ContextProvider>
-          </TouchableOpacity>
+          </TouchableWithoutFeedback>
         </Paper>
       );
     }

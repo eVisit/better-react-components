@@ -5,7 +5,8 @@ import {
   ActivityIndicator,
   View,
   Text,
-  TouchableOpacity
+  TouchableOpacity,
+  TouchableWithoutFeedback
 }                                       from '@react-ameliorate/native-shims';
 import { Field }                        from '@react-ameliorate/component-field';
 import { TextField }                    from '@react-ameliorate/component-text-field';
@@ -23,7 +24,8 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
 
     static propTypes = {
       renderOptionsInline: PropTypes.bool,
-      optionsAlwaysVisible: PropTypes.bool
+      optionsAlwaysVisible: PropTypes.bool,
+      optionSelectedCaptionStyle: PropTypes.any
     };
 
     componentMounted() {
@@ -116,11 +118,13 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
       return value;
     }
 
-    onPopupMounted({ $element, anchor }) {
-      if (!$element || !anchor || !anchor.rect)
-        return;
+    popupCalculateStyle({ anchor }) {
+      if (!anchor || !anchor.rect)
+        return null;
 
-      $element.style.minWidth = `${anchor.rect.width}px`;
+      return {
+        minWidth: anchor.rect.width
+      };
     }
 
     onPopupLeft() {
@@ -219,7 +223,7 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
           value = this.value();
 
       return (
-        <View style={this.style('optionsContainer')}>
+        <View style={this.style('optionsContainer')} pointerEvents="auto">
           {this.iterateOptions((option, index) => {
             var isFocussed  = (focussedOption === index),
                 isHovered   = (hoveredOption === index),
@@ -235,7 +239,7 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
                   isSelected && 'optionSelected'
                 )}
                 style={this.style(
-                  'option',
+                  'optionContainer',
                   this.optionStyle,
                   isFocussed && ['optionFocus', this.props.optionFocusStyle],
                   isHovered && ['optionHover', this.props.optionHoverStyle],
@@ -245,7 +249,12 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
                 onMouseOver={this.onOptionMouseOver.bind(this, option, index)}
                 onMouseOut={this.onOptionMouseOut.bind(this, option, index)}
               >
-                <Text>{option.caption}</Text>
+                <Text
+                  className={this.getClassName(componentName, 'optionCaption')}
+                  style={this.style('optionCaption', isSelected && ['optionCaptionSelected', this.props.optionSelectedCaptionStyle])}
+                >
+                  {option.caption}
+                </Text>
               </TouchableOpacity>
             );
           }, { maxOptions: this.props.maxOptions })}
@@ -264,7 +273,7 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
             'bottom': 'top',
             'left': 'left'
           }}
-          onMounted={this.onPopupMounted}
+          calculateStyle={this.popupCalculateStyle}
           onLeft={this.onPopupLeft}
           id={this.getFieldID()}
         >
@@ -291,38 +300,39 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
           className={this.getRootClassName(componentName)}
           style={this.style('container', this.props.fieldStyle)}
         >
-          <TouchableOpacity
+          <TouchableWithoutFeedback
             className={this.getClassName(componentName, 'fieldContainer')}
-            style={this.style('fieldContainer', this.props.fieldContainerStyle)}
             onPress={this.onPress}
           >
-            <TextField
-              componentFlags={this.getComponentFlags()}
-              {...this.passProps(/^(on[A-Z]|defaultValue$|value$)/, this.props)}
-              defaultValue={defaultValue}
-              field="_autoCompleteInternal"
-              onChangeText={this.onChangeText}
-              style={this.style('field', this.props.textFieldStyle)}
-              fieldStyle={this.style('textField', this.props.textFieldFieldStyle)}
-              onFocus={this.onFocus}
-              onBlur={this.onBlur}
-              onMouseOver={this.onMouseOver}
-              onMouseOut={this.onMouseOut}
-              onSubmit={this.onSubmit}
-              onKeyDown={this.onKeyDown}
-              ref={this.captureReference('textField')}
-              inputRef={this.setNativeFieldReference}
-              skipFormRegistration
-            />
+            <View style={this.style('fieldContainer', this.props.fieldContainerStyle)}>
+              <TextField
+                componentFlags={this.getComponentFlags()}
+                {...this.passProps(/^(on[A-Z]|defaultValue$|value$)/, this.props)}
+                defaultValue={defaultValue}
+                field="_autoCompleteInternal"
+                onChangeText={this.onChangeText}
+                style={this.style('field', this.props.textFieldStyle)}
+                fieldStyle={this.style('textField', this.props.textFieldFieldStyle)}
+                onFocus={this.onFocus}
+                onBlur={this.onBlur}
+                onMouseOver={this.onMouseOver}
+                onMouseOut={this.onMouseOut}
+                onSubmit={this.onSubmit}
+                onKeyDown={this.onKeyDown}
+                ref={this.captureReference('textField')}
+                inputRef={this.setNativeFieldReference}
+                skipFormRegistration
+              />
 
-            {this.renderIcon()}
+              {this.renderIcon()}
 
-            {(waiting) && (
-              <View style={this.style('waitingSpinnerContainer')}>
-                <ActivityIndicator size={this.styleProp('LOADING_SPINNER_SIZE')} color={this.styleProp('MAIN_COLOR')}/>
-              </View>
-            )}
-          </TouchableOpacity>
+              {(waiting) && (
+                <View style={this.style('waitingSpinnerContainer')}>
+                  <ActivityIndicator size={this.styleProp('LOADING_SPINNER_SIZE')} color={this.styleProp('MAIN_COLOR')}/>
+                </View>
+              )}
+            </View>
+          </TouchableWithoutFeedback>
 
           {(popupVisible || (this.props.renderOptionsInline && this.props.optionsAlwaysVisible)) && this.renderOptions()}
 

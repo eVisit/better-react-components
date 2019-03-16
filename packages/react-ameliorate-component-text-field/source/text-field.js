@@ -3,6 +3,7 @@ import React                            from 'react';
 import { componentFactory, PropTypes }  from '@react-ameliorate/core';
 import { View, TextInput }              from '@react-ameliorate/native-shims';
 import { Field }                        from '@react-ameliorate/component-field';
+import { capitalize }                   from '@react-ameliorate/utils';
 import styleSheet                       from './text-field-styles';
 
 export const TextField = componentFactory('TextField', ({ Parent, componentName }) => {
@@ -11,7 +12,8 @@ export const TextField = componentFactory('TextField', ({ Parent, componentName 
 
     static propTypes = {
       type: PropTypes.string,
-      labelStyle: PropTypes.any
+      labelStyle: PropTypes.any,
+      maxLength: PropTypes.number
     }
 
     static defaultProps = {
@@ -123,6 +125,7 @@ export const TextField = componentFactory('TextField', ({ Parent, componentName 
           value={(type === 'password') ? undefined : value}
           style={this.style('inputField', this.props.fieldStyle, (flags.error && 'fieldStateError'))}
           editable={(this.props.disabled !== true)}
+          maxLength={this.props.maxLength}
         />
       );
     }

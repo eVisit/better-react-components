@@ -58,13 +58,9 @@ export default createStyleSheet(function(theme) {
       borderColor: BORDER_COLOR,
       borderStyle: 'solid',
       borderLeftWidth: 1,
-      borderRightWidth: 1,
-      browser: {
-        pointerEvents: 'auto'
-      }
+      borderRightWidth: 1
     },
-    option: {
-      fontSize: theme.DEFAULT_FONT_SIZE,
+    optionContainer: {
       paddingLeft: theme.DEFAULT_PADDING * 0.25,
       paddingRight: theme.DEFAULT_PADDING * 0.25,
       flex: 0,
@@ -79,14 +75,17 @@ export default createStyleSheet(function(theme) {
         cursor: 'pointer'
       }
     },
+    optionCaption: {
+      fontSize: theme.DEFAULT_FONT_SIZE
+    },
+    optionCaptionSelected: {
+      color: theme.MAIN_COLOR
+    },
     optionFocus: {
       backgroundColor: theme.blendColors(OPTION_BG_COLOR, theme.transparentColor(theme.MAIN_COLOR))
     },
     optionHover: {
       backgroundColor: theme.blendColors(OPTION_BG_COLOR, theme.transparentColor(theme.MAIN_COLOR))
-    },
-    optionSelected: {
-      color: theme.MAIN_COLOR
     },
     waitingSpinnerContainer: {
       position: 'absolute',
