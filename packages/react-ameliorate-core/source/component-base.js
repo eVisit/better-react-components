@@ -57,8 +57,14 @@ export default class ComponentBase {
         _propUpdateCounter: 0,
         _stateUpdateCounter: 0,
         _providedContext: {},
-        setState: () => {},
-        forceUpdate: () => {}
+        _mock: true,
+        setState: () => {
+          reactComponent._stateUpdateCounter++;
+          reactComponent.forceUpdate();
+        },
+        forceUpdate: () => {
+          this._doComponentRender(reactComponent._propUpdateCounter, reactComponent._stateUpdateCounter);
+        }
       };
     }
 
@@ -373,6 +379,18 @@ export default class ComponentBase {
       console.warn(message);
     else if (type === 'error')
       console.error(message);
+  }
+
+  _doComponentRender(propUpdateCounter, stateUpdateCounter) {
+    var renderID = `${propUpdateCounter}/${stateUpdateCounter}`;
+
+    this._invalidateRenderCache();
+    var elements = this._renderInterceptor(renderID);
+
+    this._raPreviousRenderID = renderID;
+    this._raReactComponent._renderCount++;
+
+    return elements;
   }
 
   _renderInterceptor(renderID) {

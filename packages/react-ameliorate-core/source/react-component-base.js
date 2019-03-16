@@ -158,8 +158,7 @@ export default class ReactComponentBase extends React.Component {
 
   render() {
     const doRender = () => {
-      this._componentInstance._invalidateRenderCache();
-      var elements = this._componentInstance._renderInterceptor(renderID);
+      var elements = this._componentInstance._doComponentRender(this._propUpdateCounter, this._stateUpdateCounter);
 
       if (typeof this._componentInstance.provideContext === 'function') {
         return (
@@ -172,12 +171,6 @@ export default class ReactComponentBase extends React.Component {
       }
     };
 
-    var renderID = `${this._propUpdateCounter}/${this._stateUpdateCounter}`,
-        elems = doRender();
-
-    this._componentInstance._raPreviousRenderID = renderID;
-    this._renderCount++;
-
-    return elems;
+    return doRender();
   }
 }
