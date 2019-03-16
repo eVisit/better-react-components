@@ -37,7 +37,7 @@ class TextInputShim extends React.Component {
     };
   }
 
-  componentMounted() {
+  componentDidMount() {
     if (this.props.autoFocus === true && this._inputRef)
       this._inputRef.focus();
 
@@ -47,7 +47,7 @@ class TextInputShim extends React.Component {
     }
   }
 
-  componentUnmounting() {
+  componentWillUnmount() {
     if (this._inputRef)
       this._inputRef.removeEventListener('input', this.autoExpand);
   }

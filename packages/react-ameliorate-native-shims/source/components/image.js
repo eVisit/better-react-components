@@ -5,7 +5,6 @@ import { Image }              from 'react-native';
 //###} else {###//
 import React                  from 'react';
 import { utils as U }         from 'evisit-js-utils';
-import { flattenStyle }       from '../shim-utils';
 import { View }               from './view';
 import ImagePropTypes         from '../prop-types/image';
 

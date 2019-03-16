@@ -58,14 +58,14 @@ class View extends React.Component {
     this.rootElement = findDOMNode(_elem);
   }
 
-  componentMounted() {
+  componentDidMount() {
     if (typeof this.props.onLayout === 'function') {
       window.addEventListener('resize', this.onWindowResize);
       sendOnLayoutEvent.call(this, this.props.onLayout, this.rootElement);
     }
   }
 
-  componentUnmounting() {
+  componentWillUnmount() {
     window.removeEventListener('resize', this.onWindowResize);
   }
 
