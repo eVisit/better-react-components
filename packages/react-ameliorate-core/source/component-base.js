@@ -93,6 +93,12 @@ export default class ComponentBase {
         configurable: true,
         value: undefined
       },
+      '_raRenderAsyncResult': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: false
+      },
       '_raPreviousRenderID': {
         writable: true,
         enumerable: false,
@@ -355,7 +361,7 @@ export default class ComponentBase {
   }
 
   _forceReactComponentUpdate() {
-    this._raReactComponent.setState({});
+    this._raReactComponent.forceUpdate();
   }
 
   _invalidateRenderCache() {
@@ -382,9 +388,12 @@ export default class ComponentBase {
   }
 
   _doComponentRender(propUpdateCounter, stateUpdateCounter) {
-    var renderID = `${propUpdateCounter}/${stateUpdateCounter}`;
+    if (this._raRenderAsyncResult) {
+      this._raRenderAsyncResult = false;
+      return (this._raRenderCache || null);
+    }
 
-    this._invalidateRenderCache();
+    var renderID = `${propUpdateCounter}/${stateUpdateCounter}`;
     var elements = this._renderInterceptor(renderID);
 
     this._raPreviousRenderID = renderID;
@@ -401,7 +410,7 @@ export default class ComponentBase {
     };
 
     if (this.areUpdatesFrozen())
-      return (this._raRenderCache !== undefined) ? this._raRenderCache : null;
+      return (this._raRenderCache || null);
 
     if (this._raRenderCacheInvalid !== true && this._raRenderCache !== undefined)
       return this._raRenderCache;
@@ -423,13 +432,14 @@ export default class ComponentBase {
         }
 
         updateRenderState(elems);
+        this._raRenderAsyncResult = true;
         this._forceReactComponentUpdate();
       }).catch((error) => {
         updateRenderState(null);
         throw new Error(error);
       });
 
-      return this._raRenderCache;
+      return this._raRenderCache || null;
     } else if (elements !== undefined) {
       return updateRenderState(elements);
     }

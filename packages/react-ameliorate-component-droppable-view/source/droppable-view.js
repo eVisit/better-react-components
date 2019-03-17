@@ -141,7 +141,6 @@ export const DroppableView = componentFactory('DroppableView', ({ Parent, compon
           ref={this.captureReference('rootElement', findDOMNode)}
           style={this.style(this.props.style, this.getState('dropStyle'))}
           className={this.getRootClassName(componentName)}
-          draggable="true"
           onDragStart={this.onDragStart}
           onDragEnd={this.onDragEnd}
           onDragEnter={this.onDragEnter}

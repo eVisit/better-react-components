@@ -241,7 +241,8 @@ const acceptableElementProps = [
   'className',
   'style',
   'ref',
-  'children'
+  'children',
+  'draggable'
 ];
 
 export function filterToNativeElementProps(props, elementType) {
