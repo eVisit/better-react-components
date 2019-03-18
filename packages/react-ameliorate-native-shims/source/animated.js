@@ -274,29 +274,34 @@ const Animated = new (class AnimatedPolyfill {
   }
 })();
 
-class Easing {
-  constructor() {}
+const Easing = (function() {
+  if (typeof Quad === 'undefined')
+    var Quad = {};
 
-  static getContextKey(context, key) {
-    return context && context[`ease${capitalize(key)}`];
-  }
+    return class Easing {
+      constructor() {}
 
-  static getEasing(easing, defaultEasing) {
-    return (!easing) ? defaultEasing : easing;
-  }
+      static getContextKey(context, key) {
+        return context && context[`ease${capitalize(key)}`];
+      }
 
-  static out(context) {
-    return Easing.getEasing(this.getContextKey(context, 'out'), Quad.easeOut);
-  }
+      static getEasing(easing, defaultEasing) {
+        return (!easing) ? defaultEasing : easing;
+      }
 
-  static in(context) {
-    return Easing.getEasing(this.getContextKey(context, 'in'), Quad.easeIn);
-  }
+      static out(context) {
+        return Easing.getEasing(this.getContextKey(context, 'out'), Quad.easeOut);
+      }
 
-  static inOut(context) {
-    return Easing.getEasing(this.getContextKey(context, 'inOut'), Quad.easeInOut);
-  }
-}
+      static in(context) {
+        return Easing.getEasing(this.getContextKey(context, 'in'), Quad.easeIn);
+      }
+
+      static inOut(context) {
+        return Easing.getEasing(this.getContextKey(context, 'inOut'), Quad.easeInOut);
+      }
+    };
+})();
 
 Animated.createAnimatedComponent = function(Klass) {
   class AnimatedComponent extends Klass {
@@ -382,7 +387,7 @@ Animated.createAnimatedComponent = function(Klass) {
           })(key));
         } else {
           newStyle[key] = value;
-          if (value && U.instanceOf(value, 'object'))
+          if (value && U.instanceOf(value, 'object', 'array'))
             this.trackStyleValues(value, newStyle, alreadyTracked, [ ...parentKeys, key ]);
         }
       }

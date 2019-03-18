@@ -14,11 +14,19 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
     }
 
     getGlyphMap() {
-      return this.iconGlyphMap || this.context.iconGlyphMap;
+      var glyphMap = this.iconGlyphMap || this.context.iconGlyphMap;
+      if (!glyphMap)
+        glyphMap = this.getApp(({ app }) => app.getIconGlyphMap());
+
+      return glyphMap;
     }
 
     getDefaultFontFamily() {
-      return this.iconDefaultFontFamily || this.context.iconDefaultFontFamily;
+      var iconDefaultFontFamily = this.iconDefaultFontFamily || this.context.iconDefaultFontFamily;
+      if (!iconDefaultFontFamily)
+        iconDefaultFontFamily = this.getApp(({ app }) => app.getIconDefaultFontFamily());
+
+      return iconDefaultFontFamily;
     }
 
     getIconGlyphInfo() {

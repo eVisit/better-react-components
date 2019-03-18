@@ -1365,6 +1365,12 @@ export default class ComponentBase {
   }
 
   getLanguages() {
+    var locale = this.getCurrentLocale(),
+        lang   = {};
+
+    lang[locale] = { terms: {} };
+
+    return lang;
   }
 
   getLocaleLanguageTerms(_locale) {
