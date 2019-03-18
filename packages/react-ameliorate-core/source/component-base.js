@@ -44,7 +44,10 @@ export default class ComponentBase {
   }
 
   static propTypes = {
-    id: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
+    id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+    raTestMode: PropTypes.bool,
+    raConstruct: PropTypes.bool,
+    raTheme: PropTypes.any
   };
 
   constructor(props, _reactComponent) {
@@ -211,7 +214,7 @@ export default class ComponentBase {
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
 
     // If there is no React instance, construct now
-    if (!_reactComponent)
+    if (!_reactComponent && props.raConstruct !== false)
       this._construct();
   }
 
@@ -253,7 +256,7 @@ export default class ComponentBase {
 
   _construct() {
     const InstanceClass = this.constructor;
-    if (InstanceClass.propTypes) {
+    if (InstanceClass.propTypes && !this.props.raTestMode) {
       try {
         PropTypes.checkPropTypes(InstanceClass.propTypes, this.props, 'propType', this.getComponentName(), () => {
           var propTypes = InstanceClass.propTypes,
