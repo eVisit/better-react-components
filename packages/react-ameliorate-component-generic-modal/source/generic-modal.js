@@ -34,6 +34,38 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
 
     static resolvableProps = ['buttons', 'title', 'message'];
 
+    constructor(...args) {
+      super(...args);
+
+      Object.defineProperties(this, {
+        'closing': {
+          writable: true,
+          enumerable: false,
+          configurable: true,
+          value: false
+        }
+      });
+    }
+
+    async resolve(eventName, result, args, force) {
+      if (force !== true && this.closing)
+        return false;
+
+      this.closing = true;
+
+      if (eventName) {
+        var callbackResult = await this.callProvidedCallback(eventName, args);
+        if (callbackResult === false) {
+          this.closing = false;
+          return false;
+        }
+      }
+
+      this.close({ ...args, result });
+
+      return false;
+    }
+
     onTitleBarMouseDown(event) {
       if (!(event.buttons & 0x01))
         return;
@@ -160,9 +192,11 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
        );
       }
 
+      var scrollViewProps = this.props.scrollViewProps || {};
+
       return (
         <ScrollView
-          {...(this.props.scrollViewProps || {})}
+          {...scrollViewProps}
           key="generic-modal-content"
           style={this.style('contentContainer')}
           contentContainerStyle={this.style('contentScrollContainer', this.props.contentContainerStyle)}
@@ -213,7 +247,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
 
                   closing = true;
 
-                  var args = Object.assign({}, args || {}, { button, index });
+                  var args = Object.assign({}, _args || {}, { button, index });
 
                   if (typeof button.onPress === 'function') {
                     var result = await button.onPress.call(this, args);

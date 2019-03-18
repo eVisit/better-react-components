@@ -20,7 +20,8 @@ import {
   processRenderedElements,
   getUniqueComponentID,
   isValidComponent,
-  toNumber
+  toNumber,
+  compileLanguageTerm
 }                                     from '@react-ameliorate/utils';
 
 var logCache = {};
@@ -1349,6 +1350,88 @@ export default class ComponentBase {
 
   filterByPropTypesFactory(Component) {
     // TODO: complete to filter by component propTypes
+  }
+
+  getCurrentLocale() {
+    var locale = this.locale || this.context.locale;
+    return (!locale) ? this.getDefaultLocale() : locale;
+  }
+
+  getDefaultLocale() {
+    return 'en_US';
+  }
+
+  getLanguages() {
+  }
+
+  getLocaleLanguageTerms(_locale) {
+    var languages = this.getLanguages(),
+        locale    = (_locale) ? _locale : this.getCurrentLocale(),
+        lang      = languages[locale],
+        terms     = (lang && lang.terms);
+
+    if (!terms) {
+      var defaultLocale = this.getDefaultLocale();
+      console.error(`Unknown locale: [${locale}]... falling back to ${defaultLocale}`);
+      lang = languages[defaultLocale];
+      terms = (lang && lang.terms);
+    }
+
+    if (!terms)
+      throw new Error('No language packs defined');
+
+    return terms;
+  }
+
+  getDefaultLangTerm(termIDs, params) {
+    var lastTerm = termIDs[termIDs.length - 1];
+    if (!lastTerm)
+      throw new Error(`Requested language term '${(termIDs.length === 1) ? termIDs[0] : termIDs}', but no such term exists!`);
+
+    return U.prettify(lastTerm.replace(/_+/g, ' '), true);
+  }
+
+  langTerm(_termID, _params) {
+    const getLocaleTerm = () => {
+      const convertTermID = (thisTerm) => {
+        return thisTerm.replace(/^@ra\//, '');
+      };
+
+      for (var i = 0, il = termIDs.length; i < il; i++) {
+        var thisTermID = termIDs[i],
+            thisTerm = terms[convertTermID(thisTermID)];
+
+        if (thisTerm)
+          return { term: thisTerm, termID: thisTermID };
+      }
+
+      return this.getDefaultLangTerm(termIDs, params);
+    };
+
+    const throwTermNotFound = () => {
+      throw new Error(`Requested language term '${(termIDs.length === 1) ? termIDs[0] : termIDs}', but no such term exists!`);
+    };
+
+    var params  = _params || {},
+        defaultLocale = this.getDefaultLocale(),
+        locale  = this.getCurrentLocale(),
+        terms   = this.getLocaleLanguageTerms(locale),
+        termIDs = (Array.isArray(_termID)) ? _termID : [ _termID ],
+        term    = getLocaleTerm();
+
+    if (!term && locale !== defaultLocale) {
+      console.warn(`Language pack ${locale} doesn't contain requested term '${(termIDs.length === 1) ? termIDs[0] : termIDs}'... falling back to ${defaultLocale}`);
+      terms = this.getLocaleLanguageTerms(defaultLocale);
+      term = getLocaleTerm();
+
+      if (!term)
+        throwTermNotFound();
+    }
+
+    if (!term)
+      throwTermNotFound();
+
+    return compileLanguageTerm({ terms, term: term.term, termID: term.termID, params, locale });
   }
 
   static getAllComponentFlags() {

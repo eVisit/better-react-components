@@ -697,6 +697,11 @@ export function calculateObjectDifferences(_obj1, _obj2, filter, maxDepth, _curr
   return (isDiff) ? diffObj : undefined;
 }
 
+export function compileLanguageTerm(args) {
+  var term = args.term;
+  return (typeof term === 'function') ? term.call(this, args) : term;
+}
+
 export {
   insertStyleSheet
 };

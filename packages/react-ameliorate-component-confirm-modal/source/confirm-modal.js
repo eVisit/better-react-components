@@ -23,40 +23,21 @@ export const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componen
     };
 
     getButtons() {
-      async function confirmOrDenyCallback(eventName, result, args) {
-        if (closing)
-          return false;
-
-        closing = true;
-
-        var callbackResult = await this.callProvidedCallback(eventName, args);
-        if (callbackResult === false) {
-          closing = false;
-          return false;
-        }
-
-        this.close({ ...args, result });
-
-        return false;
-      }
-
       if (this.props.buttons)
         return this.props.buttons;
 
-      var closing = false;
-
       return [
         {
-          caption: 'No',
+          caption: this.langTerm('@ra/no'),
           testID: 'confirmModalDeny',
           focussed: (this.props.defaultAction === 'no'),
-          onPress: confirmOrDenyCallback.bind(this, 'onDeny', 0)
+          onPress: this.resolve.bind(this, 'onDeny', 0)
         },
         {
-          caption: 'Yes',
+          caption: this.langTerm('@ra/yes'),
           testID: 'confirmModalConfirm',
           focussed: (this.props.defaultAction === 'yes'),
-          onPress: confirmOrDenyCallback.bind(this, 'onConfirm', 1)
+          onPress: this.resolve.bind(this, 'onConfirm', 1)
         }
       ];
     }

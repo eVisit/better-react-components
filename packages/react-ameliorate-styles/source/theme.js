@@ -136,7 +136,8 @@ export class ThemeProperties {
         FONT_SCALAR = themeProps.FONT_SCALAR || 1,
         SCREEN_WIDTH = width,
         SCREEN_HEIGHT = height,
-        SCROLLBAR_WIDTH = 0;
+        SCROLLBAR_WIDTH = 0,
+        DEFAULT_PADDING = 30;
 
     //###if(!MOBILE) {###//
     SCROLLBAR_WIDTH = getScrollbarWidth();
@@ -182,7 +183,8 @@ export class ThemeProperties {
 
       DEFAULT_ANIMATION_DURATION: 300,
 
-      DEFAULT_PADDING: 30,
+      DEFAULT_PADDING,
+      DEFAULT_CONTENT_PADDING: DEFAULT_PADDING * 0.25,
       DEFAULT_BORDER_RADIUS: 4,
       DEFAULT_BUTTON_HEIGHT: 48,
       DEFAULT_FIELD_HEIGHT: 30,

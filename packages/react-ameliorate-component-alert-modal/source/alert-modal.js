@@ -24,12 +24,9 @@ export const AlertModal = componentFactory('AlertModal', ({ Parent, componentNam
 
       return [
         {
-          caption: 'Okay',
+          caption: this.langTerm('@ra/okay'),
           testID: 'alertModalConfirm',
-          onPress: (args) => {
-            this.close({ ...args, result: 0 });
-            return false;
-          }
+          onPress: this.resolve.bind(this, null, 0)
         }
       ];
     }
