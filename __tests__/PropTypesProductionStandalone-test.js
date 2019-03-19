@@ -25,10 +25,6 @@ describe('PropTypesProductionStandalone', function() {
     resetWarningCache();
   });
 
-  afterEach(function() {
-    delete process.env.NODE_ENV;
-  });
-
   function getPropTypeWarningMessage(propTypes, object, componentName) {
     if (!console.error.calls) {
       spyOn(console, 'error');

@@ -1,12 +1,12 @@
 {
   "name": "react-ameliorate",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "index.js",
   "scripts": {
-    "prepublishOnly": "npm run build",
-    "build": "./node_modules/.bin/babel -d ./dist ./source",
-    "test": "./node_modules/.bin/jest"
+    "test": "./node_modules/.bin/jest",
+    "version": "node ./tools/update-package-jsons",
+    "publish_all": "node ./tools/npm-publish"
   },
   "repository": {
     "type": "git",
@@ -17,7 +17,7 @@
     "jsx",
     "react-native"
   ],
-  "author": "eVisit, LLC",
+  "author": "eVisit, Wyatt Greenway, Alexander Telegin",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/eVisit/react-ameliorate/issues"
@@ -25,36 +25,36 @@
   "homepage": "https://github.com/eVisit/react-ameliorate#readme",
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.54",
-    "@babel/core": "^7.0.0-beta.54",
+    "@babel/core": "^7.0.0",
     "@babel/node": "^7.0.0-beta.54",
-    "@babel/plugin-proposal-class-properties": "^7.0.0-beta.51",
+    "@babel/plugin-proposal-class-properties": "^7.0.0",
     "@babel/plugin-proposal-decorators": "^7.0.0-beta.51",
     "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.51",
+    "@babel/plugin-transform-modules-commonjs": "^7.1.0",
     "@babel/plugin-transform-runtime": "^7.0.0-beta.51",
     "@babel/polyfill": "^7.0.0-beta.54",
     "@babel/preset-env": "^7.0.0-beta.54",
     "@babel/preset-react": "^7.0.0-beta.54",
+    "babel-core": "^7.0.0-bridge.0",
     "babel-eslint": "^8.0.0-alpha.17",
-    "babel-jest": "^19.0.0",
+    "babel-jest": "^23.4.2",
     "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
     "babel-preset-react": "^6.24.1",
     "browserify": "^14.3.0",
     "bundle-collapser": "^1.2.1",
+    "colors": "^1.3.3",
+    "diff": "^4.0.1",
     "envify": "^4.0.0",
-    "eslint": "^4.19.1",
+    "eslint": "^5.10.0",
     "eslint-plugin-analyze": "^1.1.2",
     "eslint-plugin-extra-syntax": "^1.0.0",
-    "eslint-plugin-react": "^7.9.1",
-    "eslint-plugin-react-native": "^3.2.1",
-    "jasmine": "^3.2.0",
-    "jest": "^19.0.2",
+    "eslint-plugin-react": "^7.11.1",
+    "eslint-plugin-react-native": "^3.5.0",
+    "jest": "^23.5.0",
     "react": "^16.4.2"
   },
-  "dependencies": {
-    "evisit-js-utils": "^0.6.6",
-    "color": "^3.0.0"
-  },
   "peerDependencies": {
-    "react": ">=15.0.0"
+    "react": "^16.7.0",
+    "babel-preset-react-ameliorate": ">=0.51.1"
   }
 }

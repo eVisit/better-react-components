@@ -1,0 +1,62 @@
+{
+  "name": "@react-ameliorate/component-svg-canvas",
+  "version": "0.10.0",
+  "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
+  "main": "./source/svg-canvas.js",
+  "scripts": {
+    "test": "./node_modules/.bin/jest"
+  },
+  "repository": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-component-svg-canvas",
+  "keywords": [
+    "react",
+    "jsx",
+    "react-native"
+  ],
+  "author": "eVisit, Wyatt Greenway, Alexander Telegin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eVisit/react-ameliorate/issues"
+  },
+  "homepage": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-component-svg-canvas#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.0.0-beta.54",
+    "@babel/core": "^7.0.0",
+    "@babel/node": "^7.0.0-beta.54",
+    "@babel/plugin-proposal-class-properties": "^7.0.0",
+    "@babel/plugin-proposal-decorators": "^7.0.0-beta.51",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.51",
+    "@babel/plugin-transform-modules-commonjs": "^7.1.0",
+    "@babel/plugin-transform-runtime": "^7.0.0-beta.51",
+    "@babel/polyfill": "^7.0.0-beta.54",
+    "@babel/preset-env": "^7.0.0-beta.54",
+    "@babel/preset-react": "^7.0.0-beta.54",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-eslint": "^8.0.0-alpha.17",
+    "babel-jest": "^23.4.2",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
+    "babel-preset-react": "^6.24.1",
+    "browserify": "^14.3.0",
+    "bundle-collapser": "^1.2.1",
+    "envify": "^4.0.0",
+    "eslint": "^4.19.1",
+    "eslint-plugin-analyze": "^1.1.2",
+    "eslint-plugin-extra-syntax": "^1.0.0",
+    "eslint-plugin-react": "^7.9.1",
+    "eslint-plugin-react-native": "^3.2.1",
+    "jest": "^23.5.0",
+    "react": "^16.4.2"
+  },
+  "dependencies": {
+    "evisit-js-utils": "^0.7.1",
+    "color": "^3.1.0"
+  },
+  "peerDependencies": {
+    "react": "^16.7.0",
+    "babel-preset-react-ameliorate": ">=0.57.0",
+    "@react-ameliorate/core": "^0.10.0",
+    "@react-ameliorate/styles": "^0.10.0",
+    "@react-ameliorate/utils": "^0.10.0",
+    "@react-ameliorate/native-shims": "^0.10.0"
+  },
+  "scope": "@react-ameliorate"
+}
