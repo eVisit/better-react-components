@@ -66,7 +66,6 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
         <Text
           className={this.getRootClassName(componentName, 'icon')}
           style={this.style('icon', this.props.style, { fontFamily: glyphInfo.fontFamily })}
-          numberOfLines={1}
         >
           {glyphInfo.glyph}
         </Text>

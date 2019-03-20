@@ -41,14 +41,10 @@ export default createStyleSheet(function(theme) {
     },
     titleBarTitleText: {
       fontSize: theme.FONT_SIZE_XSMALL,
-      color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 7)
-    },
-    closeButton: {
-      width: TITLE_BAR_BUTTON_SIZE,
-      height: TITLE_BAR_BUTTON_SIZE,
-      borderWidth: 0
+      color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 6)
     },
     closeButtonIcon: {
+      fontSize: theme.DEFAULT_BUTTON_ICON_SIZE,
       color: theme.inverseContrastColor(theme.MAIN_COLOR)
     },
     buttonContainer: {
@@ -58,6 +54,15 @@ export default createStyleSheet(function(theme) {
     },
     button: {
       minWidth: 120
+    },
+    closeButtonInternalContainer: {
+      minWidth: null,
+      minHeight: null,
+      borderWidth: 0,
+      borderRadius: 0,
+      width: TITLE_BAR_BUTTON_SIZE,
+      height: TITLE_BAR_BUTTON_SIZE,
+      padding: 0
     }
   };
 }, {

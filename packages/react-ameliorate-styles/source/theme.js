@@ -129,15 +129,17 @@ export class ThemeProperties {
     if (!theme)
       return {};
 
-    var screenInfo = this.getScreenInfo(),
-        width = safeNumber(themeProps.SCREEN_WIDTH, screenInfo.width),
-        height = safeNumber(themeProps.SCREEN_HEIGHT, screenInfo.width),
-        IS_MOBILE = (this.getPlatform() !== 'browser'),
-        FONT_SCALAR = themeProps.FONT_SCALAR || 1,
-        SCREEN_WIDTH = width,
-        SCREEN_HEIGHT = height,
-        SCROLLBAR_WIDTH = 0,
-        DEFAULT_PADDING = 30;
+    var screenInfo            = this.getScreenInfo(),
+        width                 = safeNumber(themeProps.SCREEN_WIDTH, screenInfo.width),
+        height                = safeNumber(themeProps.SCREEN_HEIGHT, screenInfo.width),
+        IS_MOBILE             = (this.getPlatform() !== 'browser'),
+        FONT_SCALAR           = themeProps.FONT_SCALAR || 1,
+        SCREEN_WIDTH          = width,
+        SCREEN_HEIGHT         = height,
+        SCROLLBAR_WIDTH       = 0,
+        DEFAULT_PADDING       = 30,
+        DEFAULT_INPUT_HEIGHT  = 30,
+        DEFAULT_FIELD_HEIGHT  = DEFAULT_INPUT_HEIGHT;
 
     //###if(!MOBILE) {###//
     SCROLLBAR_WIDTH = getScrollbarWidth();
@@ -185,9 +187,11 @@ export class ThemeProperties {
 
       DEFAULT_PADDING,
       DEFAULT_CONTENT_PADDING: DEFAULT_PADDING * 0.25,
+      DEFAULT_BORDER_WIDTH: 1,
       DEFAULT_BORDER_RADIUS: 4,
-      DEFAULT_BUTTON_HEIGHT: 48,
-      DEFAULT_FIELD_HEIGHT: 30,
+      DEFAULT_BUTTON_HEIGHT: DEFAULT_INPUT_HEIGHT,
+      DEFAULT_INPUT_HEIGHT,
+      DEFAULT_FIELD_HEIGHT,
       DEFAULT_HOVER_OPACITY: 0.2,
       MAX_DIALOG_CONTENT_HEIGHT: (IS_MOBILE) ? (SCREEN_HEIGHT * 0.75) : '75vh',
 
@@ -200,6 +204,7 @@ export class ThemeProperties {
 
     finalThemeProps.DEFAULT_FONT_SIZE = finalThemeProps.FONT_SIZE_SMALL;
     finalThemeProps.DEFAULT_ICON_SIZE = finalThemeProps.DEFAULT_FONT_SIZE;
+    finalThemeProps.DEFAULT_BUTTON_ICON_SIZE = finalThemeProps.DEFAULT_FONT_SIZE;
     finalThemeProps.REM = finalThemeProps.DEFAULT_FONT_SIZE;
 
     return Object.assign(finalThemeProps, themeProps, paletteProps.palette);

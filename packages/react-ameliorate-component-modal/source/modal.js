@@ -9,7 +9,8 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
     static styleSheet = styleSheet;
     static propTypes = [Paper.propTypes, {
       autoClose: PropTypes.bool,
-      disallowReposition: PropTypes.bool
+      disallowReposition: PropTypes.bool,
+      inline: PropTypes.bool
     }];
 
     static defaultProps = {
@@ -81,7 +82,7 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
       if (!this.getState('visible'))
         return null;
 
-      if (this.context._raModalManager)
+      if (this.context._raModalManager || this.props.inline === true)
         return this.renderModal(children);
 
       return (

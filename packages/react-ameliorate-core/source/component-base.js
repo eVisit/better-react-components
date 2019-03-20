@@ -36,6 +36,8 @@ const COMPONENT_FLAGS = {
   DISABLED: 0x40
 };
 
+var globalEventActionHooks = {};
+
 const NOOP = () => {};
 
 export default class ComponentBase {
@@ -428,7 +430,7 @@ export default class ComponentBase {
     }
 
     // Async render
-    if (typeof elements.then === 'function' && typeof elements.catch === 'function') {
+    if (typeof elements.then === 'function') {
       elements.then((elems) => {
         if (renderID !== this._raPreviousRenderID) {
           console.warn(`Warning: Discarding render ID = ${renderID}... is your render function taking too long?`);
@@ -1397,7 +1399,7 @@ export default class ComponentBase {
     if (!lastTerm)
       throw new Error(`Requested language term '${(termIDs.length === 1) ? termIDs[0] : termIDs}', but no such term exists!`);
 
-    return U.prettify(lastTerm.replace(/_+/g, ' '), true);
+    return { term: U.prettify(lastTerm.replace(/^@ra\//, '').replace(/_+/g, ' '), true), termID: lastTerm };
   }
 
   langTerm(_termID, _params) {
@@ -1413,8 +1415,6 @@ export default class ComponentBase {
         if (thisTerm)
           return { term: thisTerm, termID: thisTermID };
       }
-
-      return this.getDefaultLangTerm(termIDs, params);
     };
 
     const throwTermNotFound = () => {
@@ -1434,13 +1434,98 @@ export default class ComponentBase {
       term = getLocaleTerm();
 
       if (!term)
+        term = this.getDefaultLangTerm(termIDs, params);
+
+      if (!term)
         throwTermNotFound();
     }
+
+    if (!term)
+        term = this.getDefaultLangTerm(termIDs, params);
 
     if (!term)
       throwTermNotFound();
 
     return compileLanguageTerm({ terms, term: term.term, termID: term.termID, params, locale });
+  }
+
+  clearDefaultEventActionHooks(eventName) {
+    var componentID = this.getComponentID(),
+        globalEventActionHooks = this.getGlobalEventActionHooks();
+
+    if (eventName) {
+      var hooks = globalEventActionHooks[componentID];
+      if (!hooks)
+        return;
+
+      delete hooks[eventName];
+      if (U.noe(hooks))
+        delete globalEventActionHooks[componentID];
+    } else {
+      delete globalEventActionHooks[componentID];
+    }
+  }
+
+  getDefaultEventActions(eventName) {
+    var globalEventActionHooks = this.getGlobalEventActionHooks(),
+        componentID = this.getComponentID(),
+        allHooks = globalEventActionHooks[componentID];
+
+    if (!allHooks)
+      return (eventName) ? [] : { _order: this.getComponentOrder(), _id: componentID };
+
+    if (!eventName)
+      return allHooks;
+
+    return (allHooks[eventName] || []);
+  }
+
+  unregisterDefaultEventActions(eventName) {
+    this.clearDefaultEventActionHooks(eventName);
+  }
+
+  unregisterDefaultEventAction(eventName, callback) {
+    if (!callback)
+      return this.clearDefaultEventActionHooks(eventName);
+
+    var globalEventActionHooks = this.getGlobalEventActionHooks(),
+        newActions = this.getDefaultEventActions(eventName).filter((action) => (action.callback !== callback)),
+        componentID = this.getComponentID(),
+        allHooks = globalEventActionHooks[componentID];
+
+    if (!allHooks)
+      return;
+
+    if (newActions.length)
+      allHooks[eventName] = newActions;
+    else
+      this.clearDefaultEventActionHooks(eventName);
+  }
+
+  registerDefaultEventAction(eventName, callback) {
+    var globalEventActionHooks = this.getGlobalEventActionHooks(),
+        componentID = this.getComponentID(),
+        allHooks = globalEventActionHooks[componentID];
+
+    if (!allHooks)
+      allHooks = globalEventActionHooks[componentID] = { _order: this.getComponentOrder(), _id: componentID };
+
+    var actions = allHooks[eventName];
+    if (!actions)
+      actions = allHooks[eventName] = [];
+
+    actions.push({
+      eventName,
+      callback
+    });
+  }
+
+  getGlobalEventActionHooks() {
+    return this.constructor.getGlobalEventActionHooks();
+  }
+
+  static getGlobalEventActionHooks() {
+    return globalEventActionHooks;
   }
 
   static getAllComponentFlags() {

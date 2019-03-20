@@ -108,8 +108,10 @@ export default class ReactComponentBase extends React.Component {
         }
       }
 
-      if (propsDiffer)
+      if (propsDiffer) {
         this._propUpdateCounter++;
+        this._componentInstance._invalidateRenderCache();
+      }
 
       if (statesDiffer)
         this._stateUpdateCounter = this._componentInstance._raStateUpdateCounter;

@@ -1,5 +1,12 @@
 
 export * from './source/animated';
+export * from './source/app-state';
+export * from './source/async-storage';
+export * from './source/back-handler';
+export * from './source/interaction-manager';
+export * from './source/linking';
+export * from './source/platform';
+export * from './source/style-sheet';
 export * from './source/components/activity-indicator';
 export * from './source/components/flat-list';
 export * from './source/components/image';

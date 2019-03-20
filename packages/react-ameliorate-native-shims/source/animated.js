@@ -100,16 +100,25 @@ class Animation {
         enumerable: false,
         configurable: true,
         value: null
-      }
+      },
+      '_onEnd': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: null
+      },
     });
   }
 
   _stopAnimation(finished) {
-    if (!this._animationHandle)
+    if (this._finished)
       return;
 
     this._finished = true;
-    this._animationHandle.kill();
+
+    if (this._animationHandle)
+      this._animationHandle.kill();
+
     this._animationHandle = null;
 
     if (typeof this._onEnd === 'function')
@@ -130,7 +139,6 @@ class Animation {
       onStart: () => this.value.callTrackers(),
       onUpdate: () => this.value.callTrackers(),
       onComplete: () => this._stopAnimation(true),
-      onCompleteParams: [],
       immediateRender: true
     });
   }

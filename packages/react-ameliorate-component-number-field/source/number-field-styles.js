@@ -24,7 +24,7 @@ export default createStyleSheet(function(theme, textFieldStyles) {
       paddingLeft: FIELD_SIDE_PADDING,
       paddingRight: FIELD_SIDE_PADDING,
       paddingTop: FIELD_SIDE_PADDING,
-      color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 7)
+      color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 6)
     }
   };
 }, {

@@ -140,6 +140,55 @@ const BLACK = {
             l: 56.07843137254902
           },
           textColor: WHITE
+        },
+        GREY01: {
+          color: {
+            h: 210,
+            s: 4.76190476190474,
+            l: 91.76470588235294
+          }
+        },
+        GREY02: {
+          color: {
+            h: 200,
+            s: 3.7037037037036926,
+            l: 84.11764705882354
+          }
+        },
+        GREY03: {
+          color: {
+            h: 200,
+            s: 3.797468354430366,
+            l: 69.01960784313725
+          }
+        },
+        GREY04: {
+          color: {
+            h: 200,
+            s: 3.765690376569048,
+            l: 53.13725490196079
+          }
+        },
+        GREY05: {
+          color: {
+            h: 203.0769230769231,
+            s: 6.806282722513095,
+            l: 37.450980392156865
+          }
+        },
+        GREY06: {
+          color: {
+            h: 202.5,
+            s: 14.285714285714285,
+            l: 21.96078431372549
+          }
+        },
+        GREY07: {
+          color: {
+            h: 0,
+            s: 0,
+            l: 0
+          }
         }
       };
 
@@ -326,7 +375,7 @@ function buildPalette(opts = {}, _colorHelperFactory) {
     return `hsla(${invContrastColor.h},${invContrastColor.s}%,${invContrastColor.l}%,${contrastColor.alpha})`;
   });
 
-  const textColor = colorHelperFactory(function textColor(color, _greyHue, acceptableContrastRatio = textContrastRatio) {
+  const textColor = colorHelperFactory(function textColor(color, _greyHue, acceptableContrastRatio = textContrastRatio, doDebug) {
     var greyHue = _greyHue;
     if (greyHue != null && greyHue) {
       var relativeLuminance = getRelativeColorLuminance(new Color(color)),
@@ -342,6 +391,9 @@ function buildPalette(opts = {}, _colorHelperFactory) {
         greyHue = ((greyKeys.length + 1) - greyHue);
       else
         greyHue = greyHue;
+
+      if (doDebug)
+        console.log('SELECTING COLOR: ', `GREY${prefixPad(greyHue, 2)}_COLOR`, this[`GREY${prefixPad(greyHue, 2)}_COLOR`]);
 
       var greyColor = this[`GREY${prefixPad(greyHue, 2)}_COLOR`];
       if (greyColor)

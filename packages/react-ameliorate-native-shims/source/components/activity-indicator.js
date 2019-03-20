@@ -14,8 +14,7 @@ const SPIN_SPEED = '1.25s';
 
 const SIZES = {
   small: 30,
-  large: 75,
-  tiny: 20
+  large: 75
 };
 
 function getColor(color, alpha) {
@@ -38,7 +37,7 @@ class ActivityIndicator extends React.Component {
 
     var size = SIZES[this.props.size];
     if (!size)
-      size = Math.round(toNumber(size, SIZES.small));
+      size = Math.round(toNumber(this.props.size, SIZES.small));
 
     var borderSize = Math.round(size * 0.125),
         color = getColor(this.props.color, 1),

@@ -163,13 +163,14 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
     renderCloseButton({ children }) {
       return (
         <Button
+          className={this.getClassName(componentName, 'closeButton')}
           theme="white"
           testID="genericModalClose"
           {...(this.props.closeButtonProps || {})}
           key="generic-modal-close-button"
           onPress={this.onCloseButtonPress}
           style={this.style('closeButton', this.props.closeButtonStyle)}
-          internalContainerStyle={this.style('closeButtonContainer', this.props.closeButtonContainerStyle)}
+          internalContainerStyle={this.style('closeButtonInternalContainer', this.props.closeButtonContainerStyle)}
         >
           {(children) ? children : (<Icon style={this.style('closeButtonIcon')} icon="close|cancel"/>)}
         </Button>
@@ -196,6 +197,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
 
       return (
         <ScrollView
+          className={this.getClassName(componentName, 'content')}
           {...scrollViewProps}
           key="generic-modal-content"
           style={this.style('contentContainer')}
@@ -217,6 +219,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
 
       return (
         <LayoutContainer
+          className={this.getClassName(componentName, 'buttonContainer')}
           spacing={this.styleProp('MODAL_BUTTON_SPACING')}
           {...(this.props.buttonContainerProps || {})}
           key="generic-modal-button-container"

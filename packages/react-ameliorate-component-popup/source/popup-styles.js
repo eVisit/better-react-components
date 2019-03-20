@@ -23,7 +23,7 @@ export default createStyleSheet(function(theme) {
     },
     innerContainer: {
       overflow: 'hidden',
-      borderRadius: theme.DEFAULT_RADIUS,
+      borderRadius: theme.DEFAULT_BORDER_RADIUS,
       padding: 1,
       backgroundColor: POPUP_COLOR
     },
