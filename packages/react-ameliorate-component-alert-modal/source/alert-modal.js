@@ -1,6 +1,7 @@
 import { componentFactory, PropTypes }  from '@react-ameliorate/core';
 import { Text }                         from '@react-ameliorate/native-shims';
 import { GenericModal }                 from '@react-ameliorate/component-generic-modal';
+import { formatClientText }             from '@react-ameliorate/utils';
 import styleSheet                       from './alert-modal-styles';
 
 export const AlertModal = componentFactory('AlertModal', ({ Parent, componentName }) => {
@@ -8,7 +9,8 @@ export const AlertModal = componentFactory('AlertModal', ({ Parent, componentNam
     static styleSheet = styleSheet;
 
     static propTypes = {
-      message: PropTypes.string
+      message: PropTypes.string,
+      contextTextStyle: PropTypes.any
     };
 
     static defaultProps = {
@@ -31,10 +33,18 @@ export const AlertModal = componentFactory('AlertModal', ({ Parent, componentNam
       ];
     }
 
+    renderMessage(args = {}) {
+      return (
+        <Text key="alert-modal-content-text" style={this.style('contentText', this.props.contextTextStyle)}>
+          {formatClientText(args.message || this.props.message || '')}
+        </Text>
+      );
+    }
+
     getContent(args) {
       var children = super.getContent(args);
       if (!children)
-        return (<Text key="alert-modal-content-text" style={this.style('contentText')}>{(this.props.message || '')}</Text>);
+        return (this.renderMessage(args));
 
       return children;
     }

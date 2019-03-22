@@ -1,6 +1,7 @@
 import { componentFactory, PropTypes }  from '@react-ameliorate/core';
 import { Text }                         from '@react-ameliorate/native-shims';
 import { GenericModal }                 from '@react-ameliorate/component-generic-modal';
+import { formatClientText }             from '@react-ameliorate/utils';
 import styleSheet                       from './confirm-modal-styles';
 
 export const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componentName }) => {
@@ -9,6 +10,7 @@ export const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componen
 
     static propTypes = {
       message: PropTypes.string,
+      contextTextStyle: PropTypes.any,
       defaultAction: PropTypes.oneOf(['yes', 'no']),
       onDeny: PropTypes.func,
       onConfirm: PropTypes.func
@@ -42,10 +44,18 @@ export const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componen
       ];
     }
 
+    renderMessage(args = {}) {
+      return (
+        <Text key="confirm-modal-content-text" style={this.style('contentText', this.props.contextTextStyle)}>
+          {formatClientText(args.message || this.props.message || '')}
+        </Text>
+      );
+    }
+
     getContent(args) {
       var children = super.getContent(args);
       if (!children)
-        return (<Text key="confirm-modal-content-text" style={this.style('contentText')}>{(this.props.message || '')}</Text>);
+        return (this.renderMessage(args));
 
       return children;
     }

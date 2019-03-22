@@ -1,6 +1,6 @@
 import React                                    from 'react';
 import { componentFactory, PropTypes }          from '@react-ameliorate/core';
-import { View, Text, TouchableWithoutFeedback } from '@react-ameliorate/native-shims';
+import { View, Text, TouchableOpacity }         from '@react-ameliorate/native-shims';
 import { Icon }                                 from '@react-ameliorate/component-icon';
 import {
   stopEventPropagation,
@@ -282,7 +282,8 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       } = args;
 
       return (
-        <TouchableWithoutFeedback
+        <TouchableOpacity
+          activeOpacity={this.styleProp('DEFAULT_ACTIVE_OPACITY')}
           {...this.props}
           className={containerClassName}
           style={this.style(containerStyleNames, containerExtraStyle, this.props.style)}
@@ -294,7 +295,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           {...this.getHoverableProps()}
         >
           {this._renderInternalContainer(args)}
-        </TouchableWithoutFeedback>
+        </TouchableOpacity>
       );
     }
 

@@ -68,7 +68,9 @@ export default createStyleSheet(function(theme) {
     caption: {
       fontSize: theme.DEFAULT_FONT_SIZE,
       textAlign: 'center',
-      userSelect: 'none'
+      browser: {
+        userSelect: 'none'
+      }
     },
     defaultCaption: {
       color: theme.textColor(DEFAULT_BG_COLOR)
@@ -97,7 +99,9 @@ export default createStyleSheet(function(theme) {
     icon: {
       fontSize: theme.DEFAULT_BUTTON_ICON_SIZE,
       textAlign: 'center',
-      userSelect: 'none'
+      browser: {
+        userSelect: 'none'
+      }
     },
     defaultIcon: {
       color: theme.textColor(DEFAULT_BG_COLOR)

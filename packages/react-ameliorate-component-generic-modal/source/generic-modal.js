@@ -7,7 +7,9 @@ import { Modal }                        from '@react-ameliorate/component-modal'
 import { LayoutContainer }              from '@react-ameliorate/component-layout-container';
 import {
   findDOMNode,
-  isElementOrDescendant
+  isElementOrDescendant,
+  formatClientText,
+  selectFirst
 }                                       from '@react-ameliorate/utils';
 import styleSheet                       from './generic-modal-styles';
 
@@ -20,8 +22,10 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       allowScrolling: PropTypes.bool,
       scrollViewProps: PropTypes.object,
       contentContainerStyle: PropTypes.any,
+      buttonContainerSpacing: PropTypes.number,
       buttonContainerProps: PropTypes.object,
       buttonContainerStyle: PropTypes.any,
+      buttonContainerSpacerStyle: PropTypes.any,
       buttonProps: PropTypes.object,
       buttonStyle: PropTypes.any,
       buttonInternalContainerStyle: PropTypes.any,
@@ -185,26 +189,33 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
     }
 
     renderContent({ children }) {
-      if (this.props.allowScrolling === false) {
-       return (
-         <View key="generic-modal-content" style={this.style('contentContainer', this.props.contentContainerStyle)}>
-          {children}
-         </View>
-       );
-      }
+      const doRender = () => {
+        if (this.props.allowScrolling === false) {
+        return (
+          <View key="generic-modal-content" style={this.style('contentContainer', this.props.contentContainerStyle)}>
+            {children}
+          </View>
+        );
+        }
 
-      var scrollViewProps = this.props.scrollViewProps || {};
+        var scrollViewProps = this.props.scrollViewProps || {};
+
+        return (
+          <ScrollView
+            className={this.getClassName(componentName, 'content')}
+            {...scrollViewProps}
+            key="generic-modal-content"
+            contentContainerStyle={this.style('contentScrollContainer')}
+          >
+            {children}
+          </ScrollView>
+        );
+      };
 
       return (
-        <ScrollView
-          className={this.getClassName(componentName, 'content')}
-          {...scrollViewProps}
-          key="generic-modal-content"
-          style={this.style('contentContainer')}
-          contentContainerStyle={this.style('contentScrollContainer', this.props.contentContainerStyle)}
-        >
-          {children}
-        </ScrollView>
+        <View key="generic-modal-content-container" style={this.style('contentContainer', this.props.contentContainerStyle)}>
+          {doRender()}
+        </View>
       );
     }
 
@@ -220,10 +231,11 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       return (
         <LayoutContainer
           className={this.getClassName(componentName, 'buttonContainer')}
-          spacing={this.styleProp('MODAL_BUTTON_SPACING')}
+          spacing={selectFirst(this.props.buttonContainerSpacing, this.styleProp('MODAL_BUTTON_SPACING'))}
           {...(this.props.buttonContainerProps || {})}
           key="generic-modal-button-container"
           style={this.style('buttonContainer', this.props.buttonContainerStyle)}
+          spacerStyle={this.style('buttonContainerSpacer', this.props.buttonContainerSpacerStyle)}
         >
           {modalButtons.map((button, index) => {
             if (this.isValidElement(button))
@@ -275,7 +287,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
 
     getTitle({ title }) {
       if (!this.isValidElement(title))
-        return (<Text key="generic-modal-title-text" style={this.style('titleBarTitleText')}>{(title || '')}</Text>);
+        return (<Text key="generic-modal-title-text" style={this.style('titleBarTitleText')}>{formatClientText(title || '')}</Text>);
 
       return title;
     }

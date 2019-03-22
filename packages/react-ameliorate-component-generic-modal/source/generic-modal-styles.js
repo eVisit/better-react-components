@@ -16,15 +16,16 @@ export default createStyleSheet(function(theme) {
       flexDirection: 'column'
     },
     contentContainer: {
-      flex: 0
+      flex: 0,
+      paddingLeft: theme.DEFAULT_PADDING,
+      paddingRight: theme.DEFAULT_PADDING
     },
     contentScrollContainer: {
-      flex: 1,
+      flexGrow: 1,
+      flexShrink: 0,
+      flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center',
-      paddingLeft: CONTENT_PADDING,
-      paddingRight: CONTENT_PADDING,
-      paddingBottom: CONTENT_PADDING,
+      justifyContent: 'flex-start',
       maxHeight: theme.MAX_DIALOG_CONTENT_HEIGHT
     },
     titleBar: {

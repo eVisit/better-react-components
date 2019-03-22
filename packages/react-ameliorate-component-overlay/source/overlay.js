@@ -179,6 +179,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       this.forceUpdate();
     }
 
+    //###if(!MOBILE){###//
     onPress(event) {
       var nativeEvent = event && event.nativeEvent,
           rootElement = this.getReference('overlayRoot');
@@ -191,6 +192,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
 
       this.closeAll();
     }
+    //###}###//
 
     onKeyDown(event) {
       var nativeEvent = (event && event.nativeEvent);
@@ -361,10 +363,56 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       return childStyle;
     }
 
-    render(_children) {
+    renderContent(_children) {
       var children = this.getState('children', []),
           hasChildren = !!(children && children.length);
 
+      return (
+        <View
+          className={this.getRootClassName(componentName, 'children')}
+          style={this.style('internalContainer', this.props.containerStyle)}
+        >
+          {this.getChildren(_children)}
+
+          <TransitionGroup
+            className={this.getRootClassName(componentName, 'overlay')}
+            style={this.style('overlay', (hasChildren) ? 'containerHasChildren' : 'containerNoChildren')}
+            onAnimationStyle={this.onAnimationStyle}
+            onEntering={this.onChildEntering}
+            onMounted={this.onChildMounted}
+            onEntered={this.onChildEntered}
+            onLeaving={this.onChildLeaving}
+            onLeft={this.onChildLeft}
+            ref={this.captureReference('overlayRoot', findDOMNode)}
+            pointerEvents="none"
+          >
+            {children.map((child, index) => {
+              if (!child)
+                return null;
+
+              var childInstance = child.instance,
+                  childProps = childInstance.props || {};
+
+              return (
+                <View
+                  id={(childProps.id || ('' + index))}
+                  key={(childProps.id || ('' + index))}
+                  style={childProps.style}
+                  _child={child}
+                >
+                  {childProps.children}
+                </View>
+              );
+            })}
+          </TransitionGroup>
+        </View>
+      );
+    }
+
+    render(_children) {
+      //###if(MOBILE){###//
+      return this.renderContent(_children);
+      //###}else{###//
       return (
         <TouchableWithoutFeedback
           className={this.getRootClassName(componentName)}
@@ -373,46 +421,10 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
           onKeyDown={this.onKeyDown}
           tabIndex="-1"
         >
-          <View
-            className={this.getRootClassName(componentName, 'children')}
-            style={this.style('internalContainer', this.props.containerStyle)}
-          >
-            {this.getChildren(_children)}
-
-            <TransitionGroup
-              className={this.getRootClassName(componentName, 'overlay')}
-              style={this.style('overlay', (hasChildren) ? 'containerHasChildren' : 'containerNoChildren')}
-              onAnimationStyle={this.onAnimationStyle}
-              onEntering={this.onChildEntering}
-              onMounted={this.onChildMounted}
-              onEntered={this.onChildEntered}
-              onLeaving={this.onChildLeaving}
-              onLeft={this.onChildLeft}
-              ref={this.captureReference('overlayRoot', findDOMNode)}
-              pointerEvents="none"
-            >
-              {children.map((child, index) => {
-                if (!child)
-                  return null;
-
-                var childInstance = child.instance,
-                    childProps = childInstance.props || {};
-
-                return (
-                  <View
-                    id={(childProps.id || ('' + index))}
-                    key={(childProps.id || ('' + index))}
-                    style={childProps.style}
-                    _child={child}
-                  >
-                    {childProps.children}
-                  </View>
-                );
-              })}
-            </TransitionGroup>
-          </View>
+          {this.renderContent(_children)}
         </TouchableWithoutFeedback>
       );
+      //###}###//
     }
   };
 });

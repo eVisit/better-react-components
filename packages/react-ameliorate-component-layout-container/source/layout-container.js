@@ -10,7 +10,8 @@ export const LayoutContainer = componentFactory('LayoutContainer', ({ Parent, co
 
     static propTypes = {
       direction: PropTypes.string,
-      spacing: PropTypes.number
+      spacing: PropTypes.number,
+      spacerStyle: PropTypes.any
     }
 
     render(_children) {
@@ -27,7 +28,7 @@ export const LayoutContainer = componentFactory('LayoutContainer', ({ Parent, co
 
             return (
               <React.Fragment key={('' + index)}>
-                {(shouldRenderSpacer) && <View className={this.getClassName(componentName, `${direction}Spacer`)} style={this.style('spacer', spacingStyle)}/>}
+                {(shouldRenderSpacer) && <View className={this.getClassName(componentName, `${direction}Spacer`)} style={this.style('spacer', this.props.spacerStyle, spacingStyle)}/>}
                 {child}
               </React.Fragment>
             );

@@ -702,6 +702,30 @@ export function compileLanguageTerm(args) {
   return (typeof term === 'function') ? term.call(this, args) : term;
 }
 
+export function formatClientText(text, raw) {
+  //###if(MOBILE) {###//
+  return text.replace(/\r/g, ' ');
+  //###} else {###//
+  if (raw === true)
+    return ('' + text).replace(/[\r\n]/g, '<br>');
+
+  return ('' + text).split(/[\r\n]/g).reduce((result, line, i, a) => {
+    result.push(line);
+    if (i < a.length)
+      result.push(<br key={i} />);
+    return result;
+  }, []);
+  //###}###//
+}
+
+export function selectFirst(...args) {
+  for (var i = 0, il = args.length; i < il; i++) {
+    var arg = args[i];
+    if (arg != null)
+      return arg;
+  }
+}
+
 export {
   insertStyleSheet
 };
