@@ -242,7 +242,8 @@ const acceptableElementProps = [
   'style',
   'ref',
   'children',
-  'draggable'
+  'draggable',
+  'dangerouslySetInnerHTML'
 ];
 
 export function filterToNativeElementProps(props, elementType) {
@@ -274,7 +275,7 @@ export function filterToNativeElementProps(props, elementType) {
       return (value !== null);
 
     // Blacklist
-    if ((/^on(Press|Layout$|dangerouslySetInnerHTML$)/).test(key))
+    if ((/^on(Press|Layout$$)/).test(key))
       return false;
 
     // Events
@@ -695,11 +696,6 @@ export function calculateObjectDifferences(_obj1, _obj2, filter, maxDepth, _curr
   }
 
   return (isDiff) ? diffObj : undefined;
-}
-
-export function compileLanguageTerm(args) {
-  var term = args.term;
-  return (typeof term === 'function') ? term.call(this, args) : term;
 }
 
 export function formatClientText(text, raw) {

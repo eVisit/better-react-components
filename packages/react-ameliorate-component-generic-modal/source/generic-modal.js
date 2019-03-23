@@ -18,6 +18,9 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
     static styleSheet = styleSheet;
     static propTypes = {
       title: PropTypes.string,
+      icon: PropTypes.string,
+      iconStyle: PropTypes.any,
+      iconContainerStyle: PropTypes.any,
       buttons: PropTypes.array,
       allowScrolling: PropTypes.bool,
       scrollViewProps: PropTypes.object,
@@ -58,7 +61,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       this.closing = true;
 
       if (eventName) {
-        var callbackResult = await this.callProvidedCallback(eventName, args);
+        var callbackResult = await this.callProvidedCallback(eventName, { ...args, modal: this });
         if (callbackResult === false) {
           this.closing = false;
           return false;
@@ -150,7 +153,11 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
           key="generic-modal-title-bar"
           style={this.style('titleBar')}
         >
-          <View key="generic-modal-title" style={this.style('titleBarTitle')}>{this.getTitle({ title: this.props.title })}</View>
+          <View key="generic-modal-title" style={this.style('titleBarTitle')}>
+            {(!!this.props.icon) && (<Icon icon={this.props.icon} style={this.style('titleBarTitleIcon', this.props.iconStyle)} containerStyle={this.style('titleBarTitleIconContainer', this.props.iconContainerStyle)}/>)}
+
+            {this.getTitle({ title: this.props.title })}
+          </View>
           {this._renderCloseButton()}
         </View>
       );
@@ -265,7 +272,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
                   var args = Object.assign({}, _args || {}, { button, index });
 
                   if (typeof button.onPress === 'function') {
-                    var result = await button.onPress.call(this, args);
+                    var result = await button.onPress.call(this, { ...args, modal: this });
                     if (result === false) {
                       closing = false;
                       return;

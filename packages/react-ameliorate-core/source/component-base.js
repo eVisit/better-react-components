@@ -20,8 +20,7 @@ import {
   processRenderedElements,
   getUniqueComponentID,
   isValidComponent,
-  toNumber,
-  compileLanguageTerm
+  toNumber
 }                                     from '@react-ameliorate/utils';
 
 var logCache = {};
@@ -172,6 +171,12 @@ export default class ComponentBase {
         value: {}
       },
       '_raCompponentFlagsCache': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: null
+      },
+      '_raLanguageTermFormatterFlagFormatterCache': {
         writable: true,
         enumerable: false,
         configurable: true,
@@ -1446,7 +1451,108 @@ export default class ComponentBase {
     if (!term)
       throwTermNotFound();
 
-    return compileLanguageTerm({ terms, term: term.term, termID: term.termID, params, locale });
+    return this.compileLanguageTerm({ terms, term: term.term, termID: term.termID, params, locale });
+  }
+
+  _getLanguageTermFormatterFlagFormatters() {
+    var cache = this._raLanguageTermFormatterFlagFormatterCache;
+    if (!cache)
+      cache = this._raLanguageTermFormatterFlagFormatterCache = this.getLanguageTermFormatterFlagFormatters();
+
+    return cache;
+  }
+
+  getLanguageTermFormatterFlagFormatters() {
+    return [
+      {
+        flag: '_',
+        formatter: (value) => ('' + value).toLowerCase()
+      },
+      {
+        flag: '^^^',
+        formatter: (value) => ('' + value).toUpperCase()
+      },
+      {
+        flag: '^^',
+        formatter: (value) => U.prettify('' + value, true)
+      },
+      {
+        flag: '^',
+        formatter: (value) => capitalize(('' + value).toLowerCase())
+      }
+    ];
+  }
+
+  formatLanguageTerm(term, format, args) {
+    const findMatchingFormatFlag = (flags, offset) => {
+      for (var i = 0, il = flagFormatters.length; i < il; i++) {
+        var formatter = flagFormatters[i],
+            formatterFlag = formatter.flag,
+            thisFlag  = flags.substring(offset, offset + formatterFlag.length);
+
+        if (thisFlag !== formatterFlag)
+          continue;
+
+        return formatter;
+      }
+    };
+
+    const formatValueWithFlag = (value, flags, offset) => {
+      var formatter = findMatchingFormatFlag(flags, offset);
+      if (!formatter)
+        return { value, offset: offset + 1 };
+
+      var { formatter, flag } = formatter;
+      return { value: formatter.call(this, value), offset: offset + flag.length };
+    };
+
+    var { params, termID } = args,
+        flagFormatters = this._getLanguageTermFormatterFlagFormatters();
+
+    return format.replace(/(^|[^\\])\{([^}]+)\}/g, (m, start, capture) => {
+      var flags,
+          key;
+
+      capture.replace(/^([^a-zA-Z0-9]+)(.*)$/g, (m, _flags, _key) => {
+        flags = _flags || '';
+        key = _key;
+      });
+
+      var termValue;
+      if (key === termID)
+        termValue = termID;
+      else if (key === 'term')
+        termValue = term;
+      else
+        termValue = params[key];
+
+      if (typeof termValue === 'function')
+        termValue = termValue.call(this, { ...args, term });
+
+      if (termValue == null || (typeof termValue === 'number' && !isFinite(termValue)))
+        return (start || '');
+
+      for (var i = 0, il = flags.length; i < il;) {
+        var { value, offset } = formatValueWithFlag(termValue, flags, i);
+
+        termValue = value;
+        i = offset;
+      }
+
+      return `${(start || '')}${termValue}`;
+    });
+  }
+
+  compileLanguageTerm(args) {
+    var { term, params } = args;
+
+    if (typeof term === 'function')
+      term = term.call(this, args);
+
+    if (params && params.format)
+      term = this.formatLanguageTerm(term, params.format, args);
+
+    return term;
   }
 
   clearDefaultEventActionHooks(eventName) {

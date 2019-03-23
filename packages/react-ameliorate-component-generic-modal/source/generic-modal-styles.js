@@ -38,11 +38,20 @@ export default createStyleSheet(function(theme) {
       }
     },
     titleBarTitle: {
-      flex: 1
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center'
     },
     titleBarTitleText: {
       fontSize: theme.FONT_SIZE_XSMALL,
       color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 6)
+    },
+    titleBarTitleIcon: {
+      fontSize: theme.FONT_SIZE_XSMALL,
+      color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 6)
+    },
+    titleBarTitleIconContainer: {
+      paddingRight: theme.DEFAULT_PADDING * 0.5
     },
     closeButtonIcon: {
       fontSize: theme.DEFAULT_BUTTON_ICON_SIZE,
