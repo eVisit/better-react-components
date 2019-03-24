@@ -375,7 +375,7 @@ function buildPalette(opts = {}, _colorHelperFactory) {
     return `hsla(${invContrastColor.h},${invContrastColor.s}%,${invContrastColor.l}%,${contrastColor.alpha})`;
   });
 
-  const textColor = colorHelperFactory(function textColor(color, _greyHue, acceptableContrastRatio = textContrastRatio, doDebug) {
+  const textColor = colorHelperFactory(function textColor(color, _greyHue, acceptableContrastRatio = textContrastRatio) {
     var greyHue = _greyHue;
     if (greyHue != null && greyHue) {
       var relativeLuminance = getRelativeColorLuminance(new Color(color)),
@@ -391,9 +391,6 @@ function buildPalette(opts = {}, _colorHelperFactory) {
         greyHue = ((greyKeys.length + 1) - greyHue);
       else
         greyHue = greyHue;
-
-      if (doDebug)
-        console.log('SELECTING COLOR: ', `GREY${prefixPad(greyHue, 2)}_COLOR`, this[`GREY${prefixPad(greyHue, 2)}_COLOR`]);
 
       var greyColor = this[`GREY${prefixPad(greyHue, 2)}_COLOR`];
       if (greyColor)

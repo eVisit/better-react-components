@@ -9,7 +9,7 @@ export const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componen
     static styleSheet = styleSheet;
 
     static propTypes = {
-      message: PropTypes.string,
+      message: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
       contextTextStyle: PropTypes.any,
       defaultAction: PropTypes.oneOf(['yes', 'no']),
       onDeny: PropTypes.func,
@@ -23,6 +23,15 @@ export const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componen
       },
       closeButtonEventName: 'onDeny'
     };
+
+    resolveProps() {
+      var props = super.resolveProps.apply(this, arguments);
+
+      return {
+        ...props,
+        message: this.resolveCaptionProp(props.message)
+      };
+    }
 
     getButtons() {
       if (this.props.buttons)

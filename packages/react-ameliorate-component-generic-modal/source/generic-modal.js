@@ -17,7 +17,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
   return class GenericModal extends Parent {
     static styleSheet = styleSheet;
     static propTypes = {
-      title: PropTypes.string,
+      title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
       icon: PropTypes.string,
       iconStyle: PropTypes.any,
       iconContainerStyle: PropTypes.any,
@@ -52,6 +52,15 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
           value: false
         }
       });
+    }
+
+    resolveProps() {
+      var props = super.resolveProps.apply(this, arguments);
+
+      return {
+        ...props,
+        title: this.resolveCaptionProp(props.title)
+      };
     }
 
     async resolve(eventName, result, args, force) {

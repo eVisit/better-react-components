@@ -9,7 +9,7 @@ export const AlertModal = componentFactory('AlertModal', ({ Parent, componentNam
     static styleSheet = styleSheet;
 
     static propTypes = {
-      message: PropTypes.string,
+      message: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
       contextTextStyle: PropTypes.any
     };
 
@@ -19,6 +19,15 @@ export const AlertModal = componentFactory('AlertModal', ({ Parent, componentNam
         testID: 'alertModalClose'
       }
     };
+
+    resolveProps() {
+      var props = super.resolveProps.apply(this, arguments);
+
+      return {
+        ...props,
+        message: this.resolveCaptionProp(props.message)
+      };
+    }
 
     getButtons() {
       if (this.props.buttons)

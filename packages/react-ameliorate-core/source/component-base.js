@@ -1555,6 +1555,22 @@ export default class ComponentBase {
     return term;
   }
 
+  resolveCaptionProp(caption) {
+    if (!caption)
+      return caption;
+
+    if (typeof caption === 'function')
+      return caption.call(this, caption, this);
+
+    if (U.instanceOf(caption, 'string', 'number', 'boolean', 'array'))
+      return ('' + caption);
+
+    if (caption.term)
+      return this.langTerm(caption.term, caption.params);
+
+    return null;
+  }
+
   clearDefaultEventActionHooks(eventName) {
     var componentID = this.getComponentID(),
         globalEventActionHooks = this.getGlobalEventActionHooks();
@@ -1628,6 +1644,10 @@ export default class ComponentBase {
 
   getGlobalEventActionHooks() {
     return this.constructor.getGlobalEventActionHooks();
+  }
+
+  formatProp(name, value) {
+    return value;
   }
 
   static getGlobalEventActionHooks() {

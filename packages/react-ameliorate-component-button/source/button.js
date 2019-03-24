@@ -14,7 +14,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
     static styleSheet = styleSheet;
 
     static propTypes = {
-      caption: PropTypes.string,
+      caption: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
       captionStyle: PropTypes.any,
       onPressStart: PropTypes.func,
       onPress: PropTypes.func,
@@ -36,6 +36,15 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
 
     constructor(props, ...args) {
       super(props, ...args);
+    }
+
+    resolveProps() {
+      var props = super.resolveProps.apply(this, arguments);
+
+      return {
+        ...props,
+        caption: this.resolveCaptionProp(props.caption)
+      };
     }
 
     onPropsUpdated(oldProps, newProps, initial) {
@@ -122,7 +131,6 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       var flags = super.getFlags(),
           largestFlag = getLargestFlag(flags);
 
-      console.log('PRESSED FLAG = ', largestFlag << 1);
       return Object.assign({}, flags, { PRESSED: largestFlag << 1 });
     }
 
@@ -290,7 +298,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           onPress={this.onPress}
           onPressStart={this.onPressStart}
           onPressEnd={this.onPressEnd}
-          data-tooltip={this.props.tooltip}
+          data-tooltip={this.formatProp('tooltip', this.props.tooltip)}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
           {...this.getHoverableProps()}
         >

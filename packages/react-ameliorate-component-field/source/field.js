@@ -13,7 +13,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       defaultValue: PropTypes.any,
       value: PropTypes.any,
       field: PropTypes.string,
-      caption: PropTypes.string,
+      caption: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
       validate: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
       onFocus: PropTypes.func,
       onBlur: PropTypes.func,
@@ -39,10 +39,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
     }
 
     onPropUpdated_options(value) {
-      if (typeof value === 'function')
-        return this.setState({ options: [] });
-
-      this.setState({ options: this.formatOptions((value == null) ? [] : value) });
+      this.delay(() => this.filterOptions(null), 10);
     }
 
     onPropUpdated_value() {
@@ -100,7 +97,9 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       if (props.field == null)
         props.field = ('' + props.caption).replace(/\W+/g, '_').toLowerCase();
 
-      props.caption = U.prettify(props.caption, true);
+      props.caption = this.resolveCaptionProp(props.caption);
+      if (props.caption)
+        props.caption = U.prettify(props.caption, true);
 
       return props;
     }
@@ -491,7 +490,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
           style={this.style('rootContainer', this.props.style)}
           onMouseOver={this.onMouseOver}
           onMouseOut={this.onMouseOut}
-          data-tooltip={this.props.tooltip}
+          data-tooltip={this.formatProp('tooltip', this.props.tooltip)}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
         >
           {this.getChildren(children)}

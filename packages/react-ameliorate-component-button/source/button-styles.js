@@ -116,7 +116,7 @@ export default createStyleSheet(function(theme) {
       color: theme.textColor(DEFAULT_HOVER_BG_COLOR, 3)
     },
     whiteIcon: {
-      color: theme.textColor(WHITE_BG_COLOR, 6, undefined, true)
+      color: theme.textColor(WHITE_BG_COLOR, 6)
     },
     whiteIconHovered: {
       color: theme.textColor(WHITE_HOVER_BG_COLOR, 6)

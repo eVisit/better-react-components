@@ -8,11 +8,20 @@ export const CaptionedContainer = componentFactory('CaptionedContainer', ({ Pare
     static styleSheet = styleSheet;
 
     static propTypes = {
-      caption: PropTypes.string,
+      caption: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
       captionContainerStyle: PropTypes.any,
       captionStyle: PropTypes.any,
       contentContainerStyle: PropTypes.any
     };
+
+    resolveProps() {
+      var props = super.resolveProps.apply(this, arguments);
+
+      return {
+        ...props,
+        caption: this.resolveCaptionProp(props.caption)
+      };
+    }
 
     render(_children) {
       var caption = this.props.caption || '';
