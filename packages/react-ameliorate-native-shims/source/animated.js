@@ -122,7 +122,7 @@ class Animation {
     this._animationHandle = null;
 
     if (typeof this._onEnd === 'function')
-      this._onEnd.call(this, finished);
+      this._onEnd.call(this, { finished });
   }
 
   _startAnimation(callback) {
@@ -147,7 +147,7 @@ class Animation {
     this.stop();
 
     this._finished = false;
-    this._animationHandle = this._startAnimation((finished) => callback({ finished }));
+    this._animationHandle = this._startAnimation(callback);
 
     return this;
   }

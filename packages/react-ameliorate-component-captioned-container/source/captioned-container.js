@@ -14,13 +14,13 @@ export const CaptionedContainer = componentFactory('CaptionedContainer', ({ Pare
       contentContainerStyle: PropTypes.any
     };
 
-    resolveProps() {
-      var props = super.resolveProps.apply(this, arguments);
+    formatPropValue(name, _value) {
+      var value = super.formatPropValue(name, _value);
 
-      return {
-        ...props,
-        caption: this.resolveCaptionProp(props.caption)
-      };
+      if (name === 'caption')
+        return this.formatVerbiageProp(value);
+
+      return value;
     }
 
     render(_children) {

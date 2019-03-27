@@ -51,8 +51,16 @@ class View extends React.Component {
     };
   }
 
+  sendOnLayoutEvent(callback) {
+    sendOnLayoutEvent.call(this, callback, this.rootElement);
+  }
+
+  doOnLayout = (event) => {
+    return this.sendOnLayoutEvent.call(this, this.props.onLayout);
+  };
+
   onWindowResize = (event) => {
-    sendOnLayoutEvent.call(this, this.props.onLayout, this.rootElement);
+    this.doOnLayout(event);
   }
 
   viewRef = (_elem) => {
@@ -62,7 +70,7 @@ class View extends React.Component {
   componentDidMount() {
     if (typeof this.props.onLayout === 'function') {
       window.addEventListener('resize', this.onWindowResize);
-      sendOnLayoutEvent.call(this, this.props.onLayout, this.rootElement);
+      this.doOnLayout(null);
     }
   }
 
@@ -71,7 +79,7 @@ class View extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    sendOnLayoutEvent.call(this, prevProps.onLayout, this.rootElement);
+    this.doOnLayout(null);
   }
 
   onMouseOver = (event) => {

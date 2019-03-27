@@ -19,7 +19,7 @@ export const PromptModal = componentFactory('PromptModal', ({ Parent, componentN
     };
 
     static defaultProps = {
-      title: 'Prompt',
+      title: '@ra/prompt',
       closeButtonProps: {
         testID: 'promptModalClose'
       },

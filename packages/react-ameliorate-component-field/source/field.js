@@ -97,7 +97,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       if (props.field == null)
         props.field = ('' + props.caption).replace(/\W+/g, '_').toLowerCase();
 
-      props.caption = this.resolveCaptionProp(props.caption);
+      props.caption = this.formatVerbiageProp(props.caption);
       if (props.caption)
         props.caption = U.prettify(props.caption, true);
 
@@ -490,7 +490,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
           style={this.style('rootContainer', this.props.style)}
           onMouseOver={this.onMouseOver}
           onMouseOut={this.onMouseOut}
-          data-tooltip={this.formatProp('tooltip', this.props.tooltip)}
+          data-tooltip={this.props.tooltip}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
         >
           {this.getChildren(children)}

@@ -14,19 +14,19 @@ export const AlertModal = componentFactory('AlertModal', ({ Parent, componentNam
     };
 
     static defaultProps = {
-      title: 'Alert',
+      title: '@ra/alert',
       closeButtonProps: {
         testID: 'alertModalClose'
       }
     };
 
-    resolveProps() {
-      var props = super.resolveProps.apply(this, arguments);
+    formatPropValue(name, _value) {
+      var value = super.formatPropValue(name, _value);
 
-      return {
-        ...props,
-        message: this.resolveCaptionProp(props.message)
-      };
+      if (name === 'message')
+        return this.formatVerbiageProp(value);
+
+      return value;
     }
 
     getButtons() {

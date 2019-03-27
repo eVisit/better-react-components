@@ -1,6 +1,7 @@
 //###if(MOBILE) {###//
 import { ScrollView } from 'react-native';
 //###} else {###//
+import React                  from 'react';
 import { View }               from './view';
 import ScrollViewPropTypes    from '../prop-types/scroll-view';
 

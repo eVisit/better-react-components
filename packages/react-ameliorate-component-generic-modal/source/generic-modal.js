@@ -54,13 +54,13 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       });
     }
 
-    resolveProps() {
-      var props = super.resolveProps.apply(this, arguments);
+    formatPropValue(name, _value) {
+      var value = super.formatPropValue(name, _value);
 
-      return {
-        ...props,
-        title: this.resolveCaptionProp(props.title)
-      };
+      if (name === 'title')
+        return this.formatVerbiageProp(value);
+
+      return value;
     }
 
     async resolve(eventName, result, args, force) {
@@ -208,7 +208,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       const doRender = () => {
         if (this.props.allowScrolling === false) {
         return (
-          <View key="generic-modal-content" style={this.style('contentContainer', this.props.contentContainerStyle)}>
+          <View key="generic-modal-content" style={this.style('contentScrollContainer')}>
             {children}
           </View>
         );

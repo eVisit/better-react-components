@@ -38,13 +38,13 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       super(props, ...args);
     }
 
-    resolveProps() {
-      var props = super.resolveProps.apply(this, arguments);
+    formatPropValue(name, _value) {
+      var value = super.formatPropValue(name, _value);
 
-      return {
-        ...props,
-        caption: this.resolveCaptionProp(props.caption)
-      };
+      if (name === 'caption')
+        return this.formatVerbiageProp(value);
+
+      return value;
     }
 
     onPropsUpdated(oldProps, newProps, initial) {
@@ -234,7 +234,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       var { children } = args;
 
       if (children && typeof children === 'function')
-        return children.call(this, args);
+        return children.call(this, args, this);
 
       if (children)
         return children;
@@ -298,7 +298,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           onPress={this.onPress}
           onPressStart={this.onPressStart}
           onPressEnd={this.onPressEnd}
-          data-tooltip={this.formatProp('tooltip', this.props.tooltip)}
+          data-tooltip={this.props.tooltip}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
           {...this.getHoverableProps()}
         >

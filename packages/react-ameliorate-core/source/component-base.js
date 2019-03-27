@@ -654,6 +654,29 @@ export default class ComponentBase {
     );
   }
 
+  formatPropValue(name, value) {
+    return value;
+  }
+
+  formatVerbiageProp(caption) {
+    if (!caption)
+      return caption;
+
+    if (typeof caption === 'function')
+      return caption.call(this, caption, this);
+
+    if (U.instanceOf(caption, 'string', 'number', 'boolean'))
+      return ('' + caption);
+
+    if (Array.isArray(caption))
+      return this.langTerm(caption);
+
+    if (caption.term)
+      return this.langTerm(caption.term, caption.params);
+
+    return null;
+  }
+
   resolveProps(props, prevProps, extraResolvableKeys) {
     var formattedProps = {},
         keys = Object.keys(props),
@@ -666,7 +689,7 @@ export default class ComponentBase {
       if (_raResolvableProps && typeof value === 'function' && _raResolvableProps[key])
         value = value.call(this, props, prevProps);
 
-      formattedProps[key] = value;
+      formattedProps[key] = this.formatPropValue(key, value);
     }
 
     return formattedProps;
@@ -1555,22 +1578,6 @@ export default class ComponentBase {
     return term;
   }
 
-  resolveCaptionProp(caption) {
-    if (!caption)
-      return caption;
-
-    if (typeof caption === 'function')
-      return caption.call(this, caption, this);
-
-    if (U.instanceOf(caption, 'string', 'number', 'boolean', 'array'))
-      return ('' + caption);
-
-    if (caption.term)
-      return this.langTerm(caption.term, caption.params);
-
-    return null;
-  }
-
   clearDefaultEventActionHooks(eventName) {
     var componentID = this.getComponentID(),
         globalEventActionHooks = this.getGlobalEventActionHooks();
@@ -1644,10 +1651,6 @@ export default class ComponentBase {
 
   getGlobalEventActionHooks() {
     return this.constructor.getGlobalEventActionHooks();
-  }
-
-  formatProp(name, value) {
-    return value;
   }
 
   static getGlobalEventActionHooks() {

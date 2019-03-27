@@ -4,6 +4,7 @@ export default createStyleSheet(function(theme) {
   const DEFAULT_ACTIVE_TAB_BG_COLOR = theme.blendColors(theme.contrastColor(theme.MAIN_COLOR), theme.transparentColor(theme.MAIN_COLOR, 1 - theme.DEFAULT_HOVER_OPACITY));
 
   return {
+    DEFAULT_ACTIVE_TAB_BG_COLOR,
     container: {
       flex: 0,
       flexDirection: 'row',

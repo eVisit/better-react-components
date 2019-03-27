@@ -17,20 +17,20 @@ export const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componen
     };
 
     static defaultProps = {
-      title: 'Confirm',
+      title: '@ra/confirm',
       closeButtonProps: {
         testID: 'confirmModalClose'
       },
       closeButtonEventName: 'onDeny'
     };
 
-    resolveProps() {
-      var props = super.resolveProps.apply(this, arguments);
+    formatPropValue(name, _value) {
+      var value = super.formatPropValue(name, _value);
 
-      return {
-        ...props,
-        message: this.resolveCaptionProp(props.message)
-      };
+      if (name === 'message')
+        return this.formatVerbiageProp(value);
+
+      return value;
     }
 
     getButtons() {
