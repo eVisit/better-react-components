@@ -1,19 +1,23 @@
 /* globals __DEV__ */
 
-import { data as D, utils as U }  from 'evisit-js-utils';
-import { filterObjectKeys }       from '@react-ameliorate/utils';
+import { data as D, utils as U }          from 'evisit-js-utils';
+import { getPlatform, filterObjectKeys }  from '@react-ameliorate/utils';
 
 //###if(MOBILE) {###//
 import { StyleSheet, Platform }   from 'react-native';
-//###}###//
+//###} else {###//
+const Platform = {};
 
-const PLATFORM = (() => {
-  //###if(MOBILE) {###//
-  return Platform.OS;
-  //###} else {###//
-  return 'browser';
-  //###}###//
-})();
+Object.defineProperties(Platform, {
+  'OS': {
+    enumerable: true,
+    configurable: true,
+    get: () => getPlatform(),
+    set: () => {}
+  }
+});
+
+//###}###//
 
 var styleSheetID = 1;
 
@@ -390,11 +394,13 @@ export class StyleSheetBuilder {
   getAllPlatforms() {
     return {
       'tablet': ['mobile'],
-      'mobile': ['android', 'ios', 'microsoft'],
+      'mobile': ['android', 'ios', 'microsoft', 'mobile_browser'],
       'android': ['mobile'],
       'ios': ['mobile'],
+      'mobile_browser': ['mobile'],
       'microsoft': ['mobile'],
-      'browser': ['browser']
+      'browser': ['desktop', 'mobile_browser'],
+      'desktop': ['browser']
     };
   }
 
@@ -430,6 +436,9 @@ export class StyleSheetBuilder {
 
     if (!platform)
       return false;
+
+    if (platform === this.platform)
+      return true;
 
     var allPlatforms = _allPlatforms;
     if (!allPlatforms)
@@ -566,21 +575,21 @@ export class StyleSheetBuilder {
 
   static flattenInternalStyleSheet() {
     if (!singletonStyleSheetBuilder)
-      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, PLATFORM);
+      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, Platform.OS);
 
     return singletonStyleSheetBuilder.flattenInternalStyleSheet.apply(singletonStyleSheetBuilder, arguments);
   }
 
   static getCSSRuleName(...args) {
     if (!singletonStyleSheetBuilder)
-      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, PLATFORM);
+      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, Platform.OS);
 
     return singletonStyleSheetBuilder.getCSSRuleName.apply(singletonStyleSheetBuilder, arguments);
   }
 
   static getCSSRuleValue(...args) {
     if (!singletonStyleSheetBuilder)
-      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, PLATFORM);
+      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, Platform.OS);
 
     return singletonStyleSheetBuilder.getCSSRuleValue.apply(singletonStyleSheetBuilder, arguments);
   }
@@ -593,6 +602,5 @@ export class StyleSheetBuilder {
 const createStyleSheet = StyleSheetBuilder.createStyleSheet;
 
 export {
-  createStyleSheet,
-  PLATFORM
+  createStyleSheet
 };

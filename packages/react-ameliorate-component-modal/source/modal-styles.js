@@ -12,7 +12,8 @@ export default createStyleSheet(function(theme) {
       borderRadius: theme.DEFAULT_BORDER_RADIUS,
       borderWidth: 1,
       borderStyle: 'solid',
-      borderColor: theme.blendColors(theme.contrastColor(theme.MAIN_COLOR), theme.transparentColor(theme.GREY02_COLOR))
+      borderColor: theme.blendColors(theme.contrastColor(theme.MAIN_COLOR), theme.transparentColor(theme.GREY02_COLOR)),
+      zIndex: 1
     }
   };
 });

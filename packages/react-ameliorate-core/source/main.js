@@ -17,7 +17,6 @@ import ReactComponentBase         from './react-component-base';
 
 export {
   StyleSheetBuilder,
-  PLATFORM,
   Color,
   buildPalette,
   ColorConstants,

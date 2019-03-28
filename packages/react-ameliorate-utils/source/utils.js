@@ -2,7 +2,9 @@ import React          from 'react';
 import { utils as U } from 'evisit-js-utils';
 
 //###if(!MOBILE) {###//
-import { findDOMNode as reactFindDOMNode } from 'react-dom';
+import { findDOMNode as reactFindDOMNode }  from 'react-dom';
+//###} else {###//
+import { Platform }                         from 'react-native';
 //###}###//
 
 const componentReferenceMap = {};
@@ -720,6 +722,19 @@ export function selectFirst(...args) {
     if (arg != null)
       return arg;
   }
+}
+
+export function getPlatform() {
+  //###if(MOBILE) {###//
+  return Platform.OS;
+  //###} else {###//
+  if (typeof global.navigator !== 'undefined') {
+    if (global.navigator.userAgent.match(/(iPad|iPhone|iPod|android|webOS|mobile)/i))
+      return 'mobile_browser';
+  }
+
+  return 'desktop';
+  //###}###//
 }
 
 export {

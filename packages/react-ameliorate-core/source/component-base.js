@@ -1,6 +1,6 @@
 import { utils as U }                 from 'evisit-js-utils';
 import PropTypes                      from '@react-ameliorate/prop-types';
-
+import { Platform }                   from '@react-ameliorate/native-shims';
 import React                          from 'react';
 import {
   CONTEXT_PROVIDER_KEY,
@@ -733,7 +733,7 @@ export default class ComponentBase {
   }
 
   getPlatform() {
-    return 'browser';
+    return Platform.OS;
   }
 
   getTheme() {
