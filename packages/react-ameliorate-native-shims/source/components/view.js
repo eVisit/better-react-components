@@ -63,8 +63,10 @@ class View extends React.Component {
     this.doOnLayout(event);
   }
 
-  viewRef = (_elem) => {
-    this.rootElement = findDOMNode(_elem);
+  viewRef = (elem) => {
+    this.rootElement = elem;
+    if (typeof this.props.domRef === 'function')
+      this.props.domRef.call(this, elem);
   }
 
   componentDidMount() {

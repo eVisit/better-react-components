@@ -354,7 +354,8 @@ export function rebaseComponent(component, parentClassSelector) {
   function rebaseWithParent(component, _parent) {
     // Get parent (if any) and walk parent tree rebasing each (if requested by the callback)
     var parent = _parent,
-        parentParent = (parent && parent.getParentComponent());
+        parentParent = (parent && parent.getParentComponent()),
+        isImmediateParent = (parent === immediateParent);
 
     if (parentParent)
       parent = rebaseWithParent(parent, parentParent);
@@ -363,7 +364,7 @@ export function rebaseComponent(component, parentClassSelector) {
     var ret = parentClassSelector.call(this, {
       parentName: (parent && parent.getComponentName()),
       parent,
-      isNaturalParent: (parent === naturalParent),
+      isImmediateParent,
       componentName: component.getComponentName(),
       component
     });
@@ -378,8 +379,8 @@ export function rebaseComponent(component, parentClassSelector) {
     }, component.getFactory(), { parent, mixins: component.getMixins() });
   }
 
-  var naturalParent = component.getParentComponent(),
-      newComponent = rebaseWithParent(component, naturalParent);
+  var immediateParent = component.getParentComponent(),
+      newComponent = rebaseWithParent(component, immediateParent);
 
   return newComponent;
 }
