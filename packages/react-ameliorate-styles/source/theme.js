@@ -1,4 +1,4 @@
-import { utils as U }                     from 'evisit-js-utils';
+import { utils as U, data as D }               from 'evisit-js-utils';
 import { buildPalette, Color, ColorConstants } from './colors';
 
 var themeIDCounter = 1;
@@ -210,6 +210,10 @@ export class ThemeProperties {
     finalThemeProps.REM = finalThemeProps.DEFAULT_FONT_SIZE;
 
     return Object.assign(finalThemeProps, themeProps, paletteProps.palette);
+  }
+
+  mergeStyles(...args) {
+    return D.extend(true, {}, ...(args.filter(Boolean)));
   }
 }
 

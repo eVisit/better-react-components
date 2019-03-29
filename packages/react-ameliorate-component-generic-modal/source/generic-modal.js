@@ -225,6 +225,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
             className={this.getClassName(componentName, 'content')}
             {...scrollViewProps}
             key="generic-modal-content"
+            style={this.style('contentScrollView')}
             contentContainerStyle={this.style('contentScrollContainer')}
           >
             {children}

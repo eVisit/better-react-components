@@ -10,7 +10,8 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
     static propTypes = [Paper.propTypes, {
       autoClose: PropTypes.bool,
       disallowReposition: PropTypes.bool,
-      inline: PropTypes.bool
+      inline: PropTypes.bool,
+      calculateParentContainerStyle: PropTypes.func
     }];
 
     static defaultProps = {

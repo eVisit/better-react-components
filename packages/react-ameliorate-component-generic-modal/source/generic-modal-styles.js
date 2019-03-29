@@ -10,19 +10,23 @@ export default createStyleSheet(function(theme) {
   return {
     TITLE_BAR_PADDING,
     BUTTON_PADDING,
+    CONTENT_PADDING,
     TITLE_BAR_BUTTON_SIZE,
     container: {
-      alignItems: 'stretch',
-      flexDirection: 'column'
+      alignItems: 'stretch'
     },
     contentContainer: {
       flex: 0,
       paddingLeft: theme.DEFAULT_PADDING,
       paddingRight: theme.DEFAULT_PADDING
     },
+    contentScrollView: {
+      flex: 0,
+      flexGrow: 0,
+      flexShrink: 1
+    },
     contentScrollContainer: {
-      flexGrow: 1,
-      flexShrink: 0,
+      flex: 0,
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'flex-start',
@@ -30,6 +34,7 @@ export default createStyleSheet(function(theme) {
     },
     titleBar: {
       flex: 0,
+      minHeight: (TITLE_BAR_PADDING * 2) +  theme.FONT_SIZE_XSMALL,
       flexDirection: 'row',
       alignItems: 'center',
       padding: TITLE_BAR_PADDING,
@@ -58,12 +63,12 @@ export default createStyleSheet(function(theme) {
       color: theme.inverseContrastColor(theme.MAIN_COLOR)
     },
     buttonContainer: {
+      flex: 0,
       padding: BUTTON_PADDING,
-      alignSelf: 'center',
       alignItems: 'center'
     },
     button: {
-      minWidth: 120
+      minWidth: (theme.IS_MOBILE) ? 40 : 120
     },
     closeButtonInternalContainer: {
       minWidth: null,

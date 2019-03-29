@@ -46,15 +46,25 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
       var lastModal = this.getCurrentModal(),
           props = element.props,
           lastModalID = (lastModal && lastModal.props && lastModal.props.id),
-          thisModalID = (props && props.id);
+          thisModalID = (props && props.id),
+          containerStyle = null,
+          calculateParentContainerStyle = (props && props.calculateParentContainerStyle);
 
-      return (thisModalID === lastModalID) ? null : {
-        display: 'none'
-      };
+      if (thisModalID !== lastModalID) {
+        containerStyle = {
+          display: 'none'
+        };
+      } else if (typeof calculateParentContainerStyle === 'function')
+        containerStyle = calculateParentContainerStyle.call(this, lastModal);
+
+      return this.style('childContainer', containerStyle);
     }
 
     onShouldClose(event) {
       stopEventPropagation(event);
+
+      if (this.isMobileView)
+        return;
 
       var rootElement = this.getReference('rootElement'),
           nativeEvent = (event && event.nativeEvent);

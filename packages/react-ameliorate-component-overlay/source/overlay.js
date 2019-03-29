@@ -384,7 +384,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
             onLeaving={this.onChildLeaving}
             onLeft={this.onChildLeft}
             ref={this.captureReference('overlayRoot', findDOMNode)}
-            pointerEvents="none"
+            pointerEvents="box-none"
           >
             {children.map((child, index) => {
               if (!child)
