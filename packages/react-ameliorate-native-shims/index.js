@@ -1,4 +1,5 @@
 
+//###if(!MOBILE){###//
 export * from './source/animated';
 export * from './source/app-state';
 export * from './source/async-storage';
@@ -19,3 +20,6 @@ export * from './source/components/touchable-without-feedback';
 export * from './source/components/view';
 export * from './source/components/virtualized-list';
 export * from './source/components/web-view';
+//###} else {###//
+export * from 'react-native';
+//###}###//
