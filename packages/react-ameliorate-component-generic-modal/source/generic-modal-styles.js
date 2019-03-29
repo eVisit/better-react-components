@@ -65,7 +65,8 @@ export default createStyleSheet(function(theme) {
     buttonContainer: {
       flex: 0,
       padding: BUTTON_PADDING,
-      alignItems: 'center'
+      alignItems: 'center',
+      justifyContent: 'center'
     },
     button: {
       minWidth: (theme.IS_MOBILE) ? 40 : 120

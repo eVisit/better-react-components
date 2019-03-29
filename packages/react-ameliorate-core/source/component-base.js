@@ -1,4 +1,5 @@
-import { utils as U }                 from 'evisit-js-utils';
+import moment                         from 'moment';
+import { utils as U, formatters }     from 'evisit-js-utils';
 import PropTypes                      from '@react-ameliorate/prop-types';
 import { Platform }                   from '@react-ameliorate/native-shims';
 import React                          from 'react';
@@ -468,9 +469,13 @@ export default class ComponentBase {
     });
   }
 
+  shouldClearInternalPropsCache() {
+    return false;
+  }
+
   _invokeResolveState(propsUpdated, stateUpdated, initial, newProps, ...args) {
-    const getResolvedProps = () => {
-      if (this._raResolvedPropsCache && !initial && !propsUpdated && !stateUpdated)
+    const getResolvedProps = (force) => {
+      if (force !== true && this._raResolvedPropsCache && !initial && !propsUpdated && !stateUpdated)
         return this._raResolvedPropsCache;
 
       var formattedProps = this.resolveProps(newProps || {}, oldProps || {});
@@ -481,7 +486,7 @@ export default class ComponentBase {
     };
 
     var oldProps = this.props,
-        props = getResolvedProps(),
+        props = getResolvedProps(this.shouldClearInternalPropsCache(newProps, initial)),
         newState,
         shouldRender;
 
@@ -1449,12 +1454,12 @@ export default class ComponentBase {
       throw new Error(`Requested language term '${(termIDs.length === 1) ? termIDs[0] : termIDs}', but no such term exists!`);
     };
 
-    var params  = _params || {},
+    var params        = (U.instanceOf(_params, 'string')) ? { format: _params } : (_params || {}),
         defaultLocale = this.getDefaultLocale(),
-        locale  = this.getCurrentLocale(),
-        terms   = this.getLocaleLanguageTerms(locale),
-        termIDs = (Array.isArray(_termID)) ? _termID : [ _termID ],
-        term    = getLocaleTerm();
+        locale        = this.getCurrentLocale(),
+        terms         = this.getLocaleLanguageTerms(locale),
+        termIDs       = (Array.isArray(_termID)) ? _termID : [ _termID ],
+        term          = getLocaleTerm();
 
     if (!term && locale !== defaultLocale) {
       console.warn(`Language pack ${locale} doesn't contain requested term '${(termIDs.length === 1) ? termIDs[0] : termIDs}'... falling back to ${defaultLocale}`);
@@ -1502,6 +1507,38 @@ export default class ComponentBase {
       {
         flag: '^',
         formatter: (value) => capitalize(('' + value).toLowerCase())
+      },
+      {
+        flag: '$',
+        formatter: (value) => {
+          var formatter = formatters.formatterFunction('money');
+          return formatter(value, 'format');
+        }
+      },
+      {
+        flag: '%',
+        formatter: (value) => {
+          var formatter = formatters.formatterFunction('percent');
+          return formatter(value, 'format');
+        }
+      },
+      {
+        flag: '@@@',
+        formatter: (value) => {
+          return moment(value).format('MM/DD/YYYY HH:mm:ssa');
+        }
+      },
+      {
+        flag: '@@',
+        formatter: (value) => {
+          return moment(value).format('HH:mm:ssa');
+        }
+      },
+      {
+        flag: '@',
+        formatter: (value) => {
+          return moment(value).format('MM/DD/YYYY');
+        }
       }
     ];
   }
@@ -1536,7 +1573,7 @@ export default class ComponentBase {
       var flags,
           key;
 
-      capture.replace(/^([^a-zA-Z0-9]+)(.*)$/g, (m, _flags, _key) => {
+      capture.replace(/^([^a-zA-Z0-9]*)(.*)$/g, (m, _flags, _key) => {
         flags = _flags || '';
         key = _key;
       });
@@ -1569,10 +1606,12 @@ export default class ComponentBase {
   compileLanguageTerm(args) {
     var { term, params } = args;
 
-    if (typeof term === 'function')
-      term = term.call(this, args);
+    if (typeof term === 'function') {
+      const format = (format) => this.formatLanguageTerm(term, format, args);
+      term = term.call(this, { ...args, format });
+    }
 
-    if (params && params.format)
+    if (params && params.format && ('' + params.format).indexOf('{') >= 0)
       term = this.formatLanguageTerm(term, params.format, args);
 
     return term;

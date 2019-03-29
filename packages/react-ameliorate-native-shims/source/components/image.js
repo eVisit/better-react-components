@@ -46,7 +46,7 @@ class Image extends View {
 
     return (
       <img
-        style={{ opacity: '0 !important', width: '1px', height: '1px', position: 'absolute' }}
+        style={{ opacity: 0, width: '1px', height: '1px', position: 'absolute', visibility: 'none' }}
         src={src}
         onLoad={props.onLoadEnd}
         onError={props.onLoadEnd}
