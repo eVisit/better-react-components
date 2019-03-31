@@ -139,7 +139,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
 
       if (props.value !== undefined) {
         value = props.value;
-      } else {
+      } else if (value === undefined) {
         var parentForm = this.getParentForm();
         if (parentForm && typeof parentForm.getFieldDataValue === 'function')
           value = parentForm.getFieldDataValue(props.field);
