@@ -1,5 +1,6 @@
-import { utils as U, data as D }               from 'evisit-js-utils';
-import { buildPalette, Color, ColorConstants } from './colors';
+import { utils as U, data as D }                from 'evisit-js-utils';
+import { buildPalette, Color, ColorConstants }  from './colors';
+import { getPlatform }                          from '@react-ameliorate/utils';
 
 var themeIDCounter = 1;
 
@@ -132,7 +133,8 @@ export class ThemeProperties {
     var screenInfo            = this.getScreenInfo(),
         width                 = safeNumber(themeProps.SCREEN_WIDTH, screenInfo.width),
         height                = safeNumber(themeProps.SCREEN_HEIGHT, screenInfo.width),
-        IS_MOBILE             = (this.getPlatform() !== 'browser'),
+        platform              = this.getPlatform(),
+        IS_MOBILE             = (platform !== 'browser' && platform !== 'desktop'),
         FONT_SCALAR           = themeProps.FONT_SCALAR || 1,
         SCREEN_WIDTH          = width,
         SCREEN_HEIGHT         = height,
@@ -221,7 +223,9 @@ export class Theme {
   static getScreenInfo = getScreenInfo;
 
   constructor(_extraThemeProps, _opts) {
-    var opts = Object.assign({}, _opts || {});
+    var opts = Object.assign({
+      platform: getPlatform()
+    }, _opts || {});
 
     U.defineROProperty(this, '_options', undefined, () => opts);
     U.defineROProperty(this, 'ThemePropertiesClass', undefined, () => this._options.ThemePropertiesClass);

@@ -41,6 +41,14 @@ class View extends React.Component {
         style.flexBasis = 'auto';
     }
 
+    var pointerEvents = providedProps.pointerEvents;
+    if (pointerEvents) {
+      if (pointerEvents === 'box-none')
+        pointerEvents = 'none';
+
+      style.pointerEvents = pointerEvents;
+    }
+
     return {
       ...providedProps,
       className: this.getClassName('raView', this.props.className),

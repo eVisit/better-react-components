@@ -234,7 +234,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       var { children } = args;
 
       if (children && typeof children === 'function')
-        return children.call(this, args, this);
+        return children.call(this, { ...args, children: null }, this);
 
       if (children)
         return children;
