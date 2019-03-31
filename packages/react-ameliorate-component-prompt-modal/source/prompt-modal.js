@@ -15,7 +15,8 @@ export const PromptModal = componentFactory('PromptModal', ({ Parent, componentN
       verticalSpacing: PropTypes.number,
       defaultAction: PropTypes.oneOf(['yes', 'no']),
       onDeny: PropTypes.func,
-      onConfirm: PropTypes.func
+      onConfirm: PropTypes.func,
+      data: PropTypes.oneOfType([ PropTypes.object, PropTypes.array ])
     };
 
     static defaultProps = {
@@ -101,6 +102,7 @@ export const PromptModal = componentFactory('PromptModal', ({ Parent, componentN
           verticalSpacing={(this.props.verticalSpacing != null) ? this.props.verticalSpacing : spacing}
           fields={this.props.fields}
           style={this.style('form')}
+          data={this.props.data}
         />
       );
     }

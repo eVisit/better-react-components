@@ -13,7 +13,8 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
       horizontalSpacing: PropTypes.number,
       verticalSpacing: PropTypes.number,
       calcChildColspan: PropTypes.func,
-      calcChildKey: PropTypes.func
+      calcChildKey: PropTypes.func,
+      data: PropTypes.oneOfType([ PropTypes.object, PropTypes.array ])
     };
 
     static defaultProps = {
@@ -38,6 +39,17 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
       var parentForm = this.getParentForm();
       if (parentForm)
         parentForm.unregisterField(this);
+    }
+
+    getFieldDataValue(fieldName) {
+      var data = this.props.data,
+          parentForm = this.getParentForm();
+
+      if (!data && parentForm)
+        return parentForm.getFieldDataValue(fieldName);
+
+      if (data)
+        return data[fieldName];
     }
 
     getParentForm() {

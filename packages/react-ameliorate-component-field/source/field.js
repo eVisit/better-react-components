@@ -137,8 +137,13 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       var props = _props || this.props,
           value = props.defaultValue;
 
-      if (props.value !== undefined)
+      if (props.value !== undefined) {
         value = props.value;
+      } else {
+        var parentForm = this.getParentForm();
+        if (parentForm && typeof parentForm.getFieldDataValue === 'function')
+          value = parentForm.getFieldDataValue(props.field);
+      }
 
       var currentValue = this.getState('value');
       if (currentValue === undefined)

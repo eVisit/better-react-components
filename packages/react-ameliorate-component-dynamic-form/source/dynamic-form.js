@@ -117,8 +117,8 @@ export const DynamicForm = componentFactory('DynamicForm', ({ Parent, componentN
     }
 
     generateFieldComponents({ children, fields }) {
-      return fields.map((field) => {
-        return this.getFieldComponentFromFieldDefinition({ field, fields });
+      return fields.map((field, index) => {
+        return this.getFieldComponentFromFieldDefinition({ field, index, fields });
       });
     }
 
