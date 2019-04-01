@@ -39,7 +39,8 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
     }
 
     onPropUpdated_options(value) {
-      this.delay(() => this.filterOptions(null), 10);
+      this.setState({ options: value });
+      this.filterOptions(null);
     }
 
     onPropUpdated_value() {
@@ -137,13 +138,8 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       var props = _props || this.props,
           value = props.defaultValue;
 
-      if (props.value !== undefined) {
+      if (props.value !== undefined)
         value = props.value;
-      } else if (value === undefined) {
-        var parentForm = this.getParentForm();
-        if (parentForm && typeof parentForm.getFieldDataValue === 'function')
-          value = parentForm.getFieldDataValue(props.field);
-      }
 
       var currentValue = this.getState('value');
       if (currentValue === undefined)
@@ -374,9 +370,10 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
         return '';
 
       var thisOption = option.option,
-          caption = this.callProvidedCallback('getOptionCaption', option, thisOption.caption || thisOption);
+          caption = this.callProvidedCallback('getOptionCaption', option, thisOption.caption || thisOption),
+          finalCaption = this.formatVerbiageProp(caption);
 
-      return (caption == null) ? '' : ('' + caption);
+      return (finalCaption == null) ? '' : finalCaption;
     }
 
     getSelectedOptionCaption() {
@@ -495,7 +492,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
           style={this.style('rootContainer', this.props.style)}
           onMouseOver={this.onMouseOver}
           onMouseOut={this.onMouseOut}
-          data-tooltip={this.props.tooltip}
+          data-tooltip={this.formatVerbiageProp(this.props.tooltip)}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
         >
           {this.getChildren(children)}
