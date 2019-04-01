@@ -200,6 +200,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         this.closeAll();
     }
 
+    //###if(!MOBILE){###//
     componentMounted() {
       window.addEventListener('resize', this.onWindowResize);
     }
@@ -207,6 +208,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
     componentUnmounting() {
       window.removeEventListener('resize', this.onWindowResize);
     }
+    //###}###//
 
     provideContext() {
       return {
