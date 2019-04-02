@@ -162,8 +162,19 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
           key="generic-modal-title-bar"
           style={this.style('titleBar')}
         >
-          <View key="generic-modal-title" style={this.style('titleBarTitle')}>
-            {(!!this.props.icon) && (<Icon icon={this.props.icon} style={this.style('titleBarTitleIcon', this.props.iconStyle)} containerStyle={this.style('titleBarTitleIconContainer', this.props.iconContainerStyle)}/>)}
+          <View
+            className={this.getClassName(componentName, 'titleBarTitle')}
+            key="generic-modal-title"
+            style={this.style('titleBarTitle')}
+          >
+            {(!!this.props.icon) && (
+              <Icon
+                className={this.getClassName(componentName, 'titleBarIcon')}
+                icon={this.props.icon}
+                style={this.style('titleBarTitleIcon', this.props.iconStyle)}
+                containerStyle={this.style('titleBarTitleIconContainer', this.props.iconContainerStyle)}
+              />
+            )}
 
             {this.getTitle({ title: this.props.title })}
           </View>
@@ -307,8 +318,17 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
     }
 
     getTitle({ title }) {
-      if (!this.isValidElement(title))
-        return (<Text key="generic-modal-title-text" style={this.style('titleBarTitleText')}>{formatClientText(title || '')}</Text>);
+      if (!this.isValidElement(title)) {
+        return (
+          <Text
+            className={this.getClassName(componentName, 'titleBarTitleText')}
+            key="generic-modal-title-text"
+            style={this.style('titleBarTitleText')}
+          >
+            {formatClientText(title || '')}
+          </Text>
+        );
+      }
 
       return title;
     }
