@@ -7,7 +7,10 @@ export default createStyleSheet(function(theme) {
       flex: 0,
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      browser: {
+        userSelect: 'none'
+      }
     }
   };
 }, {

@@ -5,7 +5,9 @@ import { View, TouchableWithoutFeedback } from '@react-ameliorate/native-shims';
 import { TransitionGroup }                from '@react-ameliorate/component-transition-group';
 import {
   findDOMNode,
-  isDescendantElement
+  isDescendantElement,
+  areObjectsEqualShallow,
+  calculateObjectDifferences
 }                                         from '@react-ameliorate/utils';
 import styleSheet                         from './overlay-styles';
 
@@ -27,7 +29,7 @@ function getSideValue(side, negate) {
 
 function getSimpleSide(anchorPos, childPos) {
       if (!anchorPos || !anchorPos.x || !anchorPos.y || !childPos || !childPos.x || !childPos.y)
-        return [ null, null ];
+        return [ null, null, null ];
 
       var anchorSideX = getSideValue(anchorPos.x.side),
           anchorSideY = getSideValue(anchorPos.y.side),
@@ -36,7 +38,17 @@ function getSimpleSide(anchorPos, childPos) {
           horizontal  = anchorSideX + popupSideX,
           vertical    = anchorSideY + popupSideY,
           sideX       = null,
-          sideY       = null;
+          sideY       = null,
+          values      = {
+            horizontal,
+            vertical,
+            popupSideX,
+            popupSideY,
+            anchorSideX,
+            anchorSideY
+          };
+
+      console.log(anchorPos.x.side, anchorPos.y.side, childPos.x.side, childPos.y.side, horizontal, vertical);
 
       if (horizontal === -2 || horizontal === 2)
         sideX = (horizontal === 2) ? 'right' : 'left';
@@ -44,7 +56,7 @@ function getSimpleSide(anchorPos, childPos) {
       if (vertical === -2 || vertical === 2)
         sideY = (vertical === 2) ? 'bottom' : 'top';
 
-      return [ sideX, sideY ];
+      return [ sideX, sideY, values ];
     }
 
 function getRectPositionOffset(rect, positionKeys, isTarget) {
@@ -229,7 +241,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
 
           var onShouldClose = (childInstance && childInstance.props && childInstance.props.onShouldClose);
           if (typeof onShouldClose === 'function' && !onShouldClose.call(this, { ref: childInstance, child: childInstance, action: sourceAction }))
-            return false;
+            return true;
 
           return false;
         };
@@ -250,27 +262,52 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       }
 
       var domNode = (anchor) ? findDOMNode(anchor) : null;
-      console.log('FOUND ANCHOR: ', _anchor, anchor, domNode);
+      // console.log('FOUND ANCHOR: ', _anchor, anchor, domNode);
 
       return domNode;
     }
 
     addChild(child) {
+      const comparePropsHaveChanged = (oldChild, newChild) => {
+        var propsDiffer = !areObjectsEqualShallow(oldChild.props, newChild.props);
+
+        if (propsDiffer) {
+          var anchorPositionDiffers = !areObjectsEqualShallow(oldChild.props.anchorPosition, newChild.props.anchorPosition),
+              positionDiffers       = calculateObjectDifferences(oldChild.position, newChild.position);
+
+          return (anchorPositionDiffers || positionDiffers);
+        }
+
+        return false;
+      };
+
       if (!child)
         return;
 
       var children = this.getState('children', []),
           index = children.findIndex((thisChild) => (thisChild.instance === child)),
-          thisChild = { instance: child };
+          newChild;
 
-      if (index < 0)
-        children = children.concat(thisChild);
-      else
-        thisChild = children[index];
+      if (index < 0) {
+        newChild = { instance: child, props: {} };
 
-      thisChild.anchor = this.findAnchor(U.get(thisChild, 'instance.props.anchor'));
+        // This is deliberately a concat to copy the array into a new array
+        children = children.concat(newChild);
+      } else {
+        newChild = children[index];
+      }
+
+      var oldChild = Object.assign({}, newChild);
+
+      newChild.props = U.get(child, 'props', {});
+      newChild.anchor = this.findAnchor(U.get(newChild, 'props.anchor'));
+      if (newChild.anchor)
+        newChild.position = this._getChildPosition(newChild);
 
       this.setState({ children: this.requestChildrenClose(children, (childInstance) => (childInstance === child), 'addChild') });
+
+      if (index >= 0 && comparePropsHaveChanged(oldChild, newChild))
+        this.onChildUpdated(oldChild, newChild);
     }
 
     removeChild(child) {
@@ -313,8 +350,11 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       return position || {};
     }
 
-    callProxyToOriginalEvent(eventName, stateObject) {
-      var child = this._getChildFromStateObject(stateObject);
+    callProxyToOriginalEvent(eventName, stateObject, _child) {
+      var child = _child;
+      if (!child && stateObject)
+        child = this._getChildFromStateObject(stateObject);
+
       if (!child)
         return;
 
@@ -326,8 +366,15 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         var anchor = (position.anchor) ? position.anchor : { element: childProps.anchor };
             //domElement = (stateObject.instance) ? findDOMNode(stateObject.instance) : null;
 
-        func.call(this, Object.assign({}, stateObject, { anchor, position }));
+        func.call(this, Object.assign({}, stateObject || {}, { anchor, position }));
       }
+    }
+
+    onChildUpdated(oldChild, newChild) {
+      return this.callProxyToOriginalEvent('onChildUpdated', {
+        _anchor: oldChild.anchor,
+        _position: oldChild.position
+      }, newChild);
     }
 
     onChildEntering(stateObject) {
@@ -375,6 +422,8 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
             (position.style) ? position.style : this.style('defaultPaperStyle'),
             extraStyle
           );
+
+      //console.log('CHILD STYLE: ', position.style);
 
       return childStyle;
     }

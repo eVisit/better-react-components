@@ -274,7 +274,8 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
 
       //console.log('CHILDREN UPDATE: ', newChildren, currentChildren, allChildMap, hasChange);
 
-      return (hasChange) ? allChildMap : currentChildren;
+      return allChildMap;
+      //return (hasChange) ? allChildMap : currentChildren;
     }
 
     resolveState({ initial, props, _props }) {

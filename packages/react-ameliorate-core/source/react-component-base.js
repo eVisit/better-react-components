@@ -88,6 +88,10 @@ export default class ReactComponentBase extends React.Component {
     instance._construct();
   }
 
+  getComponentInstance() {
+    return this._componentInstance;
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
     const handleUpdate = () => {
       // Props have changed... update componentInstance

@@ -17,7 +17,11 @@ export const Tooltip = componentFactory('Tooltip', ({ Parent, componentName }) =
       var caption = this.props.caption;
 
       return super.render(
-        <View className={this.getRootClassName(componentName, 'container')} style={this.style('container', this.props.containerStyle)}>
+        <View
+          className={this.getRootClassName(componentName, 'container')}
+          style={this.style('container', this.props.containerStyle)}
+          pointerEvents="none"
+        >
           <Text>{caption}</Text>
         </View>
       );

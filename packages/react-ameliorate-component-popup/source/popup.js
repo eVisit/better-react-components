@@ -1,3 +1,4 @@
+import { utils as U }                   from 'evisit-js-utils';
 import React                            from 'react';
 import { componentFactory, PropTypes }  from '@react-ameliorate/core';
 import { View }                         from '@react-ameliorate/native-shims';
@@ -8,7 +9,18 @@ import styleSheet                       from './popup-styles';
 export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
   return class Popup extends Parent {
     static styleSheet = styleSheet;
-    static propTypes = Paper.propTypes;
+    static propTypes = {
+      ...Paper.propTypes,
+      hasArrow: PropTypes.bool
+    }
+
+    static defaultProps = {
+      hasArrow: true,
+      onShouldClose: ({ action }) => {
+        if (action === 'addChild')
+          return false;
+      }
+    };
 
     resolveState() {
       return {
@@ -16,7 +28,10 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
         ...this.getState({
           sideX: '',
           sideY: '',
-          hasArrow: false
+          mySideX: '',
+          mySideY: '',
+          anchorSideX: '',
+          anchorSideY: ''
         })
       };
     }
@@ -24,37 +39,104 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
     onMounted(args) {
       if (this.callProvidedCallback('onMounted', args) === false)
         return false;
+    }
 
-      var { position } = args;
-      if (!position || !position.side)
+    onChildUpdated({ position, _position, anchor }) {
+      if (position === _position)
         return;
 
-      var sideX = position.side[0] || '',
-          sideY = position.side[1] || '',
-          hasArrow = (!sideX || !sideY);
+      var sideX       = capitalize(U.get(position, 'side.0', '')),
+          sideY       = capitalize(U.get(position, 'side.1', '')),
+          sideValues  = U.get(position, 'side.2', null),
+          mySideX     = capitalize(U.get(position, 'position.x.side', '')),
+          mySideY     = capitalize(U.get(position, 'position.y.side', '')),
+          anchorSideX = capitalize(U.get(anchor, 'position.x.side', '')),
+          anchorSideY = capitalize(U.get(anchor, 'position.y.side', '')),
+          stateUpdate = {
+            sideX,
+            sideY,
+            mySideX,
+            mySideY,
+            anchorSideX,
+            anchorSideY,
+            sideValues
+          };
 
-      this.setState({
-        sideX: (hasArrow) ? capitalize(sideX) : '',
-        sideY: (hasArrow) ? capitalize(sideY) : '',
-        hasArrow
-      });
+      console.log('POSITION: ', stateUpdate);
+      this.setState(stateUpdate);
+
+      this.getArrowStyle();
+    }
+
+    getArrowStyle() {
+      var sideValues = this.getState('sideValues');
+      if (!sideValues)
+        return;
+
+      var {
+            horizontal,
+            vertical,
+            popupSideX,
+            popupSideY
+          } = sideValues,
+          _horizontal = Math.abs(horizontal),
+          _vertical = Math.abs(vertical);
+
+      // Is popup on a corner? If so, don't do an arrow
+      if (_horizontal === 2 && _vertical === 2)
+        return;
+
+      // Is popup inside? If so, don't do an arrow
+      if (_horizontal < 2 && _vertical < 2)
+        return;
+
+      var styles = [];
+
+      if (popupSideX === 0)
+        styles.push('arrowHCenter');
+      else
+        styles.push((popupSideX > 0) ? 'arrowHLeft' : 'arrowHRight');
+
+      if (popupSideY === 0)
+        styles.push('arrowVCenter');
+      else
+        styles.push((popupSideY > 0) ? 'arrowVTop' : 'arrowVBottom');
+
+      if (vertical === -2)
+        styles.push('arrowDown');
+      else if (vertical === 2)
+        styles.push('arrowUp');
+
+      if (horizontal === 2)
+        styles.push('arrowLeft');
+      else if (horizontal === -2)
+        styles.push('arrowRight');
+
+      console.log('ARROW IS: ', styles);
+
+      return this.style('arrow', styles);
     }
 
     render(children) {
-      var { sideX, sideY, hasArrow } = this.getState();
+      var { sideX, sideY } = this.getState(),
+          arrowStyle = this.getArrowStyle();
 
-      // TODO: Add arrow
+      console.log('Arrow style!', arrowStyle);
 
       return super.render(
-        <Paper {...this.passProps(this.props)} id={this.props.id} onMounted={this.onMounted} className={this.getRootClassName(componentName)}>
+        <Paper
+          {...this.passProps(this.props)}
+          className={this.getRootClassName(componentName)}
+          id={this.props.id}
+          onMounted={this.onMounted}
+          onChildUpdated={this.onChildUpdated}
+        >
           <View style={this.style('container', `container${sideX}`, `container${sideY}`)}>
             <View style={this.style('innerContainer', `innerContainer${sideX}`, `innerContainer${sideY}`)}>
               {this.getChildren(children)}
             </View>
 
-            {/* TODO: Arrow for popups
-              <View style={this.style('arrow', `arrow${side}`)}/>
-             */}
+            {(!!arrowStyle) && <View style={this.style('arrow', arrowStyle)}/>}
           </View>
         </Paper>
       );

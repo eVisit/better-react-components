@@ -2,6 +2,7 @@
 
 import { data as D, utils as U }          from 'evisit-js-utils';
 import { getPlatform, filterObjectKeys }  from '@react-ameliorate/utils';
+import CssToMatrix                        from 'css-to-matrix';
 
 //###if(MOBILE) {###//
 import { StyleSheet, Platform }   from 'react-native';
@@ -543,6 +544,48 @@ export class StyleSheetBuilder {
     return this._expandStyleProps(parentName, finalStyle);
   }
 
+  compileTransformStyleProp(_value) {
+    const objectToOperations = (obj) => {
+      var keys = Object.keys(obj || {});
+
+      for (var i = 0, il = keys.length; i < il; i++) {
+        var key = keys[i],
+            value = obj[key],
+            transform = transformArray.find((t) => (t.type === key));
+
+        if (!transform) {
+          transform = { type: key, value: null };
+          transformArray.push(transform);
+        }
+
+        if (value == null) {
+          transform.value = null;
+          continue;
+        }
+
+        transform.value = (typeof value !== 'string') ? `${value}px` : value;
+      }
+    };
+
+    var value = _value;
+    if (!value)
+      return value;
+
+    if (!Array.isArray(value))
+      value = [ value ];
+
+    var transformArray = [];
+    for (var i = 0, il = value.length; i < il; i++) {
+      var part = value[i];
+      if (!part)
+        return;
+
+      objectToOperations(part);
+    }
+
+    return transformArray.filter((t) => (t.value != null)).map((t) => `${t.type}(${t.value})`).join(' ');
+  }
+
   _flattenInternalStyleSheet(style, _finalStyle) {
     var finalStyle = _finalStyle || {};
     if (!(style instanceof Array))
@@ -561,6 +604,9 @@ export class StyleSheetBuilder {
 
     if (finalStyle.flex === 0)
       finalStyle.flex = 'none';
+
+    if (finalStyle.hasOwnProperty('transform') && typeof finalStyle.transform !== 'string')
+      finalStyle.transform = this.compileTransformStyleProp(finalStyle.transform);
 
     return finalStyle;
   }
