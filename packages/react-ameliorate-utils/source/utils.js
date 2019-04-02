@@ -47,6 +47,30 @@ export function getComponentReference(componentID) {
   return componentReferenceMap[componentID];
 }
 
+export function findComponentReference(_searchString) {
+  var searchString = ('' + _searchString),
+      index = searchString.indexOf(':');
+
+  if (index < 0)
+    return getComponentReference(searchString);
+
+  var prop  = searchString.substring(0, index),
+      value = searchString.substring(index + 1),
+      keys  = Object.keys(componentReferenceMap);
+
+  for (var i = 0, il = keys.length; i < il; i++) {
+    var key = keys[i],
+        instance = componentReferenceMap[key],
+        instanceProps = (instance && instance.props);
+
+    if (!instanceProps)
+      continue;
+
+    if (instanceProps[prop] === value)
+      return instance;
+  }
+}
+
 function iteratePrototype(klass, func) {
   if (!klass)
     return;

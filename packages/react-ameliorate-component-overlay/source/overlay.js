@@ -151,10 +151,10 @@ function calculateAnchorPosition(anchorElem, _anchorPosition) {
 }
 
 function defaultPositioner(props, child, _opts) {
-  if (!child.anchorElement)
+  if (!child.anchor)
     return;
 
-  return calculateAnchorPosition.call(this, child.anchorElement, props.anchorPosition);
+  return calculateAnchorPosition.call(this, child.anchor, props.anchorPosition);
 }
 
 export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) => {
@@ -241,6 +241,20 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       });
     }
 
+    findAnchor(_anchor) {
+      var anchor = _anchor;
+      if (U.instanceOf(anchor, 'string', 'number', 'boolean')) {
+        anchor = this._findComponentReference(('' + anchor));
+        if (anchor && anchor._raComponent)
+          anchor = anchor._getReactComponent();
+      }
+
+      var domNode = (anchor) ? findDOMNode(anchor) : null;
+      console.log('FOUND ANCHOR: ', _anchor, anchor, domNode);
+
+      return domNode;
+    }
+
     addChild(child) {
       if (!child)
         return;
@@ -254,7 +268,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       else
         thisChild = children[index];
 
-      thisChild.anchorElement = findDOMNode(U.get(thisChild, 'instance.props.anchorElement'));
+      thisChild.anchor = this.findAnchor(U.get(thisChild, 'instance.props.anchor'));
 
       this.setState({ children: this.requestChildrenClose(children, (childInstance) => (childInstance === child), 'addChild') });
     }
@@ -309,7 +323,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
           func = child[eventName] || childProps[eventName];
 
       if (typeof func === 'function') {
-        var anchor = (position.anchor) ? position.anchor : { element: childProps.anchorElement };
+        var anchor = (position.anchor) ? position.anchor : { element: childProps.anchor };
             //domElement = (stateObject.instance) ? findDOMNode(stateObject.instance) : null;
 
         func.call(this, Object.assign({}, stateObject, { anchor, position }));
@@ -347,7 +361,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
 
       var childProps = this._getChildPropsFromChild(child),
           position = this._getChildPosition(child),
-          anchor = (position.anchor) ? position.anchor : { element: childProps.anchorElement },
+          anchor = (position.anchor) ? position.anchor : { element: childProps.anchor },
           extraStyle = (typeof childProps.calculateStyle === 'function') ? childProps.calculateStyle(Object.assign({}, stateObject, { anchor, position })) : null,
           childStyle = this.style(
             'childContainer',

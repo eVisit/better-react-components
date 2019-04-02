@@ -268,7 +268,7 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
 
       return (
         <Paper
-          anchorElement={this.getNativeFieldReference()}
+          anchor={this.getNativeFieldReference()}
           anchorPosition={{
             'bottom': 'top',
             'left': 'left'

@@ -7,7 +7,7 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
 
     static propTypes = {
       position: PropTypes.func,
-      anchorElement: PropTypes.any,
+      anchor: PropTypes.any,
       anchorPosition: PropTypes.object,
       onShouldClose: PropTypes.func,
       onEntering: PropTypes.func,

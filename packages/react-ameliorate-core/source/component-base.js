@@ -13,6 +13,7 @@ import {
   addComponentReference,
   removeComponentReference,
   getComponentReference,
+  findComponentReference,
   removeDuplicateStrings,
   postRenderProcessChildProps,
   postRenderProcessChild,
@@ -80,6 +81,12 @@ export default class ComponentBase {
         enumerable: false,
         configurable: true,
         value: getUniqueComponentID()
+      },
+      '_raComponent': {
+        writable: false,
+        enumerable: false,
+        configurable: false,
+        value: true
       },
       '_raMemoizeCache': {
         writable: true,
@@ -302,6 +309,10 @@ export default class ComponentBase {
 
   _renderCount() {
     return this._raReactComponent._renderCount;
+  }
+
+  _getReactComponent() {
+    return this._raReactComponent;
   }
 
   _fetchContext() {
@@ -1690,6 +1701,14 @@ export default class ComponentBase {
 
   getGlobalEventActionHooks() {
     return this.constructor.getGlobalEventActionHooks();
+  }
+
+  _getComponentReference(componentID) {
+    return getComponentReference(componentID);
+  }
+
+  _findComponentReference(value) {
+    return findComponentReference(value);
   }
 
   static getGlobalEventActionHooks() {
