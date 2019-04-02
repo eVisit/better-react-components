@@ -26,7 +26,7 @@ export const CaptionedContainer = componentFactory('CaptionedContainer', ({ Pare
     render(_children) {
       var caption = this.props.caption || '';
 
-      return (
+      return super.render(
         <View className={this.getRootClassName(componentName)} style={this.style('container', this.props.style)}>
           <View className={this.getClassName(componentName, 'title')} style={this.style('captionContainer', this.props.captionContainerStyle)}>
             <Text style={this.style('caption', this.props.captionStyle)}>{caption}</Text>

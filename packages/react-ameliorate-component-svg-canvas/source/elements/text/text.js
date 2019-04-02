@@ -11,7 +11,7 @@ export const SVGText = componentFactory('SVGText', ({ Parent, componentName }) =
     };
 
     render(_children) {
-      return (
+      return super.render(
         <text {...this.passProps(this.props)}>{this.getChildren(_children)}</text>
       );
     }

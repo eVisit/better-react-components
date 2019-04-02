@@ -76,9 +76,9 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
       var glyphInfo = this.getIconGlyphInfo();
 
       if (this.props.container === false)
-        return this.renderIcon(glyphInfo);
+        return super.render(this.renderIcon(glyphInfo));
 
-      return (
+      return super.render(
         <View className={this.getRootClassName(componentName, 'container')} style={this.style('container', this.props.containerStyle)}>
           {this.renderIcon(glyphInfo)}
           {this.getChildren(_children)}

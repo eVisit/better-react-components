@@ -119,7 +119,7 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
           containerNames = this.generateStyleNames(pagerBarPlacement, 'container'),
           renderPagerBarFirst = !!pagerBarPlacement.match(/west|north/i);
 
-      return (
+      return super.render(
         <View className={this.getRootClassName(componentName, containerNames)} style={this.style(containerNames)}>
           {(renderPagerBarFirst) && this._renderPagerBar({ pagerBarPlacement })}
 

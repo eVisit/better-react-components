@@ -20,7 +20,7 @@ export const LayoutContainer = componentFactory('LayoutContainer', ({ Parent, co
           children = this.getChildren(_children, true),
           isVertical = (direction !== 'Horizontal');
 
-      return (
+      return super.render(
         <View className={this.getRootClassName(componentName)} style={this.style('container', this.props.style, `container${direction}`)}>
           {children.map((child, index) => {
             var spacingStyle        = (isVertical) ? { height: spacing } : { width: spacing },

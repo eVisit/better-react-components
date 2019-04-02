@@ -90,11 +90,11 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
     render(_children) {
       var modals = this.getAllModals();
       if (!(modals instanceof Array) || !modals.length)
-        return null;
+        return super.render(null);
 
       console.log('MODALS!', modals);
 
-      return (
+      return super.render(
         <Paper
           {...this.passProps(this.props)}
           id={this.getID()}

@@ -163,7 +163,7 @@ export const Chart = componentFactory('Chart', ({ Parent, componentName }) => {
       if (this._viewElement)
         this.buildChart(this._viewElement);
 
-      return (<View ref={this.viewRef} className={this.getRootClassName(componentName)} style={this.style('container', this.props.style)}/>);
+      return super.render(<View ref={this.viewRef} className={this.getRootClassName(componentName)} style={this.style('container', this.props.style)}/>);
     }
   };
 });

@@ -139,7 +139,7 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       var direction = this.getDirection(),
           tabs = this.props.tabs || [];
 
-      return (
+      return super.render(
         <View className={this.getRootClassName(componentName, this.generateStyleNames(direction, 'container'))} style={this.getContainerStyle()}>
           {tabs.map((tab, tabIndex) => this._renderTabButton({ tab, tabIndex }))}
           {this.getChildren(_children)}

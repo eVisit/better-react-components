@@ -10,7 +10,7 @@ export const SVGCanvas = componentFactory('SVGCanvas', ({ Parent, componentName 
     };
 
     render(_children) {
-      return (
+      return super.render(
         <svg height="100%" width="100%" viewBox="-1 -1 2 2" style={this.props.style}>
           {this.getChildren(_children)}
         </svg>

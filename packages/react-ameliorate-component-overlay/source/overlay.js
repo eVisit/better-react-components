@@ -413,9 +413,9 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
 
     render(_children) {
       //###if(MOBILE){###//
-      return this.renderContent(_children);
+      return super.render(this.renderContent(_children));
       //###}else{###//
-      return (
+      return super.render(
         <TouchableWithoutFeedback
           className={this.getRootClassName(componentName)}
           style={this.style('container', this.props.style)}

@@ -331,7 +331,7 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
       var children = this.getState('children'),
           renderedChildren = this.renderChildren(children);
 
-      return this.callProvidedCallback(['onRender', this.defaultRender], { children: renderedChildren });
+      return super.render(this.callProvidedCallback(['onRender', this.defaultRender], { children: renderedChildren }));
     }
   };
 });

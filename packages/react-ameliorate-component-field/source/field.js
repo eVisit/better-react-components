@@ -486,7 +486,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
     render(children) {
       var flags = this.getComponentFlagsAsObject();
 
-      return (
+      return super.render(
         <View
           className={this.getRootClassName(componentName, flags)}
           style={this.style('rootContainer', this.props.style)}

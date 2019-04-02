@@ -58,7 +58,7 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
     }
 
     render() {
-      return null;
+      return super.render(null);
     }
   };
 });
