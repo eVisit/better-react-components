@@ -48,8 +48,6 @@ function getSimpleSide(anchorPos, childPos) {
             anchorSideY
           };
 
-      console.log(anchorPos.x.side, anchorPos.y.side, childPos.x.side, childPos.y.side, horizontal, vertical);
-
       if (horizontal === -2 || horizontal === 2)
         sideX = (horizontal === 2) ? 'right' : 'left';
 
@@ -306,8 +304,8 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
 
       this.setState({ children: this.requestChildrenClose(children, (childInstance) => (childInstance === child), 'addChild') });
 
-      if (index >= 0 && comparePropsHaveChanged(oldChild, newChild))
-        this.onChildUpdated(oldChild, newChild);
+      if (index < 0 || comparePropsHaveChanged(oldChild, newChild))
+        this.onChildUpdated(oldChild, newChild, (index >= 0));
     }
 
     removeChild(child) {
@@ -423,8 +421,6 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
             extraStyle
           );
 
-      //console.log('CHILD STYLE: ', position.style);
-
       return childStyle;
     }
 
@@ -463,6 +459,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
                   id={(childProps.id || ('' + index))}
                   key={(childProps.id || ('' + index))}
                   style={childProps.style}
+                  pointerEvents={childProps.pointerEvents}
                   _child={child}
                 >
                   {childProps.children}

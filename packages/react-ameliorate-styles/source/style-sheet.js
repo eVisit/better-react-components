@@ -289,6 +289,10 @@ export class StyleSheetBuilder {
     return this.flattenInternalStyleSheet(mergedStyles);
   }
 
+  rawStyle(...args) {
+    return this.flattenInternalStyleSheet(this.style(...args));
+  }
+
   style(...args) {
     return this.styleWithHelper(null, ...args);
   }

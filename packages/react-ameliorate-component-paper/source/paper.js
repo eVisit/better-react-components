@@ -6,6 +6,7 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
     static styleSheet = styleSheet;
 
     static propTypes = {
+      id: PropTypes.string,
       position: PropTypes.func,
       anchor: PropTypes.any,
       anchorPosition: PropTypes.object,
@@ -15,7 +16,8 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       onEntered: PropTypes.func,
       onLeaving: PropTypes.func,
       onLeft: PropTypes.func,
-      calculateStyle: PropTypes.func
+      calculateStyle: PropTypes.func,
+      pointerEvents: PropTypes.string
     };
 
     provideContext() {

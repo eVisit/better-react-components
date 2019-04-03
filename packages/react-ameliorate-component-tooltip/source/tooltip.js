@@ -11,6 +11,19 @@ export const Tooltip = componentFactory('Tooltip', ({ Parent, componentName }) =
     static propTypes = {
       containerStyle: PropTypes.any,
       caption: PropTypes.string
+    };
+
+    static defaultProps = {
+      pointerEvents: "none"
+    };
+
+    resolveProps() {
+      var props = super.resolveProps.apply(this, arguments);
+
+      if (!props.id)
+        props.id = this.getComponentID();
+
+      return props;
     }
 
     render(_children) {
@@ -20,7 +33,6 @@ export const Tooltip = componentFactory('Tooltip', ({ Parent, componentName }) =
         <View
           className={this.getRootClassName(componentName, 'container')}
           style={this.style('container', this.props.containerStyle)}
-          pointerEvents="none"
         >
           <Text>{caption}</Text>
         </View>

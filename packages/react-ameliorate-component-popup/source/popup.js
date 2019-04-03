@@ -11,7 +11,9 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
     static styleSheet = styleSheet;
     static propTypes = {
       ...Paper.propTypes,
-      hasArrow: PropTypes.bool
+      hasArrow: PropTypes.bool,
+      arrowStyle: PropTypes.any,
+      innerContainerStyle: PropTypes.any
     }
 
     static defaultProps = {
@@ -28,10 +30,7 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
         ...this.getState({
           sideX: '',
           sideY: '',
-          mySideX: '',
-          mySideY: '',
-          anchorSideX: '',
-          anchorSideY: ''
+          sideValues: null
         })
       };
     }
@@ -48,24 +47,14 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       var sideX       = capitalize(U.get(position, 'side.0', '')),
           sideY       = capitalize(U.get(position, 'side.1', '')),
           sideValues  = U.get(position, 'side.2', null),
-          mySideX     = capitalize(U.get(position, 'position.x.side', '')),
-          mySideY     = capitalize(U.get(position, 'position.y.side', '')),
-          anchorSideX = capitalize(U.get(anchor, 'position.x.side', '')),
-          anchorSideY = capitalize(U.get(anchor, 'position.y.side', '')),
           stateUpdate = {
             sideX,
             sideY,
-            mySideX,
-            mySideY,
-            anchorSideX,
-            anchorSideY,
             sideValues
           };
 
       console.log('POSITION: ', stateUpdate);
       this.setState(stateUpdate);
-
-      this.getArrowStyle();
     }
 
     getArrowStyle() {
@@ -112,16 +101,16 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       else if (horizontal === -2)
         styles.push('arrowRight');
 
-      console.log('ARROW IS: ', styles);
+      console.log('POPUP STYLES: ', styles);
 
-      return this.style('arrow', styles);
+      return this.style('arrow', styles, this.props.arrowStyle);
     }
 
     render(children) {
       var { sideX, sideY } = this.getState(),
           arrowStyle = this.getArrowStyle();
 
-      console.log('Arrow style!', arrowStyle);
+      console.log('ARROW STYLES: ', arrowStyle);
 
       return super.render(
         <Paper
@@ -131,8 +120,8 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
           onMounted={this.onMounted}
           onChildUpdated={this.onChildUpdated}
         >
-          <View style={this.style('container', `container${sideX}`, `container${sideY}`)}>
-            <View style={this.style('innerContainer', `innerContainer${sideX}`, `innerContainer${sideY}`)}>
+          <View style={this.style('container', `container${sideX}`, `container${sideY}`, this.props.style)}>
+            <View style={this.style('innerContainer', `innerContainer${sideX}`, `innerContainer${sideY}`, this.props.innerContainerStyle)}>
               {this.getChildren(children)}
             </View>
 

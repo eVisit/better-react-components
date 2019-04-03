@@ -295,15 +295,20 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
     }
 
     defaultRenderChild({ child }) {
+      var childElement = child.element,
+          childProps = (childElement && childElement.props);
+
       return (
         <Animated.View
           pointerEvents="auto"
           {...(this.props.childProps || {})}
+          {...(childProps || {})}
+          className={this.getClassName(componentName, 'childContainer')}
           key={child.id}
           style={this.style('childContainer', this.props.containerStyle, this.getAnimationStyle(child))}
           ref={this._onChildMounted.bind(this, child)}
         >
-          {child.element}
+          {childElement}
         </Animated.View>
       );
     }

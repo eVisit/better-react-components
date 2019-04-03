@@ -4,7 +4,15 @@ import { ModalManager }                 from '@react-ameliorate/component-modal-
 import { Overlay }                      from '@react-ameliorate/component-overlay';
 import { AlertModal }                   from '@react-ameliorate/component-alert-modal';
 import { ConfirmModal }                 from '@react-ameliorate/component-confirm-modal';
+import { Tooltip }                      from '@react-ameliorate/component-tooltip';
 import styleSheet                       from './application-styles';
+
+const ANCHOR_POSITION_MAP = {
+  'left'    : { left:   'right',  centerV: 'centerV' },
+  'right'   : { right:  'left',   centerV: 'centerV' },
+  'top'     : { top:    'bottom', centerH: 'centerH' },
+  'bottom'  : { bottom: 'top',    centerH: 'centerH' }
+};
 
 function specializeEvent(event) {
   event.propagationStopped = false;
@@ -68,6 +76,32 @@ function triggerGlobalEventActions(hooks, event, specializeEvent) {
   }
 }
 
+const tooltipIDMap = [];
+var tooltipIDCounter = 1;
+
+function getTooltipID(anchor) {
+  var tooltipInfo = tooltipIDMap.find((t) => (t.anchor === anchor));
+  if (tooltipInfo)
+    return tooltipInfo.id;
+
+  tooltipInfo = {
+    anchor,
+    id: `ra-tooltip-${tooltipIDCounter++}`
+  };
+
+  tooltipIDMap.push(tooltipInfo);
+
+  return tooltipInfo.id;
+}
+
+function removeTooltipID(anchor) {
+  var index = tooltipIDMap.findIndex((t) => (t.anchor === anchor));
+  if (index < 0)
+    return;
+
+  tooltipIDMap.splice(index, 1);
+}
+
 export const Application = componentFactory('Application', ({ Parent, componentName }) => {
   return class Application extends Parent {
     static styleSheet = styleSheet;
@@ -89,12 +123,74 @@ export const Application = componentFactory('Application', ({ Parent, componentN
         'keyup',
         'mousedown',
         'click',
-        'mouseup'
+        'mouseup',
+        'mouseover',
+        'mouseout'
       ];
     }
 
     globalEventActionListener(event) {
       return this.constructor.triggerGlobalEventActions(this.getGlobalEventActionHooks(), { nativeEvent: event }, this.constructor.specializeEvent);
+    }
+
+    getTooltipShowTime() {
+      return 250;
+    }
+
+    getTooltipHideTime() {
+      return 250;
+    }
+
+    registerTooltipMouseOverHandler() {
+      const tooltipHandlerFactory = (eventType) => {
+        return (event) => {
+          var nativeEvent = event.nativeEvent,
+              target      = (nativeEvent && nativeEvent.target);
+
+          if (!target)
+            return;
+
+          var tooltipElement = target.closest('[data-tooltip]:not([data-tooltip=""])');
+          if (!tooltipElement)
+            return;
+
+          var time = (eventType === 'mouseover') ? this.getTooltipShowTime() : this.getTooltipHideTime();
+          if (time == null)
+            return;
+
+          var tooltipID = getTooltipID(tooltipElement);
+
+          this.delay(() => {
+            if (eventType !== 'mouseover') {
+              this.clearDelay(tooltipID);
+              removeTooltipID(tooltipElement);
+              this.popTooltip({ anchor: tooltipElement });
+
+              return;
+            }
+
+            if (!tooltipElement.parentElement)
+              return;
+
+            var tooltip = tooltipElement.getAttribute('data-tooltip');
+            if (!tooltip)
+              return;
+
+            var tooltipSide = tooltipElement.getAttribute('data-tooltip-side'),
+                anchorPosition = ANCHOR_POSITION_MAP[tooltipSide];
+
+            if (!anchorPosition)
+              anchorPosition = ANCHOR_POSITION_MAP['bottom'];
+
+            this.pushTooltip({ id: tooltipID, caption: tooltip, anchorPosition, anchor: tooltipElement });
+          }, time, tooltipID);
+        };
+      };
+
+      this.unregisterDefaultEventActions();
+
+      this.registerDefaultEventAction('mouseover', tooltipHandlerFactory('mouseover'));
+      this.registerDefaultEventAction('mouseout', tooltipHandlerFactory('mouseout'));
     }
 
     componentMounting() {
@@ -104,6 +200,8 @@ export const Application = componentFactory('Application', ({ Parent, componentN
         (this.getGlobalEventActionEventNames() || []).forEach((eventName) => {
           document.body.addEventListener(eventName, this.globalEventActionListener);
         });
+
+        this.registerTooltipMouseOverHandler();
       }
     }
 
@@ -111,6 +209,8 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       super.componentUnmounting.apply(this, arguments);
 
       if (typeof document !== 'undefined') {
+        this.unregisterDefaultEventActions();
+
         (this.getGlobalEventActionEventNames() || []).forEach((eventName) => {
           document.body.removeEventListener(eventName, this.globalEventActionListener);
         });
@@ -121,7 +221,8 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       return {
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
-          _modals: []
+          _modals: [],
+          _tooltips: []
         })
       };
     }
@@ -132,6 +233,51 @@ export const Application = componentFactory('Application', ({ Parent, componentN
 
     showConfirmModal(props) {
       return this.pushModal(<ConfirmModal {...props}/>);
+    }
+
+    getTooltips() {
+      return this.getState('_tooltips', []);
+    }
+
+    pushTooltip(props) {
+      var tooltips      = this.getTooltips(),
+          tooltipIndex  = tooltips.findIndex((t) => (t.anchor === props.anchor || t.id === props.id));
+
+      if (tooltipIndex >= 0) {
+        tooltips = tooltips.slice();
+        tooltips[tooltipIndex] = props;
+
+        this.setState({
+          _tooltips: tooltips
+        });
+
+        return;
+      }
+
+      this.setState({
+        _tooltips: tooltips.concat([props])
+      });
+    }
+
+    popTooltip({ anchor }) {
+      var tooltips = this.getTooltips(),
+          index    = tooltips.find((tip) => (tip.anchor === anchor));
+
+      if (index < 0)
+        return;
+
+      tooltips = tooltips.slice();
+      tooltips.splice(index, 1);
+
+      this.setState({
+        _tooltips: tooltips
+      });
+    }
+
+    popAllTooltips() {
+      this.setState({
+        _tooltips: []
+      });
     }
 
     getModals() {
@@ -198,12 +344,19 @@ export const Application = componentFactory('Application', ({ Parent, componentN
     }
 
     render(_children) {
-      console.log('THESE MODALS: ', this.getModals());
+      var tooltips = this.getTooltips();
+      console.log('TOOLTIPS!', tooltips);
+
       return super.render(
         <Overlay>
           {this.getChildren(_children)}
 
           <ModalManager modals={this.getModals()}/>
+          {(tooltips && tooltips.length > 0) && (
+            tooltips.map((tooltip) => {
+              return (<Tooltip key={tooltip.id} {...tooltip}/>);
+            })
+          )}
         </Overlay>
       );
     }

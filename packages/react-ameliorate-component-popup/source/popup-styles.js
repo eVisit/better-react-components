@@ -1,10 +1,11 @@
 import { createStyleSheet } from '@react-ameliorate/styles';
 
 export default createStyleSheet(function(theme) {
-  const ARROW_SIZE = theme.DEFAULT_PADDING * 0.45,
+  const ARROW_SIZE = Math.round(theme.DEFAULT_PADDING * 0.45),
         ARROW_SIZE_HALF = ARROW_SIZE * 0.5,
         POPUP_COLOR = theme.GREY02_COLOR,
-        ARROW_COLOR = POPUP_COLOR;
+        ARROW_COLOR = theme.blendColors(POPUP_COLOR, theme.transparentColor('black', 0.1)),
+        ARROW_SHIFT_AMOUNT = '49.4%';
 
   return {
     container: {
@@ -69,19 +70,39 @@ export default createStyleSheet(function(theme) {
       bottom: theme.DEFAULT_BORDER_RADIUS,
     },
     arrowDown: {
-      bottom: -ARROW_SIZE_HALF,
+      bottom: 0,
+      transform: [
+        {
+          translateY: ARROW_SHIFT_AMOUNT
+        }
+      ],
       borderTopColor: ARROW_COLOR
     },
     arrowUp: {
-      top: -ARROW_SIZE_HALF,
+      top: 0,
+      transform: [
+        {
+          translateY: `-${ARROW_SHIFT_AMOUNT}`
+        }
+      ],
       borderBottomColor: ARROW_COLOR
     },
     arrowLeft: {
-      left: -ARROW_SIZE_HALF,
+      left: 0,
+      transform: [
+        {
+          translateX: `-${ARROW_SHIFT_AMOUNT}`
+        }
+      ],
       borderRightColor: ARROW_COLOR
     },
     arrowRight: {
-      right: -ARROW_SIZE_HALF,
+      right: 0,
+      transform: [
+        {
+          translateX: ARROW_SHIFT_AMOUNT
+        }
+      ],
       borderLeftColor: ARROW_COLOR
     }
   };

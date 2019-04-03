@@ -206,12 +206,15 @@ export class ThemeProperties {
       }
     };
 
+    finalThemeProps = Object.assign(finalThemeProps, themeProps, paletteProps.palette);
+
     finalThemeProps.DEFAULT_FONT_SIZE = finalThemeProps.FONT_SIZE_SMALL;
     finalThemeProps.DEFAULT_ICON_SIZE = finalThemeProps.DEFAULT_FONT_SIZE;
     finalThemeProps.DEFAULT_BUTTON_ICON_SIZE = finalThemeProps.DEFAULT_FONT_SIZE;
     finalThemeProps.REM = finalThemeProps.DEFAULT_FONT_SIZE;
+    finalThemeProps.TOOLTIP_COLOR = finalThemeProps.GREY02_COLOR;
 
-    return Object.assign(finalThemeProps, themeProps, paletteProps.palette);
+    return finalThemeProps;
   }
 
   mergeStyles(...args) {
