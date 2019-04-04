@@ -2,7 +2,6 @@
 
 import { data as D, utils as U }          from 'evisit-js-utils';
 import { getPlatform, filterObjectKeys }  from '@react-ameliorate/utils';
-import CssToMatrix                        from 'css-to-matrix';
 
 //###if(MOBILE) {###//
 import { StyleSheet, Platform }   from 'react-native';
@@ -285,6 +284,9 @@ export class StyleSheetBuilder {
 
     if (mergedStyles.length < 2)
       return mergedStyles[0];
+
+    if (mergedStyles && mergedStyles.transform)
+      debugger;
 
     return this.flattenInternalStyleSheet(mergedStyles);
   }
@@ -600,17 +602,19 @@ export class StyleSheetBuilder {
       if (!thisStyle)
         continue;
 
-      if (thisStyle instanceof Array)
+      if (thisStyle instanceof Array) {
         finalStyle = this._flattenInternalStyleSheet(thisStyle, finalStyle);
-      else
+      } else {
+        var currentTransform = finalStyle.transform;
         finalStyle = Object.assign(finalStyle, (thisStyle || {}));
+
+        if (currentTransform instanceof Array && finalStyle.transform !== currentTransform && finalStyle.transform instanceof Array)
+          finalStyle.transform = currentTransform.concat(finalStyle.transform).filter(Boolean);
+      }
     }
 
     if (finalStyle.flex === 0)
       finalStyle.flex = 'none';
-
-    if (finalStyle.hasOwnProperty('transform') && typeof finalStyle.transform !== 'string')
-      finalStyle.transform = this.compileTransformStyleProp(finalStyle.transform);
 
     return finalStyle;
   }
@@ -619,7 +623,12 @@ export class StyleSheetBuilder {
     //###if(MOBILE) {###//
     return StyleSheet.flatten(...args);
     //###} else {###//
-    return this._flattenInternalStyleSheet(args, {});
+    var finalStyle = this._flattenInternalStyleSheet(args, {});
+
+    if (finalStyle.hasOwnProperty('transform') && typeof finalStyle.transform !== 'string')
+      finalStyle.transform = this.compileTransformStyleProp(finalStyle.transform);
+
+    return finalStyle;
     //###}###//
   }
 

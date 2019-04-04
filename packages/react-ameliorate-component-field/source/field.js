@@ -36,7 +36,11 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       maxOptions: PropTypes.number,
       fieldState: PropTypes.number,
       skipFormRegistration: PropTypes.bool
-    }
+    };
+
+    static defaultProps = {
+      _raMeasurable: true
+    };
 
     onPropUpdated_options(value) {
       this.setState({ options: value });

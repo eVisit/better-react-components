@@ -1,7 +1,7 @@
 import moment                         from 'moment';
 import { utils as U, formatters }     from 'evisit-js-utils';
 import PropTypes                      from '@react-ameliorate/prop-types';
-import { Platform }                   from '@react-ameliorate/native-shims';
+import { View, Platform }             from '@react-ameliorate/native-shims';
 import React                          from 'react';
 import {
   CONTEXT_PROVIDER_KEY,
@@ -40,6 +40,15 @@ const COMPONENT_FLAGS = {
 var globalEventActionHooks = {};
 
 const NOOP = () => {};
+
+const MEASURABLE_VIEW_STYLE = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  opacity: 0
+};
 
 export default class ComponentBase {
   static getClassNamePrefix() {
@@ -564,6 +573,9 @@ export default class ComponentBase {
   }
 
   _invokeComponentDidMount() {
+    if (this._raStateUpdateCounter > this._raReactComponent._stateUpdateCounter)
+      this._setReactComponentState(this.getState());
+
     this.componentMounted();
   }
 
@@ -1008,7 +1020,44 @@ export default class ComponentBase {
     return undefined;
   }
 
+  //###if(MOBILE){###//
+  getBoundingClientRect() {
+    return this._measurableViewLayout;
+  }
+
+  _measurableViewLayoutCapture(event) {
+    var nativeEvent = (event && event.nativeEvent),
+        layout      = (nativeEvent && nativeEvent.layout);
+
+    console.log('COMPONENT LAYOUT: ', layout);
+
+    Object.defineProperty(this, '_measurableViewLayout', {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: layout
+    });
+  }
+  //###}###//
+
   render(children) {
+    //###if(MOBILE){###//
+    if (this.props._raMeasurable) {
+      return (
+        <React.Fragment key={`_ra-measurable-wrapper-key-${this.getComponentID()}`}>
+          {children || null}
+
+          <View
+            ref={this.captureReference('_raMeasurableView')}
+            style={MEASURABLE_VIEW_STYLE}
+            onLayout={this._measurableViewLayoutCapture}
+            pointerEvents="none"
+          />
+        </React.Fragment>
+      );
+    }
+    //###}###//
+
     return children || null;
   }
 

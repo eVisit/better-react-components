@@ -345,7 +345,6 @@ export const Application = componentFactory('Application', ({ Parent, componentN
 
     render(_children) {
       var tooltips = this.getTooltips();
-      console.log('TOOLTIPS!', tooltips);
 
       return super.render(
         <Overlay>

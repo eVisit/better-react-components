@@ -12,7 +12,6 @@ import styleSheet                               from './button-styles';
 export const Button = componentFactory('Button', ({ Parent, componentName }) => {
   return class Button extends Parent {
     static styleSheet = styleSheet;
-
     static propTypes = {
       caption: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
       captionStyle: PropTypes.any,
@@ -32,6 +31,10 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       rightIcon: PropTypes.string,
       rightIconStyle: PropTypes.any,
       rightIconContainerStyle: PropTypes.any
+    };
+
+    static defaultProps = {
+      _raMeasurable: true
     };
 
     constructor(props, ...args) {

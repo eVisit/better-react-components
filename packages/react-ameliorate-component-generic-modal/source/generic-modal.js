@@ -129,7 +129,16 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       currentPosition.x += relX;
       currentPosition.y += relY;
 
-      this.setState({ modalPositionStyle: { transform: `translate(${currentPosition.x}px, ${currentPosition.y}px)` } });
+      this.setState({
+        modalPositionStyle: [
+          {
+            translateX: currentPosition.x
+          },
+          {
+            translateY: currentPosition.y
+          },
+        ]
+      });
     }
 
     convertTitleBarReference(_elem) {

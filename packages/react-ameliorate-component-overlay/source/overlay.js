@@ -117,6 +117,9 @@ function getRectPositionOffset(rect, positionKeys, isTarget) {
 }
 
 function calculateAnchorPosition(anchorElem, _anchorPosition) {
+  if (!anchorElem || typeof anchorElem.getBoundingClientRect !== 'function')
+    return;
+
   var anchorPosition = _anchorPosition || {},
       anchorPositionKeys = Object.keys(anchorPosition);
 
@@ -129,8 +132,11 @@ function calculateAnchorPosition(anchorElem, _anchorPosition) {
     anchorPositionKeys = Object.keys(anchorPosition);
   }
 
-  var rect = anchorElem.getBoundingClientRect(),
-      anchorPos = getRectPositionOffset(rect, anchorPositionKeys),
+  var rect = anchorElem.getBoundingClientRect();
+  if (!rect)
+    return;
+
+  var anchorPos = getRectPositionOffset(rect, anchorPositionKeys),
       childPos = getRectPositionOffset(rect, anchorPositionKeys.map((key) => anchorPosition[key]), true),
       finalStyle = {};
 
@@ -145,8 +151,16 @@ function calculateAnchorPosition(anchorElem, _anchorPosition) {
   if (childPos.y.offset)
     finalStyle['marginTop'] = childPos.y.offset;
 
-  if (childPos.x.transform || childPos.y.transform)
-    finalStyle['transform'] = `translate(${childPos.x.transform},${childPos.y.transform})`;
+  if (childPos.x.transform || childPos.y.transform) {
+    finalStyle['transform'] = [
+      {
+        translateX: childPos.x.transform
+      },
+      {
+        translateY: childPos.y.transform
+      }
+    ];
+  }
 
   return {
     anchor: {
@@ -259,10 +273,11 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
           anchor = anchor._getReactComponent();
       }
 
-      var domNode = (anchor) ? findDOMNode(anchor) : null;
-      // console.log('FOUND ANCHOR: ', _anchor, anchor, domNode);
+      //###if(!MOBILE){###//
+      anchor = (anchor) ? findDOMNode(anchor) : null;
+      //###}###//
 
-      return domNode;
+      return anchor;
     }
 
     addChild(child) {
@@ -357,6 +372,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         return;
 
       var childProps = this._getChildPropsFromChild(child),
+          currentPosition = child.position,
           position = this._getChildPosition(child),
           func = child[eventName] || childProps[eventName];
 
@@ -364,7 +380,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         var anchor = (position.anchor) ? position.anchor : { element: childProps.anchor };
             //domElement = (stateObject.instance) ? findDOMNode(stateObject.instance) : null;
 
-        func.call(this, Object.assign({}, stateObject || {}, { anchor, position }));
+        func.call(this, Object.assign({}, stateObject || {}, { anchor, position, _position: currentPosition }));
       }
     }
 

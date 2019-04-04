@@ -53,7 +53,6 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
             sideValues
           };
 
-      console.log('POSITION: ', stateUpdate);
       this.setState(stateUpdate);
     }
 
@@ -101,16 +100,12 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       else if (horizontal === -2)
         styles.push('arrowRight');
 
-      console.log('POPUP STYLES: ', styles);
-
       return this.style('arrow', styles, this.props.arrowStyle);
     }
 
     render(children) {
       var { sideX, sideY } = this.getState(),
           arrowStyle = this.getArrowStyle();
-
-      console.log('ARROW STYLES: ', arrowStyle);
 
       return super.render(
         <Paper
