@@ -292,7 +292,7 @@ export class StyleSheetBuilder {
   }
 
   rawStyle(...args) {
-    return this.flattenInternalStyleSheet(this.style(...args));
+    return this.style(...args);
   }
 
   style(...args) {

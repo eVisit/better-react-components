@@ -6,6 +6,34 @@ import { Paper }                        from '@react-ameliorate/component-paper'
 import { capitalize }                   from '@react-ameliorate/utils';
 import styleSheet                       from './popup-styles';
 
+const ARROW_SHIFT_AMOUNT_RATIO = 0.494;
+const ARROW_SHIFT_TABLE = {
+  arrowHCenter: {
+    axis: 'x',
+    value: -ARROW_SHIFT_AMOUNT_RATIO
+  },
+  arrowVCenter: {
+    axis: 'y',
+    value: -ARROW_SHIFT_AMOUNT_RATIO
+  },
+  arrowDown: {
+    axis: 'y',
+    value: ARROW_SHIFT_AMOUNT_RATIO
+  },
+  arrowUp: {
+    axis: 'y',
+    value: -ARROW_SHIFT_AMOUNT_RATIO
+  },
+  arrowLeft: {
+    axis: 'x',
+    value: -ARROW_SHIFT_AMOUNT_RATIO
+  },
+  arrowRight: {
+    axis: 'x',
+    value: ARROW_SHIFT_AMOUNT_RATIO
+  }
+};
+
 export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
   return class Popup extends Parent {
     static styleSheet = styleSheet;
@@ -14,9 +42,10 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       hasArrow: PropTypes.bool,
       arrowStyle: PropTypes.any,
       innerContainerStyle: PropTypes.any
-    }
+    };
 
     static defaultProps = {
+      _raMeasurable: true,
       hasArrow: true,
       onShouldClose: ({ action }) => {
         if (action === 'addChild')
@@ -54,6 +83,28 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
           };
 
       this.setState(stateUpdate);
+    }
+
+    getTransformStyle(arrowStyle, styles) {
+      var transform = [{ translateX: 0 }, { translateY: 0 }],
+          arrowSize = arrowStyle.width;
+
+      for (var i = 0, il = styles.length; i < il; i++) {
+        var style = styles[i],
+            shift = ARROW_SHIFT_TABLE[style];
+
+        if (!shift)
+          continue;
+
+        var index   = (shift.axis === 'x') ? 0 : 1,
+            key     = (!index) ? 'translateX' : 'translateY';
+
+        transform[index][key] = arrowSize * shift.value;
+      }
+
+      return {
+        transform
+      };
     }
 
     getArrowStyle() {
@@ -100,7 +151,9 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       else if (horizontal === -2)
         styles.push('arrowRight');
 
-      return this.style('arrow', styles, this.props.arrowStyle);
+      var arrowStyle = this.rawStyle('arrow', this.props.arrowStyle);
+
+      return this.style('arrow', styles, this.getTransformStyle(arrowStyle, styles), this.props.arrowStyle);
     }
 
     render(children) {
@@ -111,9 +164,10 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
         <Paper
           {...this.passProps(this.props)}
           className={this.getRootClassName(componentName)}
-          id={this.props.id}
+          id={this.props.id || this.getComponentID()}
           onMounted={this.onMounted}
           onChildUpdated={this.onChildUpdated}
+          updateCounter={this._getRenderCount()}
         >
           <View style={this.style('container', `container${sideX}`, `container${sideY}`, this.props.style)}>
             <View style={this.style('innerContainer', `innerContainer${sideX}`, `innerContainer${sideY}`, this.props.innerContainerStyle)}>

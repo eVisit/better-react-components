@@ -116,6 +116,25 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       return triggerGlobalEventActions.call(this, hooks, event, _specializeEvent || specializeEvent);
     }
 
+    constructor(...args) {
+      super(...args);
+
+      Object.defineProperties(this, {
+        'application': {
+          writable: true,
+          enumerable: false,
+          configurable: true,
+          value: this
+        },
+        '_currentlyFocussedField': {
+          writable: true,
+          enumerable: false,
+          configurable: true,
+          value: null
+        }
+      });
+    }
+
     getGlobalEventActionEventNames() {
       return [
         'keydown',
@@ -221,6 +240,7 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       return {
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
+          locale: null,
           _modals: [],
           _tooltips: []
         })
@@ -341,6 +361,23 @@ export const Application = componentFactory('Application', ({ Parent, componentN
 
     isModalActive() {
       return !!(this.getModals().length);
+    }
+
+    getLocale() {
+      return this.getState('locale');
+    }
+
+    setLocale(locale) {
+      this.setState({
+        locale
+      });
+    }
+
+    provideContext() {
+      return {
+        application: this,
+        locale: this.getState('locale')
+      };
     }
 
     render(_children) {

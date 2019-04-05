@@ -22,7 +22,9 @@ import {
   processRenderedElements,
   getUniqueComponentID,
   isValidComponent,
-  toNumber
+  toNumber,
+  layoutToBoundingClientRect,
+  findDOMNode
 }                                     from '@react-ameliorate/utils';
 
 var logCache = {};
@@ -432,6 +434,10 @@ export default class ComponentBase {
     this._raReactComponent._renderCount++;
 
     return elements;
+  }
+
+  _getRenderCount() {
+    return this._raReactComponent._renderCount;
   }
 
   _renderInterceptor(renderID) {
@@ -1020,11 +1026,17 @@ export default class ComponentBase {
     return undefined;
   }
 
-  //###if(MOBILE){###//
   getBoundingClientRect() {
+    //###if(MOBILE){###//
     return this._measurableViewLayout;
+    //###} else {###//
+    var domNode = findDOMNode(this);
+    if (domNode)
+      return domNode.getBoundingClientRect();
+    //###}###//
   }
 
+  //###if(MOBILE){###//
   _measurableViewLayoutCapture(event) {
     var nativeEvent = (event && event.nativeEvent),
         layout      = (nativeEvent && nativeEvent.layout);
@@ -1035,7 +1047,7 @@ export default class ComponentBase {
       writable: true,
       enumerable: false,
       configurable: true,
-      value: layout
+      value: layoutToBoundingClientRect(layout)
     });
   }
   //###}###//

@@ -25,17 +25,18 @@ export {
 }                                 from '@react-ameliorate/styles';
 
 
-// This needs to be smarter and needs to stack classes intelligently so that super properly works
-function mixinClasses(args) {
-  for (var i = 0, il = args.length; i < il; i++) {
-    var arg = args[i];
-    if (typeof arg !== 'function')
+function mixinClasses(_Parent, componentName, componentInternalName, mixins) {
+  var Parent = _Parent;
+
+  for (var i = 0, il = mixins.length; i < il; i++) {
+    var mixin = mixins[i];
+    if (typeof mixin !== 'function')
       continue;
 
-    copyPrototypeFuncs(arg.prototype, this, (propName, prop, source) => {
-      return !source.hasOwnProperty('isReactComponent');
-    }, false);
+    Parent = mixin.call(this, { Parent, componentName, componentInternalName });
   }
+
+  return Parent;
 }
 
 function propCallbackNameToMethodMap(methodNames) {
@@ -153,14 +154,10 @@ export function componentFactory(_name, definer, _options) {
   var options = (ComponentBase.isValidComponent(_options)) ? { parent: _options } : (_options || {}),
       ReactBaseComponent = getReactComponentClass(options.reactComponentBaseClass),
       Parent = getComponentClass(options.parent || ComponentBase),
-      mixins = ([].concat(Parent._raMixins, options.mixins)).filter((mixin) => mixin);
+      mixins = (options.mixins || []).filter((mixin) => (typeof mixin === 'function'));
 
-  if (mixins && mixins.length) {
-    const MixinParent = class InterstitialMixinClass extends Parent {};
-    copyStaticProperties(Parent, MixinParent);
-    mixinClasses.call(MixinParent.prototype, mixins);
-    Parent = MixinParent;
-  }
+  if (mixins && mixins.length)
+    Parent = mixinClasses(Parent, displayName, name, mixins);
 
   if (typeof Parent !== 'function')
     debugger;

@@ -57,7 +57,7 @@ function getSimpleSide(anchorPos, childPos) {
       return [ sideX, sideY, values ];
     }
 
-function getRectPositionOffset(rect, positionKeys, isTarget) {
+function getRectPositionOffset(anchorRect, childRect, positionKeys, isTarget) {
   const getSideAndOffset = (key) => {
     if (!key)
       return;
@@ -88,37 +88,41 @@ function getRectPositionOffset(rect, positionKeys, isTarget) {
       continue;
 
     var side = info.side,
-        transform = null;
+        transform = 0;
 
     if (side === 'left' || side === 'right' || side === 'centerh') {
-      position = (side === 'centerh') ? (rect.left + rect.width * 0.5) : rect[side];
+      position = (side === 'centerh') ? (anchorRect.left + anchorRect.width * 0.5) : anchorRect[side];
       side = (side === 'centerh') ? 'center' : side;
 
       if (isTarget && side === 'right')
-        transform = '-100%';
+        transform = -childRect.width;
       else if (isTarget && side === 'center')
-        transform = '-50%';
+        transform = -(childRect.width * 0.5);
 
-      x = { position, offset: info.offset, side, transform: transform || 0 };
+      x = { position: position + transform, offset: info.offset, side };
     } else {
-      position = (side === 'centerv') ? (rect.top + rect.height * 0.5) : rect[side];
+      position = (side === 'centerv') ? (anchorRect.top + anchorRect.height * 0.5) : anchorRect[side];
       side = (side === 'centerv') ? 'center' : side;
 
       if (isTarget && side === 'bottom')
-        transform = '-100%';
+        transform = -childRect.height;
       else if (isTarget && side === 'center')
-        transform = '-50%';
+        transform = -(childRect.height * 0.5);
 
-      y = { position, offset: info.offset, side, transform: transform || 0 };
+      y = { position: position + transform, offset: info.offset, side };
     }
   }
 
   return { x, y };
 }
 
-function calculateAnchorPosition(anchorElem, _anchorPosition) {
+function calculateAnchorPosition(childElem, anchorElem, _anchorPosition) {
+  const notResolvedYet = {
+    style: { opacity: 0 }
+  };
+
   if (!anchorElem || typeof anchorElem.getBoundingClientRect !== 'function')
-    return;
+    return notResolvedYet;
 
   var anchorPosition = _anchorPosition || {},
       anchorPositionKeys = Object.keys(anchorPosition);
@@ -132,16 +136,20 @@ function calculateAnchorPosition(anchorElem, _anchorPosition) {
     anchorPositionKeys = Object.keys(anchorPosition);
   }
 
-  var rect = anchorElem.getBoundingClientRect();
-  if (!rect)
-    return;
+  var anchorRect = anchorElem.getBoundingClientRect();
+  if (!anchorRect)
+    return notResolvedYet;
 
-  var anchorPos = getRectPositionOffset(rect, anchorPositionKeys),
-      childPos = getRectPositionOffset(rect, anchorPositionKeys.map((key) => anchorPosition[key]), true),
+  var childRect = childElem.getBoundingClientRect();
+  if (!childRect)
+    return notResolvedYet;
+
+  var anchorPos = getRectPositionOffset(anchorRect, childRect, anchorPositionKeys),
+      childPos = getRectPositionOffset(anchorRect, childRect, anchorPositionKeys.map((key) => anchorPosition[key]), true),
       finalStyle = {};
 
   if (!childPos.x || !childPos.y || !anchorPos.x || !anchorPos.y)
-    return;
+    return notResolvedYet;
 
   finalStyle.left = anchorPos.x.position;
   if (childPos.x.offset)
@@ -151,21 +159,10 @@ function calculateAnchorPosition(anchorElem, _anchorPosition) {
   if (childPos.y.offset)
     finalStyle['marginTop'] = childPos.y.offset;
 
-  if (childPos.x.transform || childPos.y.transform) {
-    finalStyle['transform'] = [
-      {
-        translateX: childPos.x.transform
-      },
-      {
-        translateY: childPos.y.transform
-      }
-    ];
-  }
-
   return {
     anchor: {
       position: anchorPos,
-      rect,
+      rect: anchorRect,
       element: anchorElem
     },
     position: childPos,
@@ -178,7 +175,7 @@ function defaultPositioner(props, child, _opts) {
   if (!child.anchor)
     return;
 
-  return calculateAnchorPosition.call(this, child.anchor, props.anchorPosition);
+  return calculateAnchorPosition.call(this, child.self, child.anchor, props.anchorPosition);
 }
 
 export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) => {
@@ -298,11 +295,11 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         return;
 
       var children = this.getState('children', []),
-          index = children.findIndex((thisChild) => (thisChild.instance === child)),
+          index = children.findIndex((thisChild) => (thisChild.props.id === child.props.id)),
           newChild;
 
       if (index < 0) {
-        newChild = { instance: child, props: {} };
+        newChild = child._overlayChild;
 
         // This is deliberately a concat to copy the array into a new array
         children = children.concat(newChild);
@@ -314,7 +311,9 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
 
       newChild.props = U.get(child, 'props', {});
       newChild.anchor = this.findAnchor(U.get(newChild, 'props.anchor'));
-      if (newChild.anchor)
+      newChild.self = this.findAnchor(newChild.instance);
+
+      if (newChild.layout)
         newChild.position = this._getChildPosition(newChild);
 
       this.setState({ children: this.requestChildrenClose(children, (childInstance) => (childInstance === child), 'addChild') });
@@ -372,16 +371,10 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         return;
 
       var childProps = this._getChildPropsFromChild(child),
-          currentPosition = child.position,
-          position = this._getChildPosition(child),
           func = child[eventName] || childProps[eventName];
 
-      if (typeof func === 'function') {
-        var anchor = (position.anchor) ? position.anchor : { element: childProps.anchor };
-            //domElement = (stateObject.instance) ? findDOMNode(stateObject.instance) : null;
-
-        func.call(this, Object.assign({}, stateObject || {}, { anchor, position, _position: currentPosition }));
-      }
+      if (typeof func === 'function')
+        func.call(this, Object.assign({}, stateObject || {}, child));
     }
 
     onChildUpdated(oldChild, newChild) {
@@ -396,10 +389,6 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
     }
 
     onChildMounted(stateObject) {
-      // var domElement = (stateObject.instance) ? findDOMNode(stateObject.instance) : null;
-      // stateObject['$element'] = domElement;
-      // debugger;
-
       return this.callProxyToOriginalEvent('onMounted', stateObject);
     }
 
@@ -434,15 +423,18 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
               })
             },
             (position.style) ? position.style : this.style('defaultPaperStyle'),
-            extraStyle
+            extraStyle,
+            (!child.ready || !child.layout) ? { opacity: 0 } : null
           );
+
+      console.log('POSITION STYLE: ', position.style);
 
       return childStyle;
     }
 
     renderContent(_children) {
-      var children = this.getState('children', []),
-          hasChildren = !!(children && children.length);
+      var overlayChildren = this.getState('children', []),
+          hasChildren = !!(overlayChildren && overlayChildren.length);
 
       return (
         <View
@@ -463,25 +455,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
             ref={this.captureReference('overlayRoot', findDOMNode)}
             pointerEvents="box-none"
           >
-            {children.map((child, index) => {
-              if (!child)
-                return null;
-
-              var childInstance = child.instance,
-                  childProps = childInstance.props || {};
-
-              return (
-                <View
-                  id={(childProps.id || ('' + index))}
-                  key={(childProps.id || ('' + index))}
-                  style={childProps.style}
-                  pointerEvents={childProps.pointerEvents}
-                  _child={child}
-                >
-                  {childProps.children}
-                </View>
-              );
-            })}
+            {overlayChildren}
           </TransitionGroup>
         </View>
       );

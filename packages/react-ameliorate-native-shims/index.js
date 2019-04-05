@@ -20,6 +20,7 @@ export * from './source/components/touchable-without-feedback';
 export * from './source/components/view';
 export * from './source/components/virtualized-list';
 export * from './source/components/web-view';
+export * from './source/utils';
 //###} else {###//
 export * from 'react-native';
 //###}###//

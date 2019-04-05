@@ -761,6 +761,20 @@ export function getPlatform() {
   //###}###//
 }
 
+export function layoutToBoundingClientRect(layout) {
+  if (!layout)
+    return layout;
+
+  return {
+    top: layout.x,
+    left: layout.y,
+    right: layout.x + layout.width,
+    bottom: layout.y + layout.height,
+    width: layout.width,
+    height: layout.height
+  };
+}
+
 export {
   insertStyleSheet
 };

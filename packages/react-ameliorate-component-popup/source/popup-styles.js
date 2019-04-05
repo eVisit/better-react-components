@@ -4,8 +4,7 @@ export default createStyleSheet(function(theme) {
   const ARROW_SIZE = Math.round(theme.DEFAULT_PADDING * 0.45),
         ARROW_SIZE_HALF = ARROW_SIZE * 0.5,
         POPUP_COLOR = theme.GREY02_COLOR,
-        ARROW_COLOR = theme.blendColors(POPUP_COLOR, theme.transparentColor('black', 0.1)),
-        ARROW_SHIFT_AMOUNT = '49.4%';
+        ARROW_COLOR = theme.blendColors(POPUP_COLOR, theme.transparentColor('black', 0.1));
 
   return {
     container: {
@@ -42,12 +41,7 @@ export default createStyleSheet(function(theme) {
       height: ARROW_SIZE
     },
     arrowHCenter: {
-      left: '50%',
-      transform: [
-        {
-          translateX: '-50%'
-        }
-      ]
+      left: '50%'
     },
     arrowHLeft: {
       left: theme.DEFAULT_BORDER_RADIUS,
@@ -56,12 +50,7 @@ export default createStyleSheet(function(theme) {
       right: theme.DEFAULT_BORDER_RADIUS,
     },
     arrowVCenter: {
-      top: '50%',
-      transform: [
-        {
-          translateY: '-50%'
-        }
-      ]
+      top: '50%'
     },
     arrowVTop: {
       top: theme.DEFAULT_BORDER_RADIUS,
@@ -71,38 +60,18 @@ export default createStyleSheet(function(theme) {
     },
     arrowDown: {
       bottom: 0,
-      transform: [
-        {
-          translateY: ARROW_SHIFT_AMOUNT
-        }
-      ],
       borderTopColor: ARROW_COLOR
     },
     arrowUp: {
       top: 0,
-      transform: [
-        {
-          translateY: `-${ARROW_SHIFT_AMOUNT}`
-        }
-      ],
       borderBottomColor: ARROW_COLOR
     },
     arrowLeft: {
       left: 0,
-      transform: [
-        {
-          translateX: `-${ARROW_SHIFT_AMOUNT}`
-        }
-      ],
       borderRightColor: ARROW_COLOR
     },
     arrowRight: {
       right: 0,
-      transform: [
-        {
-          translateX: ARROW_SHIFT_AMOUNT
-        }
-      ],
       borderLeftColor: ARROW_COLOR
     }
   };
