@@ -1,4 +1,3 @@
-import { utils as U }                   from 'evisit-js-utils';
 import React                            from 'react';
 import { componentFactory, PropTypes }  from '@react-ameliorate/core';
 import { Animated, Easing }             from '@react-ameliorate/native-shims';
@@ -31,6 +30,7 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
 
       if (initial || props.children !== _props.children) {
         var update = this._updateChildren(props.children, children);
+        console.log('UPDATED CHILDREN!', update.childMap);
         children = update.childMap;
       }
 
@@ -65,10 +65,10 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
 
     _getAnimationDuration(startTime) {
       var duration = this.getAnimationDuration(this.props.duration);
-      if (!startTime)
+      if (startTime == null)
         return duration;
 
-      var diff = U.now() - startTime;
+      var diff = Date.now() - startTime;
       if (diff > duration)
         return duration;
       else
@@ -80,16 +80,7 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
         return new Promise((resolve) => {
           var duration = this._getAnimationDuration(stateObject.animationStartTime);
 
-          // If no duration, or this is the entered or left states, finalize the callback immediately
-          if (!duration || stateObject.state === 'entered' || stateObject.state === 'left') {
-            if (typeof doneCallback === 'function')
-              doneCallback.call(this, stateObject);
-
-            resolve(true);
-            return;
-          }
-
-          stateObject.animationStartTime = U.now();
+          stateObject.animationStartTime = Date.now();
           stateObject.animationState = Animated.timing(
             stateObject.animation,
             {

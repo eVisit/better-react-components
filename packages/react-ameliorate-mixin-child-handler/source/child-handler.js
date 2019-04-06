@@ -22,6 +22,10 @@ export function ChildHandler({ Parent, componentName }) {
       return 'children';
     }
 
+    _getChildCount() {
+      return Object.keys(this.getState(this.getChildStateKey(), {})).length;
+    }
+
     _getChildEnteredCount() {
       var children = this.getState(this.getChildStateKey(), {});
       return Object.keys(children).filter((childKey) => {
@@ -50,12 +54,10 @@ export function ChildHandler({ Parent, componentName }) {
           return;
 
         doneCallback = this._onChildEntered;
-
-        var enteredCount = this._getChildEnteredCount();
         stateObject.state = 'entering';
 
         // This is the first child entering... so fade in our main component
-        if (enteredCount === 0)
+        if (stateObject.element && this._getChildEnteredCount() === 0)
           this._doChildTransition(this._childHandlerState, 'entering');
       } else if (eventName === 'entered') {
         if (state === 'entered')
@@ -70,7 +72,7 @@ export function ChildHandler({ Parent, componentName }) {
         stateObject.state = 'leaving';
 
         // This is the last child leaving... so fade out our main component
-        if (this._getChildEnteredCount() === 0)
+        if (stateObject.element && this._getChildEnteredCount() === 0)
           this._doChildTransition(this._childHandlerState, 'leaving');
       } else if (eventName === 'left') {
         if (state === 'left')

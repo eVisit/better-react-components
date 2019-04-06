@@ -8,6 +8,7 @@ export * from './source/interaction-manager';
 export * from './source/linking';
 export * from './source/platform';
 export * from './source/style-sheet';
+export * from './source/utils';
 export * from './source/components/activity-indicator';
 export * from './source/components/flat-list';
 export * from './source/components/image';
@@ -20,7 +21,6 @@ export * from './source/components/touchable-without-feedback';
 export * from './source/components/view';
 export * from './source/components/virtualized-list';
 export * from './source/components/web-view';
-export * from './source/utils';
 //###} else {###//
 export * from 'react-native';
 //###}###//

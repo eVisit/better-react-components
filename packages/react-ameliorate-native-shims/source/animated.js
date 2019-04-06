@@ -126,12 +126,13 @@ class Animation {
   }
 
   _startAnimation(callback) {
-    this._animationStartTime = U.now();
+    this._animationStartTime = Date.now();
     this._onEnd = callback;
 
     // This is just used for callbacks
     this.value.timeRatio = 0;
-    return TweenMax.to(this.value, this.duration / 1000, {
+
+    return TweenMax.to(this.value, (this.duration / 1000), {
       value: this.toValue,
       timeRatio: 1,
       delay: this.delay / 1000,
@@ -199,9 +200,9 @@ class Value {
   interpolate(opts) {
     var val = new Value(interoplateValue(this.value, opts));
 
-    this.addTracker(val, (currentValue) => {
+    this.addTracker((currentValue) => {
       val.setValue(interoplateValue(currentValue.value, opts));
-    });
+    }, val);
 
     return val;
   }
@@ -243,16 +244,12 @@ class Value {
     var trackers = this.trackers;
     for (var i = 0, il = trackers.length; i < il; i++) {
       var tracker = trackers[i];
-      tracker.callback(this);
+      tracker.callback(this, tracker.ref);
     }
   }
 
-  addTracker(ref, callback) {
+  addTracker(callback, ref) {
     if (typeof callback !== 'function')
-      return;
-
-    var index = this.trackers.findIndex((tracker) => (tracker.ref === ref));
-    if (index >= 0)
       return;
 
     var id = getUniqueID();
@@ -262,15 +259,19 @@ class Value {
       callback
     });
 
-    callback(this);
+    callback(this, ref);
 
     return id;
   }
 
-  removeTracker(ref) {
-    var index = this.trackers.findIndex((tracker) => (tracker.ref === ref || tracker.id === ref));
+  removeTracker(id) {
+    var index = this.trackers.findIndex((tracker) => (tracker.id === id || tracker.callback === id));
     if (index >= 0)
       this.trackers.splice(index, 1);
+  }
+
+  removeAllTrackers() {
+    this.trackers = [];
   }
 }
 
@@ -311,99 +312,137 @@ const Easing = (function() {
     };
 })();
 
-Animated.createAnimatedComponent = function(Klass) {
-  class AnimatedComponent extends Klass {
-    trackStyleValues(style, _newStyle, _alreadyTracked, _parentKeys) {
-      const trackTransform = (transform) => {
-        const enqueueTransformUpdate = (axisName, val) => {
-          if (!transformContext.promise) {
-            // Call at the end of this event frame... at which point all transform properties should have been updated
-            transformContext.promise = nextTick(() => {
-              transformContext.promise = null;
-              var elem = this._componentElement;
+function trackStyleValues(style, _newStyle, _trackedValues, _alreadyTracked, _parentKeys) {
+  const addToTrackedValues = (value) => {
+    if (!trackedValues)
+      return;
 
-              if (elem)
-                elem.style['transform'] = StyleSheetBuilder.getCSSRuleValue('transform', transformContext.axis);
-            });
-          }
+    if (trackedValues.indexOf(value) >= 0)
+      return;
 
-          // Update current transform property within this event frame
-          transformContext.axis[axisName] = val;
-        };
+    trackedValues.push(value);
+  };
 
-        function trackTransformPart(part) {
-          var transformAxis = StyleSheetBuilder.getTransformAxis();
-          for (var j = 0, jl = transformAxis.length; j < jl; j++) {
-            var axis = transformAxis[j];
-            if (!part.hasOwnProperty(axis))
-              continue;
+  const trackTransform = (transform) => {
+    const enqueueTransformUpdate = (axisName, val) => {
+      if (!transformContext.promise) {
+        // Call at the end of this event frame... at which point all transform properties should have been updated
+        transformContext.promise = nextTick(() => {
+          transformContext.promise = null;
+          var elem = this._componentElement;
 
-            ((axis, axisValue) => {
-              axisValue.addTracker(this, (currentValue) => {
-                enqueueTransformUpdate(axis, currentValue.getValue());
-              });
-            })(axis, part[axis]);
-
-            break;
-          }
-        }
-
-        var transformContext = { axis: {} };
-        for (var i = 0, il = transform.length; i < il; i++) {
-          var part = transform[i];
-          trackTransformPart.call(this, part);
-        }
-      };
-
-      if (!style)
-        return;
-
-      var keys = Object.keys(style);
-      if (keys.length === 0)
-        return;
-
-      // Don't do cyclic lookups
-      if (_alreadyTracked && _alreadyTracked.indexOf(style) >= 0)
-        return;
-
-      // Array to protect against cyclic lookups
-      var alreadyTracked = (_alreadyTracked || []),
-          newStyle = _newStyle || {},
-          parentKeys = (_parentKeys || []);
-
-      alreadyTracked.push(style);
-
-      for (var i = 0, il = keys.length; i < il; i++) {
-        var key = keys[i],
-            value = style[key];
-
-        if (key === 'transform' && value && !(typeof value === 'string' || value instanceof String)) {
-          trackTransform(value);
-        } else if (value && value._isAnimatedValue) {
-          newStyle[key] = value.getValue();
-
-          value.addTracker(this, ((key) => {
-            var fullKey = [ ...parentKeys, key ].join('.');
-            return (currentValue) => {
-              var elem = this._componentElement;
-              if (!elem)
-                return;
-
-              var val = currentValue.getValue();
-              elem.style[key] = StyleSheetBuilder.getCSSRuleValue(fullKey, val);
-            };
-          })(key));
-        } else {
-          newStyle[key] = value;
-          if (value && U.instanceOf(value, 'object', 'array'))
-            this.trackStyleValues(value, newStyle, alreadyTracked, [ ...parentKeys, key ]);
-        }
+          if (elem)
+            elem.style['transform'] = StyleSheetBuilder.getCSSRuleValue('transform', transformContext.axis);
+        });
       }
 
-      return newStyle;
+      // Update current transform property within this event frame
+      transformContext.axis[axisName] = val;
+    };
+
+    function trackTransformPart(part) {
+      var transformAxis = StyleSheetBuilder.getTransformAxis();
+      for (var j = 0, jl = transformAxis.length; j < jl; j++) {
+        var axis = transformAxis[j];
+        if (!part.hasOwnProperty(axis))
+          continue;
+
+        ((axis, axisValue) => {
+          addToTrackedValues(axisValue);
+
+          axisValue.addTracker((currentValue) => {
+            enqueueTransformUpdate(axis, currentValue.getValue());
+          }, this);
+        })(axis, part[axis]);
+
+        break;
+      }
+    }
+
+    var transformContext = { axis: {} };
+    for (var i = 0, il = transform.length; i < il; i++) {
+      var part = transform[i];
+      trackTransformPart.call(this, part);
+    }
+  };
+
+  if (!style)
+    return;
+
+  var keys = Object.keys(style);
+  if (keys.length === 0)
+    return;
+
+  // Don't do cyclic lookups
+  if (_alreadyTracked && _alreadyTracked.indexOf(style) >= 0)
+    return;
+
+  // Array to protect against cyclic lookups
+  var alreadyTracked = (_alreadyTracked || []),
+      newStyle = _newStyle || {},
+      trackedValues = _trackedValues,
+      parentKeys = (_parentKeys || []);
+
+  alreadyTracked.push(style);
+
+  for (var i = 0, il = keys.length; i < il; i++) {
+    var key = keys[i],
+        value = style[key];
+
+    if (key === 'transform' && value && !(typeof value === 'string' || value instanceof String)) {
+      trackTransform(value);
+    } else if (value && value._isAnimatedValue) {
+      newStyle[key] = value.getValue();
+      addToTrackedValues(value);
+
+      value.addTracker(((key) => {
+        var fullKey = [ ...parentKeys, key ].join('.');
+        return (currentValue) => {
+          var elem = this._componentElement;
+          if (!elem)
+            return;
+
+          var val = currentValue.getValue();
+          elem.style[key] = StyleSheetBuilder.getCSSRuleValue(fullKey, val);
+        };
+      })(key), this);
+    } else {
+      newStyle[key] = value;
+      if (value && U.instanceOf(value, 'object', 'array'))
+        trackStyleValues.call(this, value, newStyle, trackedValues, alreadyTracked, [ ...parentKeys, key ]);
+    }
+  }
+
+  return newStyle;
+}
+
+Animated.createAnimatedComponent = function(Klass) {
+  class AnimatedComponent extends Klass {
+    cleanStyleValueTrackers(style) {
+      var trackedValues = this._trackedValues;
+      if (!trackedValues)
+        return;
+
+      for (var i = 0, il = trackedValues.length; i < il; i++) {
+        var trackedValue = trackedValues[i];
+        trackedValue.removeAllTrackers();
+      }
+    }
+
+    trackStyleValues(style) {
+      Object.defineProperty(this, '_trackedValues', {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: []
+      });
+
+      return trackStyleValues.call(this, style, {}, this._trackedValues);
     }
 
     render(children) {
+      this.cleanStyleValueTrackers();
+
       var style = StyleSheetBuilder.flattenInternalStyleSheet(this.props.style),
           trackedStyle = this.trackStyleValues(style),
           self = this;

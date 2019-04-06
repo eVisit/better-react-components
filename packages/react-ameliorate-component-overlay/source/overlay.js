@@ -2,6 +2,7 @@ import { utils as U }                     from 'evisit-js-utils';
 import React                              from 'react';
 import { componentFactory }               from '@react-ameliorate/core';
 import { View, TouchableWithoutFeedback } from '@react-ameliorate/native-shims';
+import { ChildHandler }                   from '@react-ameliorate/mixin-child-handler';
 import { TransitionGroup }                from '@react-ameliorate/component-transition-group';
 import {
   findDOMNode,
@@ -191,6 +192,10 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       };
     }
 
+    componentMounted() {
+      console.log('OVERLAY HAS MOUNTED!!!');
+    }
+
     // _debugStateUpdates(newState, oldState) {
     //   if (newState.children !== oldState.children)
     //     console.trace('Children: ', newState.children, oldState.children);
@@ -233,31 +238,34 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
 
     provideContext() {
       return {
-        _raOverlay: this
+        _raOverlay: this,
+        _raPaperContext: this
       };
     }
 
     closeAll() {
-      this.setState({ children: this.requestChildrenClose(undefined, undefined, 'closeAll') });
+      this.setState({ children: this.requestChildrenClose(undefined, undefined, 'close') });
     }
 
     requestChildrenClose(_children, isException, sourceAction) {
       var children = (_children) ? _children : this.getState('children', []);
+
       return children.filter((thisChild) => {
+        if (!thisChild)
+          return false;
+
         const shouldRemove = () => {
-          if (typeof isException === 'function' && isException(childInstance))
+          if (typeof isException === 'function' && isException(thisChild))
             return true;
 
-          var onShouldClose = (childInstance && childInstance.props && childInstance.props.onShouldClose);
-          if (typeof onShouldClose === 'function' && !onShouldClose.call(this, { ref: childInstance, child: childInstance, action: sourceAction }))
+          var onShouldClose = (thisChild.props && thisChild.props.onShouldClose);
+          if (typeof onShouldClose === 'function' && !onShouldClose.call(this, { child: thisChild, action: sourceAction }))
             return true;
 
           return false;
         };
 
-        var childInstance = thisChild.instance,
-            shouldStay = shouldRemove();
-
+        var shouldStay = shouldRemove();
         return shouldStay;
       });
     }
@@ -294,58 +302,41 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       if (!child)
         return;
 
-      var children = this.getState('children', []),
-          index = children.findIndex((thisChild) => (thisChild.props.id === child.props.id)),
-          newChild;
+      var children = this.getState('children', []).slice(),
+          index = children.findIndex((thisChild) => (thisChild.props.id === child.props.id || thisChild === child));
 
-      if (index < 0) {
-        newChild = child._overlayChild;
+      if (index < 0)
+        children.push(child);
+      else
+        children[index] = child;
 
-        // This is deliberately a concat to copy the array into a new array
-        children = children.concat(newChild);
-      } else {
-        newChild = children[index];
-      }
-
-      var oldChild = Object.assign({}, newChild);
-
-      newChild.props = U.get(child, 'props', {});
-      newChild.anchor = this.findAnchor(U.get(newChild, 'props.anchor'));
-      newChild.self = this.findAnchor(newChild.instance);
-
-      if (newChild.layout)
-        newChild.position = this._getChildPosition(newChild);
-
-      this.setState({ children: this.requestChildrenClose(children, (childInstance) => (childInstance === child), 'addChild') });
-
-      if (index < 0 || comparePropsHaveChanged(oldChild, newChild))
-        this.onChildUpdated(oldChild, newChild, (index >= 0));
+      this.setState({ children: this.requestChildrenClose(children, (childInstance) => (childInstance === child), 'add') });
     }
 
     removeChild(child) {
       var children = this.getState('children', []),
-          index = children.findIndex((thisChild) => (thisChild.instance === child));
+          index = children.findIndex((thisChild) => (thisChild.props.id === child.props.id || thisChild === child));
 
       if (index >= 0) {
+        children = children.slice();
         children.splice(index, 1);
-        this.setState({ children: children.slice() });
+
+        this.setState({ children });
       }
     }
 
     _getChildFromStateObject(stateObject) {
-      if (!stateObject.element)
+      if (!stateObject)
         return;
 
-      var element = stateObject.element;
-      return (element.props && element.props._child);
+      return stateObject.instance;
     }
 
     _getChildPropsFromChild(child) {
       if (!child)
         return;
 
-      var childInstance = child.instance;
-      return (childInstance && childInstance.props);
+      return child.props;
     }
 
     _getChildPosition(child) {
@@ -362,11 +353,8 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       return position || {};
     }
 
-    callProxyToOriginalEvent(eventName, stateObject, _child) {
-      var child = _child;
-      if (!child && stateObject)
-        child = this._getChildFromStateObject(stateObject);
-
+    callProxyToOriginalEvent(eventName, stateObject) {
+      var child = this._getChildFromStateObject(stateObject);
       if (!child)
         return;
 
@@ -374,15 +362,15 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
           func = child[eventName] || childProps[eventName];
 
       if (typeof func === 'function')
-        func.call(this, Object.assign({}, stateObject || {}, child));
+        func.call(this, Object.assign({}, stateObject || {}, childProps));
     }
 
-    onChildUpdated(oldChild, newChild) {
-      return this.callProxyToOriginalEvent('onChildUpdated', {
-        _anchor: oldChild.anchor,
-        _position: oldChild.position
-      }, newChild);
-    }
+    // onChildUpdated(oldChild, newChild) {
+    //   return this.callProxyToOriginalEvent('onChildUpdated', {
+    //     _anchor: oldChild.anchor,
+    //     _position: oldChild.position
+    //   }, newChild);
+    // }
 
     onChildEntering(stateObject) {
       return this.callProxyToOriginalEvent('onEntering', stateObject);
@@ -424,12 +412,20 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
             },
             (position.style) ? position.style : this.style('defaultPaperStyle'),
             extraStyle,
-            (!child.ready || !child.layout) ? { opacity: 0 } : null
+            //(!child.ready || !child.layout) ? { opacity: 0 } : null
           );
 
       console.log('POSITION STYLE: ', position.style);
 
       return childStyle;
+    }
+
+    getDOMNode() {
+      var ref = this.getReference('_rootView');
+      if (!ref)
+        return null;
+
+      return findDOMNode(ref);
     }
 
     renderContent(_children) {
@@ -440,6 +436,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         <View
           className={this.getRootClassName(componentName, 'children')}
           style={this.style('internalContainer', this.props.containerStyle)}
+          ref={this.captureReference('_rootView')}
         >
           {this.getChildren(_children)}
 
@@ -479,6 +476,6 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       //###}###//
     }
   };
-});
+}, { mixins: [ ChildHandler ] });
 
 export { styleSheet as overlayStyles };

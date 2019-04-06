@@ -4,7 +4,7 @@ import { utils as U } from 'evisit-js-utils';
 //###if(!MOBILE) {###//
 import { findDOMNode as reactFindDOMNode }  from 'react-dom';
 //###} else {###//
-import { Platform }                         from 'react-native';
+import { Platform, findNodeHandle }         from 'react-native';
 //###}###//
 
 const componentReferenceMap = {};
@@ -486,11 +486,18 @@ export function findDOMNode(elem) {
   if (!elem)
     return elem;
 
-  //###if(MOBILE) {###//
-  return elem;
-  //###} else {###//
-  return reactFindDOMNode(elem);
-  //###}###//
+  if (typeof elem.getDOMNode === 'function')
+    return elem.getDOMNode();
+
+  try {
+    //###if(MOBILE) {###//
+    return findNodeHandle(elem);
+    //###} else {###//
+    return reactFindDOMNode(elem);
+    //###}###//
+  } catch (e) {
+    return null;
+  }
 }
 
 export function nextTick(callback) {

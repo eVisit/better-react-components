@@ -48,7 +48,7 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       _raMeasurable: true,
       hasArrow: true,
       onShouldClose: ({ action }) => {
-        if (action === 'addChild')
+        if (action === 'add')
           return false;
       }
     };

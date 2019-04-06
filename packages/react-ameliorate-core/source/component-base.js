@@ -1448,12 +1448,11 @@ export default class ComponentBase {
       return toNumber(duration);
 
     var theme = this.getTheme();
-    if (!theme)
-      return 250;
-
-    var themeProps = theme.getThemeProperties();
-    if (themeProps && themeProps.DEFAULT_ANIMATION_DURATION != null)
-      return themeProps.DEFAULT_ANIMATION_DURATION;
+    if (theme) {
+      var themeProps = theme.getThemeProperties();
+      if (themeProps && themeProps.DEFAULT_ANIMATION_DURATION != null)
+        return themeProps.DEFAULT_ANIMATION_DURATION;
+    }
 
     return 250;
   }
