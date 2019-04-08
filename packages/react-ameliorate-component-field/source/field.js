@@ -35,8 +35,9 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       getOptionCaption: PropTypes.func,
       maxOptions: PropTypes.number,
       fieldState: PropTypes.number,
-      skipFormRegistration: PropTypes.bool
-    };
+      skipFormRegistration: PropTypes.bool,
+      mask: PropTypes.number
+    }
 
     static defaultProps = {
       _raMeasurable: true
@@ -168,14 +169,18 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
     }
 
     // Called every time the value is set, but only when it is set by the user
-    onChange({ event, value }) {
+    onChange(args) {
       this.setErrorState(null);
-      return this.callProvidedCallback('onChange', { event, value });
+      return this.callProvidedCallback('onChange', args);
     }
 
     // Called every time the value is set
-    onValueChange({ event, value }) {
-      return this.callProvidedCallback('onValueChange', { event, value });
+    onValueChange(args) {
+      var parentForm = this.getParentForm();
+      if (parentForm)
+        parentForm.onFieldValueChange({ ...args, ref: this });
+
+      return this.callProvidedCallback('onValueChange', args);
     }
 
     onFocus({ event }) {
