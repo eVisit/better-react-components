@@ -10,7 +10,8 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
     static propTypes = {
       icon: PropTypes.string.isRequired,
       container: PropTypes.bool,
-      containerStyle: PropTypes.any
+      containerStyle: PropTypes.any,
+      size: PropTypes.number
     }
 
     getGlyphMap() {
@@ -61,11 +62,19 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
       return { fontFamily, glyph };
     }
 
-    renderIcon(glyphInfo) {
+    _renderIcon(glyphInfo) {
+      var extraStyle = { fontFamily: glyphInfo.fontFamily };
+      if (typeof this.props.size === 'number' && isFinite(this.props.size))
+        extraStyle.fontSize = this.props.size;
+
+      return this.renderIcon({ glyphInfo, extraStyle });
+    }
+
+    renderIcon({ glyphInfo, extraStyle }) {
       return (
         <Text
           className={this.getRootClassName(componentName, 'icon')}
-          style={this.style('icon', this.props.style, { fontFamily: glyphInfo.fontFamily })}
+          style={this.style('icon', this.props.style, extraStyle)}
         >
           {glyphInfo.glyph}
         </Text>
@@ -80,7 +89,7 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
 
       return super.render(
         <View className={this.getRootClassName(componentName, 'container')} style={this.style('container', this.props.containerStyle)}>
-          {this.renderIcon(glyphInfo)}
+          {this._renderIcon(glyphInfo)}
           {this.getChildren(_children)}
         </View>
       );

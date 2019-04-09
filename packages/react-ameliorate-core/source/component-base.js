@@ -374,7 +374,8 @@ export default class ComponentBase {
 
     if (!cachedStyle) {
       cachedStyle = styleSheetFactory(theme, theme.platform, {
-        StyleSheetBuilder: (typeof this['_getStyleSheetBuilderClass'] === 'function') ? this._getStyleSheetBuilderClass(styleSheetFactory._raStyleSheetBuilder) : null
+        StyleSheetBuilder: (typeof this['_getStyleSheetBuilderClass'] === 'function') ? this._getStyleSheetBuilderClass(styleSheetFactory._raStyleSheetBuilder) : null,
+        styleHelper: this.styleHelper
       });
 
       styleCache[styleID] = cachedStyle;

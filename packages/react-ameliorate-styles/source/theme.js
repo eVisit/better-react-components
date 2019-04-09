@@ -208,11 +208,22 @@ export class ThemeProperties {
 
     finalThemeProps = Object.assign(finalThemeProps, themeProps, paletteProps.palette);
 
-    finalThemeProps.DEFAULT_FONT_SIZE = finalThemeProps.FONT_SIZE_SMALL;
-    finalThemeProps.DEFAULT_ICON_SIZE = finalThemeProps.DEFAULT_FONT_SIZE;
-    finalThemeProps.DEFAULT_BUTTON_ICON_SIZE = finalThemeProps.DEFAULT_FONT_SIZE;
-    finalThemeProps.REM = finalThemeProps.DEFAULT_FONT_SIZE;
-    finalThemeProps.TOOLTIP_COLOR = finalThemeProps.GREY02_COLOR;
+    var specialMerge = {
+      'DEFAULT_FONT_SIZE': finalThemeProps.FONT_SIZE_SMALL,
+      'DEFAULT_ICON_SIZE': finalThemeProps.DEFAULT_FONT_SIZE,
+      'DEFAULT_BUTTON_ICON_SIZE': finalThemeProps.DEFAULT_FONT_SIZE,
+      'REM': finalThemeProps.DEFAULT_FONT_SIZE,
+      'TOOLTIP_COLOR': finalThemeProps.GREY02_COLOR
+    };
+
+    var keys = Object.keys(specialMerge);
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key   = keys[i],
+          value = finalThemeProps[key];
+
+      if (value == null)
+        finalThemeProps[key] = specialMerge[key];
+    }
 
     return finalThemeProps;
   }

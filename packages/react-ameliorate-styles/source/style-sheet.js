@@ -40,7 +40,7 @@ const transformAxis = [
 var singletonStyleSheetBuilder;
 
 export class StyleSheetBuilder {
-  constructor({ thisSheetID, styleExports, sheetName, theme, platform, factory, mergeStyles, resolveStyles, onUpdate }) {
+  constructor({ thisSheetID, styleExports, sheetName, theme, platform, factory, mergeStyles, resolveStyles, onUpdate, styleHelper }) {
     if (!(factory instanceof Function))
       throw new Error('Theme factory must be a function');
 
@@ -52,6 +52,7 @@ export class StyleSheetBuilder {
     U.defineROProperty(this, '_mergeStyles', (mergeStyles instanceof Array) ? mergeStyles : [mergeStyles]);
     U.defineROProperty(this, '_resolveStyles', (resolveStyles instanceof Array) ? resolveStyles : [resolveStyles]);
     U.defineROProperty(this, '_onUpdate', onUpdate);
+    U.defineRWProperty(this, '_styleHelper', styleHelper);
     U.defineRWProperty(this, '_style', null);
     U.defineRWProperty(this, '_rawStyle', null);
     U.defineRWProperty(this, '_cachedBaseStyles', null);
@@ -95,9 +96,21 @@ export class StyleSheetBuilder {
     var sheetName = (props.name) ? '' + props.name : styleSheetName(),
         styleFunction = function(theme, platform, _opts) {
           var opts = _opts || {},
-              thisBuilderClass = (opts.StyleSheetBuilder) ? opts.StyleSheetBuilder : builderClass;
+              thisBuilderClass = (opts.StyleSheetBuilder) ? opts.StyleSheetBuilder : builderClass,
+              styleHelper = opts.styleHelper;
 
-          return new thisBuilderClass({ thisSheetID, styleExports, sheetName, theme, platform, factory, mergeStyles, resolveStyles, onUpdate });
+          return new thisBuilderClass({
+            thisSheetID,
+            styleExports,
+            sheetName,
+            theme,
+            platform,
+            factory,
+            mergeStyles,
+            resolveStyles,
+            onUpdate,
+            styleHelper
+          });
         };
 
     Object.defineProperty(styleFunction, '_raStyleFactory', {
@@ -259,7 +272,7 @@ export class StyleSheetBuilder {
           style = sheet[styleName];
 
           if (typeof helper === 'function')
-            style = helper(this, styleName, style, sheet);
+            style = helper({ styleName, style, styles: sheet, sheet: this });
         }
 
         if (!style || style === true)
@@ -285,9 +298,6 @@ export class StyleSheetBuilder {
     if (mergedStyles.length < 2)
       return mergedStyles[0];
 
-    if (mergedStyles && mergedStyles.transform)
-      debugger;
-
     return this.flattenInternalStyleSheet(mergedStyles);
   }
 
@@ -296,7 +306,7 @@ export class StyleSheetBuilder {
   }
 
   style(...args) {
-    return this.styleWithHelper(null, ...args);
+    return this.styleWithHelper(this._styleHelper, ...args);
   }
 
   styleProp(name, defaultProp) {
