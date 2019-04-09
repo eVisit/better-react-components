@@ -270,8 +270,6 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       //###if(!MOBILE){###//
       window.addEventListener('resize', this.onWindowResize);
       //###}###//
-
-      global.currentPaper = this;
     }
 
     componentUnmounting() {

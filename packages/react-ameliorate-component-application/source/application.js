@@ -2,11 +2,11 @@ import React                                  from 'react';
 import { componentFactory, PropTypes }        from '@react-ameliorate/core';
 import { ModalManager }                       from '@react-ameliorate/component-modal-manager';
 import { Overlay }                            from '@react-ameliorate/component-overlay';
-import { AlertModal }                         from '@react-ameliorate/component-alert-modal';
-import { ConfirmModal }                       from '@react-ameliorate/component-confirm-modal';
 import { Tooltip }                            from '@react-ameliorate/component-tooltip';
 import styleSheet                             from './application-styles';
 import { findClosestComponentFromDOMElement } from '@react-ameliorate/utils';
+import { ModalStackHandler }                  from '@react-ameliorate/mixin-modal-stack-handler';
+import { TooltipStackHandler }                from '@react-ameliorate/mixin-tooltip-stack-handler';
 
 const ANCHOR_POSITION_MAP = {
   'left'    : { left:   'right',  centerV: 'centerV' },
@@ -245,127 +245,9 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       return {
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
-          locale: null,
-          _modals: [],
-          _tooltips: []
+          locale: null
         })
       };
-    }
-
-    showAlertModal(props) {
-      return this.pushModal(<AlertModal {...props}/>);
-    }
-
-    showConfirmModal(props) {
-      return this.pushModal(<ConfirmModal {...props}/>);
-    }
-
-    getTooltips() {
-      return this.getState('_tooltips', []);
-    }
-
-    pushTooltip(props) {
-      var tooltips      = this.getTooltips(),
-          tooltipIndex  = tooltips.findIndex((t) => (t.anchor === props.anchor || t.id === props.id));
-
-      if (tooltipIndex >= 0) {
-        tooltips = tooltips.slice();
-        tooltips[tooltipIndex] = props;
-
-        this.setState({
-          _tooltips: tooltips
-        });
-
-        return;
-      }
-
-      this.setState({
-        _tooltips: tooltips.concat([props])
-      });
-    }
-
-    popTooltip({ anchor }) {
-      var tooltips = this.getTooltips(),
-          index    = tooltips.find((tip) => (tip.anchor === anchor));
-
-      if (index < 0)
-        return;
-
-      tooltips = tooltips.slice();
-      tooltips.splice(index, 1);
-
-      this.setState({
-        _tooltips: tooltips
-      });
-    }
-
-    popAllTooltips() {
-      this.setState({
-        _tooltips: []
-      });
-    }
-
-    getModals() {
-      return this.getState('_modals', []);
-    }
-
-    pushModal(_modal) {
-      const onClose = async (args) => {
-        var modalProps = _modal.props,
-            func = (modalProps && modalProps.onClose);
-
-        if (typeof func === 'function') {
-          var result = await func.call(this, args);
-          if (result === false)
-            return false;
-        }
-
-        this.popModal(modal);
-
-        return result;
-      };
-
-      var modal = _modal;
-      if (!modal)
-        return;
-
-      var modalID = this.generateUniqueComponentID('Modal');
-
-      modal = this.cloneComponents(modal, ({ childProps }) => {
-        return Object.assign({}, childProps, {
-          id: modalID,
-          key: modalID,
-          onClose
-        });
-      });
-
-      var modals = this.getModals().slice();
-      modals.push(modal);
-      this.setState({ _modals: modals });
-
-      return async () => await onClose({ event: null, result: -2 });
-    }
-
-    popModal(modal) {
-      var modals = this.getModals(),
-          index = modals.indexOf(modal);
-
-      if (index >= 0) {
-        modals = modals.slice();
-        modals.splice(index, 1);
-        this.setState({ _modals: modals });
-      }
-    }
-
-    popAllModals() {
-      if (!this.getState('_modals', []).length)
-        return;
-
-      this.setState('_modals', []);
-    }
-
-    isModalActive() {
-      return !!(this.getModals().length);
     }
 
     getLocale() {
@@ -381,7 +263,8 @@ export const Application = componentFactory('Application', ({ Parent, componentN
     provideContext() {
       return {
         application: this,
-        locale: this.getState('locale')
+        locale: this.getState('locale'),
+        modalContext: this
       };
     }
 
@@ -402,6 +285,8 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       );
     }
   };
+}, {
+  mixins: [ ModalStackHandler, TooltipStackHandler ]
 });
 
 export { styleSheet as modalManagerStyles };

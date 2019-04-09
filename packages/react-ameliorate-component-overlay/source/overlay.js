@@ -86,19 +86,6 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
     }
 
     addChild(child) {
-      const comparePropsHaveChanged = (oldChild, newChild) => {
-        var propsDiffer = !areObjectsEqualShallow(oldChild.props, newChild.props);
-
-        if (propsDiffer) {
-          var anchorPositionDiffers = !areObjectsEqualShallow(oldChild.props.anchorPosition, newChild.props.anchorPosition),
-              positionDiffers       = calculateObjectDifferences(oldChild.position, newChild.position);
-
-          return (anchorPositionDiffers || positionDiffers);
-        }
-
-        return false;
-      };
-
       if (!child)
         return;
 
@@ -161,13 +148,6 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         func.call(this, Object.assign({}, stateObject || {}, childProps));
     }
 
-    // onChildUpdated(oldChild, newChild) {
-    //   return this.callProxyToOriginalEvent('onChildUpdated', {
-    //     _anchor: oldChild.anchor,
-    //     _position: oldChild.position
-    //   }, newChild);
-    // }
-
     onChildEntering(stateObject) {
       return this.callProxyToOriginalEvent('onEntering', stateObject);
     }
@@ -204,7 +184,6 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
           }) : null,
           childStyle = this.style(
             'childContainer',
-            childProps.style,
             {
               opacity: stateObject.animation.interpolate({
                 inputRange: [0, 1],
@@ -213,7 +192,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
             },
             (position && position.style) ? position.style : this.style('defaultPaperStyle'),
             extraStyle,
-            (childProps.visible === false) ? { opacity: 0 } : null
+            (childProps.visible === false || (!position && childProps.anchor)) ? { opacity: 0 } : null
           );
 
       return childStyle;
@@ -249,11 +228,13 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       );
     }
 
-    render(_children) {
-      //###if(MOBILE){###//
-      return super.render(this.renderContent(_children));
-      //###}else{###//
-      return super.render(
+    //###if(MOBILE){###//
+    _platformRender(children) {
+      return this.renderContent(children);
+    }
+    //###}else{###//
+    _platformRender(children) {
+      return (
         <TouchableWithoutFeedback
           className={this.getRootClassName(componentName)}
           style={this.style('container', this.props.style)}
@@ -261,10 +242,15 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
           onKeyDown={this.onKeyDown}
           tabIndex="-1"
         >
-          {this.renderContent(_children)}
+          {this.renderContent(children)}
         </TouchableWithoutFeedback>
       );
-      //###}###//
+    }
+    //###}###//
+
+    render(_children) {
+      var children = this.getChildren(_children);
+      return super.render(this._platformRender(children));
     }
   };
 }, { mixins: [ ChildHandler ] });

@@ -80,14 +80,18 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
     }
 
     render(children) {
-      if (!this.getState('visible'))
-        return super.render(null);
+      if (this.props.inline === true && !this.getState('visible'))
+          return super.render(null);
 
       if (this.context._raModalManager || this.props.inline === true)
         return super.render(this.renderModal(children));
 
       return super.render(
-        <Paper {...this.passProps(this.props)} id={this.props.id} className={this.getRootClassName(componentName)}>
+        <Paper
+          {...this.passProps(this.props)}
+          id={this.props.id}
+          className={this.getRootClassName(componentName)}
+        >
           {this.renderModal(children)}
         </Paper>
       );

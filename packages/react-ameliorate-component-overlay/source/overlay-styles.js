@@ -15,6 +15,7 @@ export default createStyleSheet(function(theme) {
     },
     internalContainer: {
       browser: {
+        flex: 1,
         cursor: 'default'
       }
     },
@@ -52,8 +53,7 @@ export default createStyleSheet(function(theme) {
       left: 0,
       top: 0,
       right: 0,
-      bottom: 0,
-      opacity: 0
+      bottom: 0
     }
   };
 });
