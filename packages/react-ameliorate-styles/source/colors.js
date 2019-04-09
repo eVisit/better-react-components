@@ -270,8 +270,6 @@ function buildPalette(opts = {}, _colorHelperFactory) {
       fadeRatio             = options.FADE_RATIO,
       thisMainColor         = (new Color(mainColor.color || mainColor)).hsl().object();
 
-  console.log('INVERT CONTRAST RATIO: ', textContrastRatio);
-
   if (alt1LuminosityOffset == null)
     alt1LuminosityOffset = thisMainColor.l - (thisMainColor.l * alt1LuminosityRatio);
 

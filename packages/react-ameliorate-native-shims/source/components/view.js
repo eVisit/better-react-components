@@ -5,9 +5,9 @@ import { utils as U }               from 'evisit-js-utils';
 import React                        from 'react';
 import {
   sendOnLayoutEvent,
-  findDOMNode,
   isElementOrDescendant,
-  filterToNativeElementProps
+  filterToNativeElementProps,
+  findDOMNode
 }                                   from '@react-ameliorate/utils';
 import { flattenStyle }             from '../shim-utils';
 import ViewPropTypes                from '../prop-types/view';
@@ -61,6 +61,52 @@ class View extends React.Component {
 
   sendOnLayoutEvent(callback) {
     sendOnLayoutEvent.call(this, callback, this.rootElement);
+  }
+
+  measure(resolve) {
+    var me = findDOMNode(this);
+    if (!me)
+      return;
+
+    resolve(
+      me.offsetLeft,
+      me.offsetTop,
+      me.offsetWidth,
+      me.offsetHeight
+    );
+  }
+
+  measureInWindow(resolve) {
+    var me = findDOMNode(this);
+    if (!me)
+      return;
+
+    var rect = me.getBoundingClientRect();
+    resolve(
+      rect.left,
+      rect.top,
+      rect.width,
+      rect.height
+    );
+  }
+
+  measureLayout(node, resolve, reject) {
+    var me = findDOMNode(this);
+
+    if (!node || !me) {
+      reject();
+      return;
+    }
+
+    var rect1 = node.getBoundingClientRect(),
+        rect2 = me.getBoundingClientRect();
+
+    resolve(
+      (rect2.left - rect1.left),
+      (rect2.top  - rect1.top),
+      rect2.width,
+      rect2.height
+    );
   }
 
   doOnLayout = (event) => {

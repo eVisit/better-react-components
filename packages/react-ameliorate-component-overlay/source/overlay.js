@@ -2,6 +2,7 @@ import { utils as U }                     from 'evisit-js-utils';
 import React                              from 'react';
 import { componentFactory }               from '@react-ameliorate/core';
 import { View, TouchableWithoutFeedback } from '@react-ameliorate/native-shims';
+import { ChildHandler }                   from '@react-ameliorate/mixin-child-handler';
 import { TransitionGroup }                from '@react-ameliorate/component-transition-group';
 import {
   findDOMNode,
@@ -10,176 +11,6 @@ import {
   calculateObjectDifferences
 }                                         from '@react-ameliorate/utils';
 import styleSheet                         from './overlay-styles';
-
-const SIDE_VALUES = {
-        left: -1,
-        right: 1,
-        top: -1,
-        bottom: 1,
-        center: 0
-      };
-
-function getSideValue(side, negate) {
-  var value = SIDE_VALUES[side];
-  if (!value)
-    value = 0;
-
-  return (negate) ? (value * -1) : value;
-}
-
-function getSimpleSide(anchorPos, childPos) {
-      if (!anchorPos || !anchorPos.x || !anchorPos.y || !childPos || !childPos.x || !childPos.y)
-        return [ null, null, null ];
-
-      var anchorSideX = getSideValue(anchorPos.x.side),
-          anchorSideY = getSideValue(anchorPos.y.side),
-          popupSideX  = getSideValue(childPos.x.side, true),
-          popupSideY  = getSideValue(childPos.y.side, true),
-          horizontal  = anchorSideX + popupSideX,
-          vertical    = anchorSideY + popupSideY,
-          sideX       = null,
-          sideY       = null,
-          values      = {
-            horizontal,
-            vertical,
-            popupSideX,
-            popupSideY,
-            anchorSideX,
-            anchorSideY
-          };
-
-      if (horizontal === -2 || horizontal === 2)
-        sideX = (horizontal === 2) ? 'right' : 'left';
-
-      if (vertical === -2 || vertical === 2)
-        sideY = (vertical === 2) ? 'bottom' : 'top';
-
-      return [ sideX, sideY, values ];
-    }
-
-function getRectPositionOffset(rect, positionKeys, isTarget) {
-  const getSideAndOffset = (key) => {
-    if (!key)
-      return;
-
-    var offset = '',
-        side;
-
-    ('' + key).trim().replace(/^(left|bottom|right|top|centerV|centerH)([+-].*)?$/i, (m, _side, _offset) => {
-      side = _side.toLowerCase();
-
-      if (_offset) {
-        offset = _offset.trim().replace(/^\++/g, '');
-        if (offset && !offset.match(/[^\d.-]/))
-          offset = `${offset}px`;
-      }
-    });
-
-    if (!side)
-      return;
-
-    return { side, offset };
-  };
-
-  var x, y, position;
-  for (var i = 0, il = positionKeys.length; i < il; i++) {
-    var info = getSideAndOffset(positionKeys[i]);
-    if (!info)
-      continue;
-
-    var side = info.side,
-        transform = null;
-
-    if (side === 'left' || side === 'right' || side === 'centerh') {
-      position = (side === 'centerh') ? (rect.left + rect.width * 0.5) : rect[side];
-      side = (side === 'centerh') ? 'center' : side;
-
-      if (isTarget && side === 'right')
-        transform = '-100%';
-      else if (isTarget && side === 'center')
-        transform = '-50%';
-
-      x = { position, offset: info.offset, side, transform: transform || 0 };
-    } else {
-      position = (side === 'centerv') ? (rect.top + rect.height * 0.5) : rect[side];
-      side = (side === 'centerv') ? 'center' : side;
-
-      if (isTarget && side === 'bottom')
-        transform = '-100%';
-      else if (isTarget && side === 'center')
-        transform = '-50%';
-
-      y = { position, offset: info.offset, side, transform: transform || 0 };
-    }
-  }
-
-  return { x, y };
-}
-
-function calculateAnchorPosition(anchorElem, _anchorPosition) {
-  if (!anchorElem || typeof anchorElem.getBoundingClientRect !== 'function')
-    return;
-
-  var anchorPosition = _anchorPosition || {},
-      anchorPositionKeys = Object.keys(anchorPosition);
-
-  if (anchorPositionKeys.length !== 2) {
-    anchorPosition = {
-      'bottom': 'top',
-      'left': 'left'
-    };
-
-    anchorPositionKeys = Object.keys(anchorPosition);
-  }
-
-  var rect = anchorElem.getBoundingClientRect();
-  if (!rect)
-    return;
-
-  var anchorPos = getRectPositionOffset(rect, anchorPositionKeys),
-      childPos = getRectPositionOffset(rect, anchorPositionKeys.map((key) => anchorPosition[key]), true),
-      finalStyle = {};
-
-  if (!childPos.x || !childPos.y || !anchorPos.x || !anchorPos.y)
-    return;
-
-  finalStyle.left = anchorPos.x.position;
-  if (childPos.x.offset)
-    finalStyle['marginLeft'] = childPos.x.offset;
-
-  finalStyle.top = anchorPos.y.position;
-  if (childPos.y.offset)
-    finalStyle['marginTop'] = childPos.y.offset;
-
-  if (childPos.x.transform || childPos.y.transform) {
-    finalStyle['transform'] = [
-      {
-        translateX: childPos.x.transform
-      },
-      {
-        translateY: childPos.y.transform
-      }
-    ];
-  }
-
-  return {
-    anchor: {
-      position: anchorPos,
-      rect,
-      element: anchorElem
-    },
-    position: childPos,
-    side: getSimpleSide(anchorPos, childPos),
-    style: finalStyle
-  };
-}
-
-function defaultPositioner(props, child, _opts) {
-  if (!child.anchor)
-    return;
-
-  return calculateAnchorPosition.call(this, child.anchor, props.anchorPosition);
-}
 
 export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) => {
   return class Overlay extends Parent {
@@ -198,10 +29,6 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
     //   if (newState.children !== oldState.children)
     //     console.trace('Children: ', newState.children, oldState.children);
     // }
-
-    onWindowResize() {
-      this.forceUpdate();
-    }
 
     //###if(!MOBILE){###//
     onPress(event) {
@@ -224,60 +51,38 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         this.closeAll();
     }
 
-    //###if(!MOBILE){###//
-    componentMounted() {
-      window.addEventListener('resize', this.onWindowResize);
-    }
-
-    componentUnmounting() {
-      window.removeEventListener('resize', this.onWindowResize);
-    }
-    //###}###//
-
     provideContext() {
       return {
-        _raOverlay: this
+        _raOverlay: this,
+        _raPaperContext: this
       };
     }
 
     closeAll() {
-      this.setState({ children: this.requestChildrenClose(undefined, undefined, 'closeAll') });
+      this.setState({ children: this.requestChildrenClose(undefined, undefined, 'close') });
     }
 
     requestChildrenClose(_children, isException, sourceAction) {
       var children = (_children) ? _children : this.getState('children', []);
+
       return children.filter((thisChild) => {
+        if (!thisChild)
+          return false;
+
         const shouldRemove = () => {
-          if (typeof isException === 'function' && isException(childInstance))
+          if (typeof isException === 'function' && isException(thisChild))
             return true;
 
-          var onShouldClose = (childInstance && childInstance.props && childInstance.props.onShouldClose);
-          if (typeof onShouldClose === 'function' && !onShouldClose.call(this, { ref: childInstance, child: childInstance, action: sourceAction }))
+          var onShouldClose = (thisChild.props && thisChild.props.onShouldClose);
+          if (typeof onShouldClose === 'function' && !onShouldClose.call(this, { child: thisChild, action: sourceAction }))
             return true;
 
           return false;
         };
 
-        var childInstance = thisChild.instance,
-            shouldStay = shouldRemove();
-
+        var shouldStay = shouldRemove();
         return shouldStay;
       });
-    }
-
-    findAnchor(_anchor) {
-      var anchor = _anchor;
-      if (U.instanceOf(anchor, 'string', 'number', 'boolean')) {
-        anchor = this._findComponentReference(('' + anchor));
-        if (anchor && anchor._raComponent)
-          anchor = anchor._getReactComponent();
-      }
-
-      //###if(!MOBILE){###//
-      anchor = (anchor) ? findDOMNode(anchor) : null;
-      //###}###//
-
-      return anchor;
     }
 
     addChild(child) {
@@ -297,109 +102,77 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       if (!child)
         return;
 
-      var children = this.getState('children', []),
-          index = children.findIndex((thisChild) => (thisChild.instance === child)),
-          newChild;
+      var children = this.getState('children', []).slice(),
+          index = children.findIndex((thisChild) => (thisChild.props.id === child.props.id || thisChild === child));
 
-      if (index < 0) {
-        newChild = { instance: child, props: {} };
+      if (index < 0)
+        children.push(child);
+      else
+        children[index] = child;
 
-        // This is deliberately a concat to copy the array into a new array
-        children = children.concat(newChild);
-      } else {
-        newChild = children[index];
-      }
-
-      var oldChild = Object.assign({}, newChild);
-
-      newChild.props = U.get(child, 'props', {});
-      newChild.anchor = this.findAnchor(U.get(newChild, 'props.anchor'));
-      if (newChild.anchor)
-        newChild.position = this._getChildPosition(newChild);
-
-      this.setState({ children: this.requestChildrenClose(children, (childInstance) => (childInstance === child), 'addChild') });
-
-      if (index < 0 || comparePropsHaveChanged(oldChild, newChild))
-        this.onChildUpdated(oldChild, newChild, (index >= 0));
+      requestAnimationFrame(() => {
+        this.setState({ children: this.requestChildrenClose(children, (childInstance) => (childInstance === child), 'add') });
+      });
     }
 
     removeChild(child) {
       var children = this.getState('children', []),
-          index = children.findIndex((thisChild) => (thisChild.instance === child));
+          index = children.findIndex((thisChild) => (thisChild.props.id === child.props.id || thisChild === child));
 
       if (index >= 0) {
+        children = children.slice();
         children.splice(index, 1);
-        this.setState({ children: children.slice() });
+
+        this.setState({ children });
       }
     }
 
     _getChildFromStateObject(stateObject) {
-      if (!stateObject.element)
+      if (!stateObject)
         return;
 
-      var element = stateObject.element;
-      return (element.props && element.props._child);
+      return stateObject.element;
     }
 
     _getChildPropsFromChild(child) {
       if (!child)
         return;
 
-      var childInstance = child.instance;
-      return (childInstance && childInstance.props);
+      return child.props;
     }
 
     _getChildPosition(child) {
       if (!child)
         return {};
 
-      var childProps = this._getChildPropsFromChild(child),
-          position,
-          positionFunc = (typeof childProps.position === 'function') ? childProps.position : defaultPositioner;
-
-      if (typeof positionFunc === 'function')
-        position = positionFunc.call(this, childProps, child, { defaultPositioner });
-
-      return position || {};
+      var childProps = this._getChildPropsFromChild(child);
+      return (childProps && childProps['ra-position']);
     }
 
-    callProxyToOriginalEvent(eventName, stateObject, _child) {
-      var child = _child;
-      if (!child && stateObject)
-        child = this._getChildFromStateObject(stateObject);
-
+    callProxyToOriginalEvent(eventName, stateObject) {
+      var child = this._getChildFromStateObject(stateObject);
       if (!child)
         return;
 
       var childProps = this._getChildPropsFromChild(child),
-          currentPosition = child.position,
-          position = this._getChildPosition(child),
           func = child[eventName] || childProps[eventName];
 
-      if (typeof func === 'function') {
-        var anchor = (position.anchor) ? position.anchor : { element: childProps.anchor };
-            //domElement = (stateObject.instance) ? findDOMNode(stateObject.instance) : null;
-
-        func.call(this, Object.assign({}, stateObject || {}, { anchor, position, _position: currentPosition }));
-      }
+      if (typeof func === 'function')
+        func.call(this, Object.assign({}, stateObject || {}, childProps));
     }
 
-    onChildUpdated(oldChild, newChild) {
-      return this.callProxyToOriginalEvent('onChildUpdated', {
-        _anchor: oldChild.anchor,
-        _position: oldChild.position
-      }, newChild);
-    }
+    // onChildUpdated(oldChild, newChild) {
+    //   return this.callProxyToOriginalEvent('onChildUpdated', {
+    //     _anchor: oldChild.anchor,
+    //     _position: oldChild.position
+    //   }, newChild);
+    // }
 
     onChildEntering(stateObject) {
       return this.callProxyToOriginalEvent('onEntering', stateObject);
     }
 
     onChildMounted(stateObject) {
-      // var domElement = (stateObject.instance) ? findDOMNode(stateObject.instance) : null;
-      // stateObject['$element'] = domElement;
-      // debugger;
-
       return this.callProxyToOriginalEvent('onMounted', stateObject);
     }
 
@@ -422,8 +195,13 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
 
       var childProps = this._getChildPropsFromChild(child),
           position = this._getChildPosition(child),
-          anchor = (position.anchor) ? position.anchor : { element: childProps.anchor },
-          extraStyle = (typeof childProps.calculateStyle === 'function') ? childProps.calculateStyle(Object.assign({}, stateObject, { anchor, position })) : null,
+          calculateStyle = childProps.calculateStyle,
+          extraStyle = (typeof calculateStyle === 'function') ? calculateStyle.call(this, {
+            anchor: childProps.anchor,
+            anchorLayout: childProps['ra-anchor-layout'],
+            targetLayout: childProps['ra-layout'],
+            position
+          }) : null,
           childStyle = this.style(
             'childContainer',
             childProps.style,
@@ -433,21 +211,23 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
                 outputRange: [0, 1]
               })
             },
-            (position.style) ? position.style : this.style('defaultPaperStyle'),
-            extraStyle
+            (position && position.style) ? position.style : this.style('defaultPaperStyle'),
+            extraStyle,
+            (childProps.visible === false) ? { opacity: 0 } : null
           );
 
       return childStyle;
     }
 
     renderContent(_children) {
-      var children = this.getState('children', []),
-          hasChildren = !!(children && children.length);
+      var overlayChildren = this.getState('children', []),
+          hasChildren = !!(overlayChildren && overlayChildren.length);
 
       return (
         <View
           className={this.getRootClassName(componentName, 'children')}
           style={this.style('internalContainer', this.props.containerStyle)}
+          ref={this.captureReference('_rootView')}
         >
           {this.getChildren(_children)}
 
@@ -463,25 +243,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
             ref={this.captureReference('overlayRoot', findDOMNode)}
             pointerEvents="box-none"
           >
-            {children.map((child, index) => {
-              if (!child)
-                return null;
-
-              var childInstance = child.instance,
-                  childProps = childInstance.props || {};
-
-              return (
-                <View
-                  id={(childProps.id || ('' + index))}
-                  key={(childProps.id || ('' + index))}
-                  style={childProps.style}
-                  pointerEvents={childProps.pointerEvents}
-                  _child={child}
-                >
-                  {childProps.children}
-                </View>
-              );
-            })}
+            {overlayChildren}
           </TransitionGroup>
         </View>
       );
@@ -505,6 +267,6 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       //###}###//
     }
   };
-});
+}, { mixins: [ ChildHandler ] });
 
 export { styleSheet as overlayStyles };

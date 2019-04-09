@@ -1,8 +1,8 @@
-import moment                         from 'moment';
-import { utils as U, formatters }     from 'evisit-js-utils';
-import PropTypes                      from '@react-ameliorate/prop-types';
-import { View, Platform }             from '@react-ameliorate/native-shims';
-import React                          from 'react';
+import moment                             from 'moment';
+import { utils as U, formatters }         from 'evisit-js-utils';
+import PropTypes                          from '@react-ameliorate/prop-types';
+import { View, Platform, findNodeHandle } from '@react-ameliorate/native-shims';
+import React                              from 'react';
 import {
   CONTEXT_PROVIDER_KEY,
   areObjectsEqualShallow,
@@ -22,8 +22,10 @@ import {
   processRenderedElements,
   getUniqueComponentID,
   isValidComponent,
-  toNumber
-}                                     from '@react-ameliorate/utils';
+  toNumber,
+  layoutToBoundingClientRect,
+  findDOMNode
+}                                         from '@react-ameliorate/utils';
 
 var logCache = {};
 
@@ -434,6 +436,10 @@ export default class ComponentBase {
     return elements;
   }
 
+  _getRenderCount() {
+    return this._raReactComponent._renderCount;
+  }
+
   _renderInterceptor(renderID) {
     const updateRenderState = (elems, skipMutate) => {
       this._raRenderCacheInvalid = false;
@@ -661,6 +667,22 @@ export default class ComponentBase {
     return this.getComponents((children === undefined) ? this.props.children : children, asArray);
   }
 
+  getRootViewNode() {
+    var ref = this.getReference('_rootView');
+    if (!ref)
+      return null;
+
+    return ref;
+  }
+
+  getDOMNode() {
+    var node = this.getRootViewNode();
+    if (!node)
+      return node;
+
+    return findDOMNode(node);
+  }
+
   getResolvableProps(...args) {
     function convertArrayToObj(_props) {
       var props = _props;
@@ -673,7 +695,7 @@ export default class ComponentBase {
       }
 
       return props;
-    };
+    }
 
     return Object.assign(
       {},
@@ -1016,48 +1038,11 @@ export default class ComponentBase {
     delete this._raMemoizeCache[cacheID];
   }
 
-  shouldComponentUpdate(newState, oldState) {
-    return undefined;
+  shouldComponentUpdate(oldProps, oldState) {
+    return;
   }
-
-  //###if(MOBILE){###//
-  getBoundingClientRect() {
-    return this._measurableViewLayout;
-  }
-
-  _measurableViewLayoutCapture(event) {
-    var nativeEvent = (event && event.nativeEvent),
-        layout      = (nativeEvent && nativeEvent.layout);
-
-    console.log('COMPONENT LAYOUT: ', layout);
-
-    Object.defineProperty(this, '_measurableViewLayout', {
-      writable: true,
-      enumerable: false,
-      configurable: true,
-      value: layout
-    });
-  }
-  //###}###//
 
   render(children) {
-    //###if(MOBILE){###//
-    if (this.props._raMeasurable) {
-      return (
-        <React.Fragment key={`_ra-measurable-wrapper-key-${this.getComponentID()}`}>
-          {children || null}
-
-          <View
-            ref={this.captureReference('_raMeasurableView')}
-            style={MEASURABLE_VIEW_STYLE}
-            onLayout={this._measurableViewLayoutCapture}
-            pointerEvents="none"
-          />
-        </React.Fragment>
-      );
-    }
-    //###}###//
-
     return children || null;
   }
 
@@ -1436,12 +1421,11 @@ export default class ComponentBase {
       return toNumber(duration);
 
     var theme = this.getTheme();
-    if (!theme)
-      return 250;
-
-    var themeProps = theme.getThemeProperties();
-    if (themeProps && themeProps.DEFAULT_ANIMATION_DURATION != null)
-      return themeProps.DEFAULT_ANIMATION_DURATION;
+    if (theme) {
+      var themeProps = theme.getThemeProperties();
+      if (themeProps && themeProps.DEFAULT_ANIMATION_DURATION != null)
+        return themeProps.DEFAULT_ANIMATION_DURATION;
+    }
 
     return 250;
   }

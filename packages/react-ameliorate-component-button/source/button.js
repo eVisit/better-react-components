@@ -304,6 +304,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           data-tooltip={this.props.tooltip}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
           {...this.getHoverableProps()}
+          ref={this.captureReference('_rootView')}
         >
           {this._renderInternalContainer(args)}
         </TouchableOpacity>
