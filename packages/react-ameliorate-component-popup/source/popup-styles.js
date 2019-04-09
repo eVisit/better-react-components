@@ -12,16 +12,12 @@ export default createStyleSheet(function(theme) {
       padding: ARROW_SIZE_HALF
     },
     containerRight: {
-      //paddingLeft: ARROW_SIZE_HALF
     },
     containerLeft: {
-      //paddingRight: ARROW_SIZE_HALF
     },
     containerTop: {
-      //paddingBottom: ARROW_SIZE_HALF
     },
     containerBottom: {
-      //paddingTop: ARROW_SIZE_HALF
     },
     innerContainer: {
       flex: 0,
