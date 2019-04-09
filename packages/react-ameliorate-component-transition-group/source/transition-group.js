@@ -30,7 +30,6 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
 
       if (initial || props.children !== _props.children) {
         var update = this._updateChildren(props.children, children);
-        console.log('UPDATED CHILDREN!', update.childMap);
         children = update.childMap;
       }
 

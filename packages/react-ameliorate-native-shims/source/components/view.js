@@ -68,12 +68,12 @@ class View extends React.Component {
     if (!me)
       return;
 
-    resolve({
-      x     : me.offsetLeft,
-      y     : me.offsetTop,
-      width : me.offsetWidth,
-      height: me.offsetHeight
-    });
+    resolve(
+      me.offsetLeft,
+      me.offsetTop,
+      me.offsetWidth,
+      me.offsetHeight
+    );
   }
 
   measureInWindow(resolve) {
@@ -82,12 +82,12 @@ class View extends React.Component {
       return;
 
     var rect = me.getBoundingClientRect();
-    resolve({
-      x     : rect.left,
-      y     : rect.top,
-      width : rect.width,
-      height: rect.height
-    });
+    resolve(
+      rect.left,
+      rect.top,
+      rect.width,
+      rect.height
+    );
   }
 
   measureLayout(node, resolve, reject) {
@@ -101,12 +101,12 @@ class View extends React.Component {
     var rect1 = node.getBoundingClientRect(),
         rect2 = me.getBoundingClientRect();
 
-    resolve({
-      x     : (rect2.left - rect1.left),
-      y     : (rect2.top  - rect1.top),
-      width : rect2.width,
-      height: rect2.height
-    });
+    resolve(
+      (rect2.left - rect1.left),
+      (rect2.top  - rect1.top),
+      rect2.width,
+      rect2.height
+    );
   }
 
   doOnLayout = (event) => {

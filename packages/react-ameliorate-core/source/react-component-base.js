@@ -129,10 +129,10 @@ export default class ReactComponentBase extends React.Component {
       return shouldUpdate;
     };
 
-    var shouldUpdate = handleUpdate(),
-        shouldUserUpdate = this._componentInstance.shouldComponentUpdate.apply(this._componentInstance, arguments);
+    var shouldUserUpdate = this._componentInstance.shouldComponentUpdate.call(this._componentInstance, nextProps, nextState),
+        shouldUpdate = handleUpdate();
 
-    return (shouldUserUpdate === false || shouldUserUpdate === true) ? shouldUserUpdate : shouldUpdate;
+    return (shouldUserUpdate != null) ? shouldUserUpdate : shouldUpdate;
   }
 
   componentDidMount() {

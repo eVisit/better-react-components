@@ -773,13 +773,26 @@ export function layoutToBoundingClientRect(layout) {
     return layout;
 
   return {
-    top: layout.x,
-    left: layout.y,
+    top: layout.y,
+    left: layout.x,
     right: layout.x + layout.width,
     bottom: layout.y + layout.height,
     width: layout.width,
     height: layout.height
   };
+}
+
+export function findClosestComponentFromDOMElement(_element) {
+  var element = _element;
+  while (element) {
+    var className = element.getAttribute('class'),
+        parts     = ('' + className).match(/\w+(Component_\d{13,})/);
+
+    if (!parts)
+      element = element.parentElement;
+
+    return getComponentReference(parts[1]);
+  }
 }
 
 export {

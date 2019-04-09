@@ -1,8 +1,8 @@
-import moment                         from 'moment';
-import { utils as U, formatters }     from 'evisit-js-utils';
-import PropTypes                      from '@react-ameliorate/prop-types';
-import { View, Platform }             from '@react-ameliorate/native-shims';
-import React                          from 'react';
+import moment                             from 'moment';
+import { utils as U, formatters }         from 'evisit-js-utils';
+import PropTypes                          from '@react-ameliorate/prop-types';
+import { View, Platform, findNodeHandle } from '@react-ameliorate/native-shims';
+import React                              from 'react';
 import {
   CONTEXT_PROVIDER_KEY,
   areObjectsEqualShallow,
@@ -25,7 +25,7 @@ import {
   toNumber,
   layoutToBoundingClientRect,
   findDOMNode
-}                                     from '@react-ameliorate/utils';
+}                                         from '@react-ameliorate/utils';
 
 var logCache = {};
 
@@ -667,6 +667,22 @@ export default class ComponentBase {
     return this.getComponents((children === undefined) ? this.props.children : children, asArray);
   }
 
+  getRootViewNode() {
+    var ref = this.getReference('_rootView');
+    if (!ref)
+      return null;
+
+    return ref;
+  }
+
+  getDOMNode() {
+    var node = this.getRootViewNode();
+    if (!node)
+      return node;
+
+    return findDOMNode(node);
+  }
+
   getResolvableProps(...args) {
     function convertArrayToObj(_props) {
       var props = _props;
@@ -679,7 +695,7 @@ export default class ComponentBase {
       }
 
       return props;
-    };
+    }
 
     return Object.assign(
       {},
@@ -1022,54 +1038,11 @@ export default class ComponentBase {
     delete this._raMemoizeCache[cacheID];
   }
 
-  shouldComponentUpdate(newState, oldState) {
-    return undefined;
+  shouldComponentUpdate(oldProps, oldState) {
+    return;
   }
-
-  getBoundingClientRect() {
-    //###if(MOBILE){###//
-    return this._measurableViewLayout;
-    //###} else {###//
-    var domNode = findDOMNode(this);
-    if (domNode)
-      return domNode.getBoundingClientRect();
-    //###}###//
-  }
-
-  //###if(MOBILE){###//
-  _measurableViewLayoutCapture(event) {
-    var nativeEvent = (event && event.nativeEvent),
-        layout      = (nativeEvent && nativeEvent.layout);
-
-    console.log('COMPONENT LAYOUT: ', layout);
-
-    Object.defineProperty(this, '_measurableViewLayout', {
-      writable: true,
-      enumerable: false,
-      configurable: true,
-      value: layoutToBoundingClientRect(layout)
-    });
-  }
-  //###}###//
 
   render(children) {
-    //###if(MOBILE){###//
-    if (this.props._raMeasurable) {
-      return (
-        <React.Fragment key={`_ra-measurable-wrapper-key-${this.getComponentID()}`}>
-          {children || null}
-
-          <View
-            ref={this.captureReference('_raMeasurableView')}
-            style={MEASURABLE_VIEW_STYLE}
-            onLayout={this._measurableViewLayoutCapture}
-            pointerEvents="none"
-          />
-        </React.Fragment>
-      );
-    }
-    //###}###//
-
     return children || null;
   }
 

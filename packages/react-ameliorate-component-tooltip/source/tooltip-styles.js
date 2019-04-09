@@ -6,11 +6,11 @@ export default createStyleSheet(function(theme, popupStyles) {
       ARROW_COLOR = theme.blendColors(BG_COLOR, theme.transparentColor('white', 0.1));
 
   return {
-    container: {
+    tooltipContainer: {
       flex: 0,
       browser: {
         userSelect: 'none'
-      }
+      },
     },
     innerContainer: {
       backgroundColor: BG_COLOR
@@ -26,6 +26,9 @@ export default createStyleSheet(function(theme, popupStyles) {
     },
     arrowRight: {
       borderLeftColor: ARROW_COLOR
+    },
+    tooltipCaption: {
+      color: theme.textColor(BG_COLOR, 6)
     }
   };
 }, {

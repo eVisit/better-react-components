@@ -92,8 +92,6 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
       if (!(modals instanceof Array) || !modals.length)
         return super.render(null);
 
-      console.log('MODALS!', modals);
-
       return super.render(
         <Paper
           {...this.passProps(this.props)}

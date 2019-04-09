@@ -12,173 +12,6 @@ import {
 }                                         from '@react-ameliorate/utils';
 import styleSheet                         from './overlay-styles';
 
-const SIDE_VALUES = {
-        left: -1,
-        right: 1,
-        top: -1,
-        bottom: 1,
-        center: 0
-      };
-
-function getSideValue(side, negate) {
-  var value = SIDE_VALUES[side];
-  if (!value)
-    value = 0;
-
-  return (negate) ? (value * -1) : value;
-}
-
-function getSimpleSide(anchorPos, childPos) {
-      if (!anchorPos || !anchorPos.x || !anchorPos.y || !childPos || !childPos.x || !childPos.y)
-        return [ null, null, null ];
-
-      var anchorSideX = getSideValue(anchorPos.x.side),
-          anchorSideY = getSideValue(anchorPos.y.side),
-          popupSideX  = getSideValue(childPos.x.side, true),
-          popupSideY  = getSideValue(childPos.y.side, true),
-          horizontal  = anchorSideX + popupSideX,
-          vertical    = anchorSideY + popupSideY,
-          sideX       = null,
-          sideY       = null,
-          values      = {
-            horizontal,
-            vertical,
-            popupSideX,
-            popupSideY,
-            anchorSideX,
-            anchorSideY
-          };
-
-      if (horizontal === -2 || horizontal === 2)
-        sideX = (horizontal === 2) ? 'right' : 'left';
-
-      if (vertical === -2 || vertical === 2)
-        sideY = (vertical === 2) ? 'bottom' : 'top';
-
-      return [ sideX, sideY, values ];
-    }
-
-function getRectPositionOffset(anchorRect, childRect, positionKeys, isTarget) {
-  const getSideAndOffset = (key) => {
-    if (!key)
-      return;
-
-    var offset = '',
-        side;
-
-    ('' + key).trim().replace(/^(left|bottom|right|top|centerV|centerH)([+-].*)?$/i, (m, _side, _offset) => {
-      side = _side.toLowerCase();
-
-      if (_offset) {
-        offset = _offset.trim().replace(/^\++/g, '');
-        if (offset && !offset.match(/[^\d.-]/))
-          offset = `${offset}px`;
-      }
-    });
-
-    if (!side)
-      return;
-
-    return { side, offset };
-  };
-
-  var x, y, position;
-  for (var i = 0, il = positionKeys.length; i < il; i++) {
-    var info = getSideAndOffset(positionKeys[i]);
-    if (!info)
-      continue;
-
-    var side = info.side,
-        transform = 0;
-
-    if (side === 'left' || side === 'right' || side === 'centerh') {
-      position = (side === 'centerh') ? (anchorRect.left + anchorRect.width * 0.5) : anchorRect[side];
-      side = (side === 'centerh') ? 'center' : side;
-
-      if (isTarget && side === 'right')
-        transform = -childRect.width;
-      else if (isTarget && side === 'center')
-        transform = -(childRect.width * 0.5);
-
-      x = { position: position + transform, offset: info.offset, side };
-    } else {
-      position = (side === 'centerv') ? (anchorRect.top + anchorRect.height * 0.5) : anchorRect[side];
-      side = (side === 'centerv') ? 'center' : side;
-
-      if (isTarget && side === 'bottom')
-        transform = -childRect.height;
-      else if (isTarget && side === 'center')
-        transform = -(childRect.height * 0.5);
-
-      y = { position: position + transform, offset: info.offset, side };
-    }
-  }
-
-  return { x, y };
-}
-
-function calculateAnchorPosition(childElem, anchorElem, _anchorPosition) {
-  const notResolvedYet = {
-    style: { opacity: 0 }
-  };
-
-  if (!anchorElem || typeof anchorElem.getBoundingClientRect !== 'function')
-    return notResolvedYet;
-
-  var anchorPosition = _anchorPosition || {},
-      anchorPositionKeys = Object.keys(anchorPosition);
-
-  if (anchorPositionKeys.length !== 2) {
-    anchorPosition = {
-      'bottom': 'top',
-      'left': 'left'
-    };
-
-    anchorPositionKeys = Object.keys(anchorPosition);
-  }
-
-  var anchorRect = anchorElem.getBoundingClientRect();
-  if (!anchorRect)
-    return notResolvedYet;
-
-  var childRect = childElem.getBoundingClientRect();
-  if (!childRect)
-    return notResolvedYet;
-
-  var anchorPos = getRectPositionOffset(anchorRect, childRect, anchorPositionKeys),
-      childPos = getRectPositionOffset(anchorRect, childRect, anchorPositionKeys.map((key) => anchorPosition[key]), true),
-      finalStyle = {};
-
-  if (!childPos.x || !childPos.y || !anchorPos.x || !anchorPos.y)
-    return notResolvedYet;
-
-  finalStyle.left = anchorPos.x.position;
-  if (childPos.x.offset)
-    finalStyle['marginLeft'] = childPos.x.offset;
-
-  finalStyle.top = anchorPos.y.position;
-  if (childPos.y.offset)
-    finalStyle['marginTop'] = childPos.y.offset;
-
-  return {
-    anchor: {
-      position: anchorPos,
-      rect: anchorRect,
-      element: anchorElem
-    },
-    position: childPos,
-    side: getSimpleSide(anchorPos, childPos),
-    style: finalStyle
-  };
-}
-
-function defaultPositioner(props, child, _opts) {
-  if (!child.anchor)
-    return;
-
-  return calculateAnchorPosition.call(this, child.self, child.anchor, props.anchorPosition);
-}
-
 export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) => {
   return class Overlay extends Parent {
     static styleSheet = styleSheet;
@@ -192,18 +25,10 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       };
     }
 
-    componentMounted() {
-      console.log('OVERLAY HAS MOUNTED!!!');
-    }
-
     // _debugStateUpdates(newState, oldState) {
     //   if (newState.children !== oldState.children)
     //     console.trace('Children: ', newState.children, oldState.children);
     // }
-
-    onWindowResize() {
-      this.forceUpdate();
-    }
 
     //###if(!MOBILE){###//
     onPress(event) {
@@ -225,16 +50,6 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       if (nativeEvent && nativeEvent.code === 'Escape')
         this.closeAll();
     }
-
-    //###if(!MOBILE){###//
-    componentMounted() {
-      window.addEventListener('resize', this.onWindowResize);
-    }
-
-    componentUnmounting() {
-      window.removeEventListener('resize', this.onWindowResize);
-    }
-    //###}###//
 
     provideContext() {
       return {
@@ -270,21 +85,6 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       });
     }
 
-    findAnchor(_anchor) {
-      var anchor = _anchor;
-      if (U.instanceOf(anchor, 'string', 'number', 'boolean')) {
-        anchor = this._findComponentReference(('' + anchor));
-        if (anchor && anchor._raComponent)
-          anchor = anchor._getReactComponent();
-      }
-
-      //###if(!MOBILE){###//
-      anchor = (anchor) ? findDOMNode(anchor) : null;
-      //###}###//
-
-      return anchor;
-    }
-
     addChild(child) {
       const comparePropsHaveChanged = (oldChild, newChild) => {
         var propsDiffer = !areObjectsEqualShallow(oldChild.props, newChild.props);
@@ -310,7 +110,9 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       else
         children[index] = child;
 
-      this.setState({ children: this.requestChildrenClose(children, (childInstance) => (childInstance === child), 'add') });
+      requestAnimationFrame(() => {
+        this.setState({ children: this.requestChildrenClose(children, (childInstance) => (childInstance === child), 'add') });
+      });
     }
 
     removeChild(child) {
@@ -329,7 +131,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       if (!stateObject)
         return;
 
-      return stateObject.instance;
+      return stateObject.element;
     }
 
     _getChildPropsFromChild(child) {
@@ -343,14 +145,8 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       if (!child)
         return {};
 
-      var childProps = this._getChildPropsFromChild(child),
-          position,
-          positionFunc = (typeof childProps.position === 'function') ? childProps.position : defaultPositioner;
-
-      if (typeof positionFunc === 'function')
-        position = positionFunc.call(this, childProps, child, { defaultPositioner });
-
-      return position || {};
+      var childProps = this._getChildPropsFromChild(child);
+      return (childProps && childProps['ra-position']);
     }
 
     callProxyToOriginalEvent(eventName, stateObject) {
@@ -399,8 +195,13 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
 
       var childProps = this._getChildPropsFromChild(child),
           position = this._getChildPosition(child),
-          anchor = (position.anchor) ? position.anchor : { element: childProps.anchor },
-          extraStyle = (typeof childProps.calculateStyle === 'function') ? childProps.calculateStyle(Object.assign({}, stateObject, { anchor, position })) : null,
+          calculateStyle = childProps.calculateStyle,
+          extraStyle = (typeof calculateStyle === 'function') ? calculateStyle.call(this, {
+            anchor: childProps.anchor,
+            anchorLayout: childProps['ra-anchor-layout'],
+            targetLayout: childProps['ra-layout'],
+            position
+          }) : null,
           childStyle = this.style(
             'childContainer',
             childProps.style,
@@ -410,22 +211,12 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
                 outputRange: [0, 1]
               })
             },
-            (position.style) ? position.style : this.style('defaultPaperStyle'),
+            (position && position.style) ? position.style : this.style('defaultPaperStyle'),
             extraStyle,
-            //(!child.ready || !child.layout) ? { opacity: 0 } : null
+            (childProps.visible === false) ? { opacity: 0 } : null
           );
 
-      console.log('POSITION STYLE: ', position.style);
-
       return childStyle;
-    }
-
-    getDOMNode() {
-      var ref = this.getReference('_rootView');
-      if (!ref)
-        return null;
-
-      return findDOMNode(ref);
     }
 
     renderContent(_children) {

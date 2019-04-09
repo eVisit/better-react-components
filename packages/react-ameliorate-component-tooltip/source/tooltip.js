@@ -31,10 +31,10 @@ export const Tooltip = componentFactory('Tooltip', ({ Parent, componentName }) =
 
       return super.render(
         <View
-          className={this.getRootClassName(componentName, 'container')}
-          style={this.style('container', this.props.containerStyle)}
+          className={this.getRootClassName(componentName, 'tooltipContainer')}
+          style={this.style('tooltipContainer', this.props.containerStyle)}
         >
-          <Text>{caption}</Text>
+          <Text style={this.style('tooltipCaption')}>{caption}</Text>
         </View>
       );
     }

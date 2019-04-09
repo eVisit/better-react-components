@@ -6,7 +6,7 @@ import { Paper }                        from '@react-ameliorate/component-paper'
 import { capitalize }                   from '@react-ameliorate/utils';
 import styleSheet                       from './popup-styles';
 
-const ARROW_SHIFT_AMOUNT_RATIO = 0.494;
+const ARROW_SHIFT_AMOUNT_RATIO = 0.5;
 const ARROW_SHIFT_TABLE = {
   arrowHCenter: {
     axis: 'x',
@@ -57,9 +57,9 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       return {
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
-          sideX: '',
-          sideY: '',
-          sideValues: null
+          quadrantX: '',
+          quadrantY: '',
+          quadrantValues: null
         })
       };
     }
@@ -69,20 +69,12 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
         return false;
     }
 
-    onChildUpdated({ position, _position, anchor }) {
-      if (position === _position)
-        return;
-
-      var sideX       = capitalize(U.get(position, 'side.0', '')),
-          sideY       = capitalize(U.get(position, 'side.1', '')),
-          sideValues  = U.get(position, 'side.2', null),
-          stateUpdate = {
-            sideX,
-            sideY,
-            sideValues
-          };
-
-      this.setState(stateUpdate);
+    onPositionUpdated({ position }) {
+      this.setState({
+        quadrantX       : capitalize(U.get(position, 'quadrant.x', '')),
+        quadrantY       : capitalize(U.get(position, 'quadrant.y', '')),
+        quadrantValues  : U.get(position, 'quadrant.values', null),
+      });
     }
 
     getTransformStyle(arrowStyle, styles) {
@@ -108,16 +100,16 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
     }
 
     getArrowStyle() {
-      var sideValues = this.getState('sideValues');
-      if (!sideValues)
+      var quadrantValues = this.getState('quadrantValues');
+      if (!quadrantValues)
         return;
 
       var {
             horizontal,
             vertical,
-            popupSideX,
-            popupSideY
-          } = sideValues,
+            targetSideX,
+            targetSideY
+          } = quadrantValues,
           _horizontal = Math.abs(horizontal),
           _vertical = Math.abs(vertical);
 
@@ -131,15 +123,15 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
 
       var styles = [];
 
-      if (popupSideX === 0)
+      if (targetSideX === 0)
         styles.push('arrowHCenter');
       else
-        styles.push((popupSideX > 0) ? 'arrowHLeft' : 'arrowHRight');
+        styles.push((targetSideX > 0) ? 'arrowHLeft' : 'arrowHRight');
 
-      if (popupSideY === 0)
+      if (targetSideY === 0)
         styles.push('arrowVCenter');
       else
-        styles.push((popupSideY > 0) ? 'arrowVTop' : 'arrowVBottom');
+        styles.push((targetSideY > 0) ? 'arrowVTop' : 'arrowVBottom');
 
       if (vertical === -2)
         styles.push('arrowDown');
@@ -157,7 +149,7 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
     }
 
     render(children) {
-      var { sideX, sideY } = this.getState(),
+      var { quadrantX, quadrantY, quadrantValues } = this.getState(),
           arrowStyle = this.getArrowStyle();
 
       return super.render(
@@ -166,11 +158,11 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
           className={this.getRootClassName(componentName)}
           id={this.props.id || this.getComponentID()}
           onMounted={this.onMounted}
-          onChildUpdated={this.onChildUpdated}
-          updateCounter={this._getRenderCount()}
+          onPositionUpdated={this.onPositionUpdated}
+          visible={!!quadrantValues}
         >
-          <View style={this.style('container', `container${sideX}`, `container${sideY}`, this.props.style)}>
-            <View style={this.style('innerContainer', `innerContainer${sideX}`, `innerContainer${sideY}`, this.props.innerContainerStyle)}>
+          <View style={this.style('container', `container${quadrantX}`, `container${quadrantY}`, this.props.style)}>
+            <View style={this.style('innerContainer', `innerContainer${quadrantX}`, `innerContainer${quadrantY}`, this.props.innerContainerStyle)}>
               {this.getChildren(children)}
             </View>
 

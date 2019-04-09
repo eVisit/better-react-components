@@ -1,11 +1,12 @@
-import React                            from 'react';
-import { componentFactory, PropTypes }  from '@react-ameliorate/core';
-import { ModalManager }                 from '@react-ameliorate/component-modal-manager';
-import { Overlay }                      from '@react-ameliorate/component-overlay';
-import { AlertModal }                   from '@react-ameliorate/component-alert-modal';
-import { ConfirmModal }                 from '@react-ameliorate/component-confirm-modal';
-import { Tooltip }                      from '@react-ameliorate/component-tooltip';
-import styleSheet                       from './application-styles';
+import React                                  from 'react';
+import { componentFactory, PropTypes }        from '@react-ameliorate/core';
+import { ModalManager }                       from '@react-ameliorate/component-modal-manager';
+import { Overlay }                            from '@react-ameliorate/component-overlay';
+import { AlertModal }                         from '@react-ameliorate/component-alert-modal';
+import { ConfirmModal }                       from '@react-ameliorate/component-confirm-modal';
+import { Tooltip }                            from '@react-ameliorate/component-tooltip';
+import styleSheet                             from './application-styles';
+import { findClosestComponentFromDOMElement } from '@react-ameliorate/utils';
 
 const ANCHOR_POSITION_MAP = {
   'left'    : { left:   'right',  centerV: 'centerV' },
@@ -173,17 +174,21 @@ export const Application = componentFactory('Application', ({ Parent, componentN
           if (!tooltipElement)
             return;
 
+          var tooltipComponent = findClosestComponentFromDOMElement(tooltipElement);
+          if (!tooltipComponent)
+            return;
+
           var time = (eventType === 'mouseover') ? this.getTooltipShowTime() : this.getTooltipHideTime();
           if (time == null)
             return;
 
-          var tooltipID = getTooltipID(tooltipElement);
+          var tooltipID = getTooltipID(tooltipComponent);
 
           this.delay(() => {
             if (eventType !== 'mouseover') {
               this.clearDelay(tooltipID);
-              removeTooltipID(tooltipElement);
-              this.popTooltip({ anchor: tooltipElement });
+              removeTooltipID(tooltipComponent);
+              this.popTooltip({ anchor: tooltipComponent });
 
               return;
             }
@@ -201,7 +206,7 @@ export const Application = componentFactory('Application', ({ Parent, componentN
             if (!anchorPosition)
               anchorPosition = ANCHOR_POSITION_MAP['bottom'];
 
-            this.pushTooltip({ id: tooltipID, caption: tooltip, anchorPosition, anchor: tooltipElement });
+            this.pushTooltip({ id: tooltipID, caption: tooltip, anchorPosition, anchor: tooltipComponent });
           }, time, tooltipID);
         };
       };

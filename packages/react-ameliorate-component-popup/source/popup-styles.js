@@ -8,21 +8,23 @@ export default createStyleSheet(function(theme) {
 
   return {
     container: {
-      backgroundColor: 'transparent'
+      backgroundColor: 'transparent',
+      padding: ARROW_SIZE_HALF
     },
     containerRight: {
-      paddingLeft: ARROW_SIZE_HALF
+      //paddingLeft: ARROW_SIZE_HALF
     },
     containerLeft: {
-      paddingRight: ARROW_SIZE_HALF
+      //paddingRight: ARROW_SIZE_HALF
     },
     containerTop: {
-      paddingBottom: ARROW_SIZE_HALF
+      //paddingBottom: ARROW_SIZE_HALF
     },
     containerBottom: {
-      paddingTop: ARROW_SIZE_HALF
+      //paddingTop: ARROW_SIZE_HALF
     },
     innerContainer: {
+      flex: 0,
       overflow: 'hidden',
       borderRadius: theme.DEFAULT_BORDER_RADIUS,
       padding: theme.DEFAULT_PADDING * 0.2,
