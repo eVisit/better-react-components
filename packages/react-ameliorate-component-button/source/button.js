@@ -1,3 +1,4 @@
+import { utils as U }                           from 'evisit-js-utils';
 import React                                    from 'react';
 import { componentFactory, PropTypes }          from '@react-ameliorate/core';
 import { View, Text, TouchableOpacity }         from '@react-ameliorate/native-shims';
@@ -315,6 +316,9 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       var children = this.getChildren(_children),
           theme = this.getRequestedTheme(),
           flags = this.getComponentFlagsAsArray();
+
+      if (!U.noe(this.props.caption))
+        flags.push('withCaption');
 
       return super.render(this._renderContainer({ children, theme, flags }));
     }

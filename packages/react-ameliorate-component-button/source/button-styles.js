@@ -130,9 +130,13 @@ export default createStyleSheet(function(theme) {
     iconContainer: {
     },
     leftIconContainer: {
+    },
+    leftIconContainerWithCaption: {
       paddingRight: theme.DEFAULT_PADDING * 0.25
     },
     rightIconContainer: {
+    },
+    rightIconContainerWithCaption: {
       paddingLeft: theme.DEFAULT_PADDING * 0.25
     }
   };

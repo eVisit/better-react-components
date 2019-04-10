@@ -1132,6 +1132,9 @@ export default class ComponentBase {
         classNames = this.generateNames({ prefix, base }, '', ...args);
 
     var specifiedClassName = this.props.className;
+    if (specifiedClassName)
+      specifiedClassName = ('' + specifiedClassName).replace(/(\w+)Component_\d{13,}/g, '');
+
     return removeDuplicateStrings(classNames.concat((!specifiedClassName) ? [] : specifiedClassName.split(/\s+/g), this.getDefaultClassName())).join(' ');
   }
 

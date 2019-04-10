@@ -17,7 +17,7 @@ export default createStyleSheet(function(theme) {
     verticalContainer: {
       flexDirection: 'column'
     },
-    tabTouchableContainer: {
+    buttonContainer: {
       flex: 0,
       browser: {
         cursor: 'pointer'
@@ -25,26 +25,28 @@ export default createStyleSheet(function(theme) {
       alignItems: 'stretch',
       justifyContent: 'center'
     },
-    horizontalTabTouchableContainer: {
+    horizontalButtonContainer: {
       flexDirection: 'row'
     },
-    verticalTabTouchableContainer: {
+    verticalButtonContainer: {
       flexDirection: 'column'
     },
-    tabContainer: {
+    tabButton: {
       flex: 0,
       padding: theme.DEFAULT_PADDING * 0.2,
       textAlign: 'center',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      borderWidth: 0,
+      borderRadius: 0
     },
-    tabContainerActive: {
+    tabButtonActive: {
       backgroundColor: DEFAULT_ACTIVE_TAB_BG_COLOR
     },
-    horizontalTabContainer: {
+    horizontalTabButton: {
       flexDirection: 'row'
     },
-    verticalTabContainer: {
+    verticalTabButton: {
       flexDirection: 'column'
     },
     tabIconContainer: {

@@ -127,7 +127,7 @@ export const Application = componentFactory('Application', ({ Parent, componentN
     }
 
     getTooltipShowTime() {
-      return 250;
+      return 500;
     }
 
     getTooltipHideTime() {
