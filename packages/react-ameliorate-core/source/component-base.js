@@ -1003,7 +1003,11 @@ export default class ComponentBase {
     clearTimeout(this._componentDelayTimers[id]);
   }
 
-  memoizeWithCacheID(cacheID, cb, args) {
+  memoizeDefaultArguments() {
+    return [ this.getCurrentLocale() ];
+  }
+
+  memoizeWithCacheID(cacheID, cb, _args) {
     const isCacheValid = (cache) => {
       if (!cache)
         return false;
@@ -1020,7 +1024,9 @@ export default class ComponentBase {
       return true;
     };
 
-    var cache = this._raMemoizeCache[cacheID];
+    var args = _args.concat(this.memoizeDefaultArguments(cacheID, cb, args) || []),
+        cache = this._raMemoizeCache[cacheID];
+
     if (isCacheValid(cache))
       return cache.value;
 
