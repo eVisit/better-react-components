@@ -4,7 +4,10 @@ import { ModalManager }                       from '@react-ameliorate/component-
 import { Overlay }                            from '@react-ameliorate/component-overlay';
 import { Tooltip }                            from '@react-ameliorate/component-tooltip';
 import styleSheet                             from './application-styles';
-import { findClosestComponentFromDOMElement } from '@react-ameliorate/utils';
+import {
+  findClosestComponentFromDOMElement,
+  specializeEvent
+}                                             from '@react-ameliorate/utils';
 import { ModalStackHandler }                  from '@react-ameliorate/mixin-modal-stack-handler';
 import { TooltipStackHandler }                from '@react-ameliorate/mixin-tooltip-stack-handler';
 
@@ -14,68 +17,6 @@ const ANCHOR_POSITION_MAP = {
   'top'     : { top:    'bottom', centerH: 'centerH' },
   'bottom'  : { bottom: 'top',    centerH: 'centerH' }
 };
-
-function specializeEvent(event) {
-  event.propagationStopped = false;
-  event.immediatePropagationStopped = false;
-
-  event.stopImmediatePropagation = (function(func) {
-    return function() {
-      event.propagationStopped = true;
-      event.immediatePropagationStopped = true;
-
-      return func.call(event);
-    };
-  })(event.stopImmediatePropagation);
-
-  event.stopPropagation = (function(func) {
-    return function() {
-      event.propagationStopped = true;
-
-      return func.call(event);
-    };
-  })(event.stopPropagation);
-
-  return event;
-}
-
-function triggerGlobalEventActions(hooks, event, specializeEvent) {
-  var componentIDs = Object.keys(hooks).sort((a, b) => {
-        var x = hooks[a],
-            y = hooks[b];
-
-        return (y._order - x._order);
-      }),
-      nativeEvent = specializeEvent(event.nativeEvent),
-      newEvent = { nativeEvent },
-      eventName = nativeEvent.type;
-
-  //console.log('Handling global event', eventName, componentIDs);
-  for (var i = 0, il = componentIDs.length; i < il; i++) {
-    if (nativeEvent.propagationStopped)
-      break;
-
-    var componentID = componentIDs[i],
-        componentHooks = hooks[componentID],
-        actions = componentHooks[eventName];
-
-    if (!actions || !actions.length)
-      continue;
-
-    for (var j = 0, jl = actions.length; j < jl; j++) {
-      var action = actions[j];
-      if (!action || typeof action.callback !== 'function')
-        continue;
-
-      action.callback(newEvent);
-
-      if (nativeEvent.immediatePropagationStopped || nativeEvent.propagationStopped) {
-        //console.log(`Event ${eventName} handled by ${componentID}`);
-        break;
-      }
-    }
-  }
-}
 
 const tooltipIDMap = [];
 var tooltipIDCounter = 1;
@@ -109,14 +50,6 @@ export const Application = componentFactory('Application', ({ Parent, componentN
     static propTypes = {
     };
 
-    static specializeEvent(...args) {
-      return specializeEvent.call(this, ...args);
-    }
-
-    static triggerGlobalEventActions(hooks, event, _specializeEvent) {
-      return triggerGlobalEventActions.call(this, hooks, event, _specializeEvent || specializeEvent);
-    }
-
     constructor(...args) {
       super(...args);
 
@@ -149,8 +82,48 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       ];
     }
 
+    triggerGlobalEventActions(hooks, event, _specializeEvent) {
+      const doSpecializeEvent = _specializeEvent || specializeEvent;
+
+      var componentIDs = Object.keys(hooks).sort((a, b) => {
+            var x = hooks[a],
+                y = hooks[b];
+
+            return (y._order - x._order);
+          }),
+          nativeEvent = doSpecializeEvent(event.nativeEvent),
+          newEvent = { nativeEvent },
+          eventName = nativeEvent.type;
+
+      //console.log('Handling global event', eventName, componentIDs);
+      for (var i = 0, il = componentIDs.length; i < il; i++) {
+        if (nativeEvent.propagationStopped)
+          break;
+
+        var componentID = componentIDs[i],
+            componentHooks = hooks[componentID],
+            actions = componentHooks[eventName];
+
+        if (!actions || !actions.length)
+          continue;
+
+        for (var j = 0, jl = actions.length; j < jl; j++) {
+          var action = actions[j];
+          if (!action || typeof action.callback !== 'function')
+            continue;
+
+          action.callback(newEvent);
+
+          if (nativeEvent.immediatePropagationStopped || nativeEvent.propagationStopped) {
+            //console.log(`Event ${eventName} handled by ${componentID}`);
+            break;
+          }
+        }
+      }
+    }
+
     globalEventActionListener(event) {
-      return this.constructor.triggerGlobalEventActions(this.getGlobalEventActionHooks(), { nativeEvent: event }, this.constructor.specializeEvent);
+      return this.triggerGlobalEventActions(this.getGlobalEventActionHooks(), { nativeEvent: event }, this.specializeEvent);
     }
 
     getTooltipShowTime() {

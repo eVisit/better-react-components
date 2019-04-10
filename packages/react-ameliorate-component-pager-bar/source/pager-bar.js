@@ -63,19 +63,22 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       return (this.props.direction || 'horizontal').toLowerCase();
     }
 
-    renderTabButton({
-      activeTab,
-      tab,
-      tabIndex,
-      active,
-      direction,
-      flags,
-      tabContainerNames,
-      tabIconContainerNames,
-      tabIconNames,
-      tabCaptionContainerNames,
-      tabCaptionNames
-    }) {
+    renderTabButton(args) {
+      var {
+        children,
+        activeTab,
+        tab,
+        tabIndex,
+        active,
+        direction,
+        flags,
+        tabContainerNames,
+        tabIconContainerNames,
+        tabIconNames,
+        tabCaptionContainerNames,
+        tabCaptionNames
+      } = args;
+
       return (
         <TouchableOpacity
           className={this.getRootClassName(componentName, tabContainerNames)}
@@ -99,6 +102,10 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
                 <Text className={this.getClassName(componentName, tabCaptionNames)} style={this.style(tabCaptionNames, this.props.tabCaptionStyle, active && this.props.activeTabCaptionStyle)}>{tab.caption || ''}</Text>
               </View>
             )}
+
+            {children}
+
+            {(typeof tab.renderExtra === 'function') ? tab.renderExtra.call(this, args) : null}
           </View>
         </TouchableOpacity>
       );

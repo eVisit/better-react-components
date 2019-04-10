@@ -795,6 +795,30 @@ export function findClosestComponentFromDOMElement(_element) {
   }
 }
 
+export function specializeEvent(event) {
+  event.propagationStopped = false;
+  event.immediatePropagationStopped = false;
+
+  event.stopImmediatePropagation = (function(func) {
+    return function() {
+      event.propagationStopped = true;
+      event.immediatePropagationStopped = true;
+
+      return func.call(event);
+    };
+  })(event.stopImmediatePropagation);
+
+  event.stopPropagation = (function(func) {
+    return function() {
+      event.propagationStopped = true;
+
+      return func.call(event);
+    };
+  })(event.stopPropagation);
+
+  return event;
+}
+
 export {
   insertStyleSheet
 };
