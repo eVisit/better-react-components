@@ -75,6 +75,7 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
         flags,
         tabButtonNames,
         tabIconNames,
+        tabIconContainerNames,
         tabCaptionNames
       } = args;
 
@@ -87,6 +88,7 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
           internalContainerStyle={this.style(tabButtonNames, this.props.tabStyle, active && this.props.activeTabStyle)}
           leftIcon={(!!tab.icon && this.props.showIcons !== false) ? tab.icon : null}
           leftIconStyle={this.style(tabIconNames, this.props.tabIconStyle, active && this.props.activeTabIconStyle)}
+          iconContainerStyle={this.style(tabIconContainerNames, this.props.tabIconContainerStyle)}
           caption={(!!tab.caption && this.props.showCaptions !== false) ? tab.caption : null}
           captionStyle={this.style(tabCaptionNames, this.props.tabCaptionStyle, active && this.props.activeTabCaptionStyle)}
           tooltip={tab.tooltip}
@@ -107,22 +109,6 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       );
     }
 
-    // {(!!tab.icon && this.props.showIcons !== false) && (
-    //   <View className={this.getClassName(componentName, tabIconContainerNames)} style={this.style(tabIconContainerNames, this.props.tabContainerStyle, active && this.props.activeTabContainerStyle)}>
-    //     <Icon
-    //       className={this.getClassName(componentName, tabIconNames)}
-    //       icon={tab.icon}
-
-    //     />
-    //   </View>
-    // )}
-
-    // {(!!tab.caption && this.props.showCaptions !== false) && (
-    //   <View className={this.getClassName(componentName, tabCaptionContainerNames)} style={this.style(tabCaptionContainerNames, this.props.tabCaptionContainerStyle, active && this.props.activeTabCaptionContainerStyle)}>
-    //     <Text className={this.getClassName(componentName, tabCaptionNames)} style={this.style(tabCaptionNames, this.props.tabCaptionStyle, active && this.props.activeTabCaptionStyle)}>{tab.caption || ''}</Text>
-    //   </View>
-    // )}
-
     _renderTabButton({ tab, tabIndex }) {
       var activeTab                 = this.getState('activeTab'),
           active                    = (activeTab === tabIndex),
@@ -130,6 +116,7 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
           flags                     = { active },
           tabButtonNames            = this.generateStyleNames(direction, 'tabButton', flags),
           tabIconNames              = this.generateStyleNames(direction, 'tabIcon', flags),
+          tabIconContainerNames     = this.generateStyleNames(direction, 'tabIconContainer', flags),
           tabCaptionNames           = this.generateStyleNames(direction, 'tabCaption', flags);
 
       return this.renderTabButton({
@@ -141,6 +128,7 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
         flags,
         tabButtonNames,
         tabIconNames,
+        tabIconContainerNames,
         tabCaptionNames
       });
     }
