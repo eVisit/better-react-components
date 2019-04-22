@@ -878,7 +878,8 @@ export default class ComponentBase {
     var oldState = this._raInternalState,
         currentState = this._raInternalState = Object.assign({}, oldState, newState);
 
-    this._raStateUpdateCounter++;
+    if (!areObjectsEqualShallow(oldState, currentState))
+      this._raStateUpdateCounter++;
 
     if (typeof this._debugStateUpdates === 'function')
       this._debugStateUpdates(currentState, oldState, newState);
@@ -1060,7 +1061,6 @@ export default class ComponentBase {
   }
 
   shouldComponentUpdate(oldProps, oldState) {
-    return;
   }
 
   render(children) {

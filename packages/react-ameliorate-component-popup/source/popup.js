@@ -117,8 +117,6 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
           _horizontal = Math.abs(horizontal),
           _vertical = Math.abs(vertical);
 
-      console.log('Quadrant values: ', quadrantValues);
-
       // Is popup on a corner? If so, don't do an arrow
       if (_horizontal === 2 && _vertical === 2)
         return;
