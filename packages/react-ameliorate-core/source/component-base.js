@@ -88,9 +88,9 @@ export default class ComponentBase {
 
     Object.defineProperties(this, {
       '_raID': {
-        writable: true,
+        writable: false,
         enumerable: false,
-        configurable: true,
+        configurable: false,
         value: getUniqueComponentID()
       },
       '_raComponent': {
@@ -234,7 +234,8 @@ export default class ComponentBase {
       },
     });
 
-    addComponentReference(this);
+    if (props.raConstruct !== false)
+      addComponentReference(this);
 
     // Setup the styleSheet getter to build style-sheets when requested
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);

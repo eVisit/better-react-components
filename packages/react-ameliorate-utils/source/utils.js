@@ -40,6 +40,7 @@ export function addComponentReference(instance) {
 
 export function removeComponentReference(instance) {
   var componentID = instance.getComponentID();
+  componentReferenceMap[componentID] = null;
   delete componentReferenceMap[componentID];
 }
 
