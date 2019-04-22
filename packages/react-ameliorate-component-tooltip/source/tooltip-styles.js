@@ -3,7 +3,7 @@ import { popupStyles }      from '@react-ameliorate/component-popup';
 
 export default createStyleSheet(function(theme, popupStyles) {
   var BG_COLOR = theme.TOOLTIP_COLOR,
-      ARROW_COLOR = theme.blendColors(BG_COLOR, theme.transparentColor('white', 0.1));
+      POPUP_ARROW_COLOR = theme.blendColors(BG_COLOR, theme.transparentColor('white', 0.1));
 
   return {
     tooltipContainer: {
@@ -16,16 +16,16 @@ export default createStyleSheet(function(theme, popupStyles) {
       backgroundColor: BG_COLOR
     },
     arrowDown: {
-      borderTopColor: ARROW_COLOR
+      borderTopColor: POPUP_ARROW_COLOR
     },
     arrowUp: {
-      borderBottomColor: ARROW_COLOR
+      borderBottomColor: POPUP_ARROW_COLOR
     },
     arrowLeft: {
-      borderRightColor: ARROW_COLOR
+      borderRightColor: POPUP_ARROW_COLOR
     },
     arrowRight: {
-      borderLeftColor: ARROW_COLOR
+      borderLeftColor: POPUP_ARROW_COLOR
     },
     tooltipCaption: {
       color: theme.textColor(BG_COLOR, 6)

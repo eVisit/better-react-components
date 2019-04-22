@@ -363,6 +363,21 @@ export class StyleSheetBuilder {
     // Now merge all style sheets
     rawStyle = this._rawStyle = D.extend(true, this.styleExports, ...[currentTheme, ...mergeStyles, rawStyle]);
 
+    Object.defineProperty(rawStyle, '_CONSTANTS', {
+      enumerable: false,
+      configurable: true,
+      get: () => {
+        return Object.keys(rawStyle).reduce((obj, key) => {
+          if (!key.match(/^[A-Z_0-9]+$/))
+            return obj;
+
+          obj[key] = rawStyle[key];
+          return obj;
+        }, {});
+      },
+      set: () => {}
+    });
+
     return rawStyle;
   }
 

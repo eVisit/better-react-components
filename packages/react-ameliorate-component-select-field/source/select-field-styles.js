@@ -96,6 +96,9 @@ export default createStyleSheet(function(theme) {
       justifyContent: 'center',
       top: 0,
       right: ARROW_CONTAINER_SIZE - (ARROW_CONTAINER_SIZE * 0.325)
+    },
+    popup: {
+      alignSelf: 'stretch'
     }
   };
 }, {

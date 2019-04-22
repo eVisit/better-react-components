@@ -25,7 +25,8 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
     static propTypes = {
       renderOptionsInline: PropTypes.bool,
       optionsAlwaysVisible: PropTypes.bool,
-      optionSelectedCaptionStyle: PropTypes.any
+      optionSelectedCaptionStyle: PropTypes.any,
+      disableSearch: PropTypes.bool
     };
 
     componentMounted() {
@@ -34,6 +35,15 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
 
     componentUnmounting() {
       super.componentUnmounting();
+    }
+
+    resolveProps() {
+      var props = super.resolveProps.apply(this, arguments);
+
+      if (props.disableSearch == null && typeof props.options !== 'function')
+        props.disableSearch = true;
+
+      return props;
     }
 
     resolveState() {
@@ -60,9 +70,6 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
         set = !currentState;
       else
         set = !!set;
-
-      if (set === currentState)
-        return;
 
       var textField = this.getReference('textField');
       if (textField) {
@@ -118,22 +125,25 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
       return value;
     }
 
-    popupCalculateStyle({ anchor }) {
-      if (!anchor || !anchor.rect)
+    popupCalculateStyle({ anchorLayout }) {
+      if (!anchorLayout)
         return null;
 
       return {
-        minWidth: anchor.rect.width
+        minWidth: anchorLayout.width
       };
     }
 
-    onPopupLeft() {
+    onPopupLeaving() {
       this.togglePopupVisibility(false);
     }
 
     onFocus(args) {
       super.onFocus(args);
       this.togglePopupVisibility(true);
+
+      if (this.props.disableSearch)
+        this.blur();
     }
 
     onPress(event) {
@@ -142,10 +152,7 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
 
     onIconPress(event) {
       stopEventPropagation(event);
-
-      this.getReference('textField', (textField) => {
-        textField.focus();
-      });
+      this.togglePopupVisibility(true);
     }
 
     onSubmit(args) {
@@ -268,14 +275,15 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
 
       return (
         <Paper
-          anchor={this.getNativeFieldReference()}
+          anchor={this.getReference('textField')}
           anchorPosition={{
             'bottom': 'top',
             'left': 'left'
           }}
           calculateStyle={this.popupCalculateStyle}
-          onLeft={this.onPopupLeft}
+          onLeaving={this.onPopupLeaving}
           id={this.getFieldID()}
+          style={this.style('popup')}
         >
           {this.renderAllOptions()}
         </Paper>

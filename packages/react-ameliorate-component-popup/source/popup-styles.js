@@ -1,15 +1,19 @@
 import { createStyleSheet } from '@react-ameliorate/styles';
 
 export default createStyleSheet(function(theme) {
-  const ARROW_SIZE = Math.round(theme.DEFAULT_PADDING * 0.45),
-        ARROW_SIZE_HALF = ARROW_SIZE * 0.5,
+  const POPUP_ARROW_SIZE = Math.round(theme.DEFAULT_PADDING * 0.45),
+        POPUP_ARROW_SIZE_HALF = POPUP_ARROW_SIZE * 0.5,
         POPUP_COLOR = theme.GREY02_COLOR,
-        ARROW_COLOR = theme.blendColors(POPUP_COLOR, theme.transparentColor('black', 0.1));
+        POPUP_ARROW_COLOR = theme.blendColors(POPUP_COLOR, theme.transparentColor('black', 0.1));
 
   return {
+    POPUP_ARROW_SIZE,
+    POPUP_ARROW_SIZE_HALF,
+    POPUP_COLOR,
+    POPUP_ARROW_COLOR,
     container: {
       backgroundColor: 'transparent',
-      padding: ARROW_SIZE_HALF
+      padding: POPUP_ARROW_SIZE_HALF
     },
     containerRight: {
     },
@@ -33,10 +37,10 @@ export default createStyleSheet(function(theme) {
       borderRightColor: 'transparent',
       borderBottomColor: 'transparent',
       borderTopColor: 'transparent',
-      borderWidth: ARROW_SIZE_HALF,
+      borderWidth: POPUP_ARROW_SIZE_HALF,
       borderStyle: 'solid',
-      width: ARROW_SIZE,
-      height: ARROW_SIZE
+      width: POPUP_ARROW_SIZE,
+      height: POPUP_ARROW_SIZE
     },
     arrowHCenter: {
       left: '50%'
@@ -58,19 +62,19 @@ export default createStyleSheet(function(theme) {
     },
     arrowDown: {
       bottom: 0,
-      borderTopColor: ARROW_COLOR
+      borderTopColor: POPUP_ARROW_COLOR
     },
     arrowUp: {
       top: 0,
-      borderBottomColor: ARROW_COLOR
+      borderBottomColor: POPUP_ARROW_COLOR
     },
     arrowLeft: {
       left: 0,
-      borderRightColor: ARROW_COLOR
+      borderRightColor: POPUP_ARROW_COLOR
     },
     arrowRight: {
       right: 0,
-      borderLeftColor: ARROW_COLOR
+      borderLeftColor: POPUP_ARROW_COLOR
     }
   };
 });

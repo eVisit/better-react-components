@@ -241,7 +241,8 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       onLeft: PropTypes.func,
       calculateStyle: PropTypes.func,
       pointerEvents: PropTypes.string,
-      visible: PropTypes.bool
+      visible: PropTypes.bool,
+      autoClose: PropTypes.bool
     };
 
     provideContext() {
@@ -342,14 +343,14 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       }, 10, 'positionUpdateDelay');
     }
 
-    updateAnchorLayout() {
+    updateAnchorLayout(time) {
       this.delay(() => {
         if (!this.mounted())
-          return this.updateAnchorLayout();
+          return this.updateAnchorLayout(250);
 
         var anchorRef = this.findAnchor(this.props.anchor);
         if (!anchorRef)
-          return this.updateAnchorLayout();
+          return;
 
         var paperContext = this.props.raPaperContext || this.context._raPaperContext,
             node = findDOMNode(paperContext);
@@ -364,17 +365,17 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
           if (calculateObjectDifferences(anchorLayout, currentLayout, null, 1))
             this.setState({ anchorLayout });
         });
-      }, 10, 'anchorLayoutUpdateDelay');
+      }, (time || 10), 'anchorLayoutUpdateDelay');
     }
 
-    updateLayout() {
+    updateLayout(time) {
       this.delay(() => {
         if (!this.mounted())
           return this.updateLayout();
 
         var rootView = this.getReference('_rootView');
         if (!rootView)
-          return this.updateLayout();
+          return this.updateLayout(100);
 
         var paperContext = this.props.raPaperContext || this.context._raPaperContext,
             node = findDOMNode(paperContext);
@@ -389,7 +390,7 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
           if (calculateObjectDifferences(layout, currentLayout, null, 1))
             this.setState({ layout });
         });
-      }, 10, 'layoutUpdateDelay');
+      }, (time || 10), 'layoutUpdateDelay');
     }
 
     addToOverlay(child) {
@@ -442,6 +443,7 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
           ra-layout={layout}
           ra-anchor-layout={anchorLayout}
           ra-position={position}
+          pointerEvents={(this.props.visible) ? 'auto' : 'box-none'}
         >
           {children}
         </View>

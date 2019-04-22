@@ -65,6 +65,10 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       var parentForm = this.getParentForm();
       if (parentForm)
         parentForm.registerField(this);
+
+      var value = this.value();
+      if (value != null)
+        this.onValueChange({ event: null, value, _value: null });
     }
 
     componentUnmounting() {
@@ -170,6 +174,10 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
 
     // Called every time the value is set, but only when it is set by the user
     onChange(args) {
+      var parentForm = this.getParentForm();
+      if (parentForm)
+        parentForm.onFieldValueChange({ ...args, ref: this, userInitiated: true });
+
       this.setErrorState(null);
       return this.callProvidedCallback('onChange', args);
     }
@@ -503,6 +511,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
           onMouseOut={this.onMouseOut}
           data-tooltip={this.formatVerbiageProp(this.props.tooltip)}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
+          ref={this.captureReference('_rootView')}
         >
           {this.getChildren(children)}
         </View>

@@ -69,19 +69,21 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         if (!thisChild)
           return false;
 
-        const shouldRemove = () => {
+        if (!this._isChildReady(thisChild))
+          return true;
+
+        const shouldKeep = () => {
           if (typeof isException === 'function' && isException(thisChild))
             return true;
 
           var onShouldClose = (thisChild.props && thisChild.props.onShouldClose);
-          if (typeof onShouldClose === 'function' && !onShouldClose.call(this, { child: thisChild, action: sourceAction }))
+          if (typeof onShouldClose === 'function' && !onShouldClose.call(this, { child: thisChild, childProps: thisChild.props, action: sourceAction }))
             return true;
 
           return false;
         };
 
-        var shouldStay = shouldRemove();
-        return shouldStay;
+        return shouldKeep();
       });
     }
 
@@ -134,6 +136,13 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
 
       var childProps = this._getChildPropsFromChild(child);
       return (childProps && childProps['ra-position']);
+    }
+
+    _isChildReady(child) {
+      var childProps = this._getChildPropsFromChild(child),
+          position = this._getChildPosition(child);
+
+      return (childProps.visible === false || (!position && childProps.anchor)) ? false : true;
     }
 
     callProxyToOriginalEvent(eventName, stateObject) {
@@ -192,7 +201,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
             },
             (position && position.style) ? position.style : this.style('defaultPaperStyle'),
             extraStyle,
-            (childProps.visible === false || (!position && childProps.anchor)) ? { opacity: 0 } : null
+            (this._isChildReady(child)) ? null : { opacity: 0 }
           );
 
       return childStyle;
@@ -219,7 +228,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
             onEntered={this.onChildEntered}
             onLeaving={this.onChildLeaving}
             onLeft={this.onChildLeft}
-            ref={this.captureReference('overlayRoot', findDOMNode)}
+            rootViewRef={this.captureReference('overlayRoot', findDOMNode)}
             pointerEvents="box-none"
           >
             {overlayChildren}

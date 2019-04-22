@@ -47,9 +47,13 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
     static defaultProps = {
       _raMeasurable: true,
       hasArrow: true,
-      onShouldClose: ({ action }) => {
+      autoClose: true,
+      onShouldClose: ({ childProps, action }) => {
         if (action === 'add')
           return false;
+
+        if (action === 'close' && childProps.autoClose)
+          return true;
       }
     };
 
@@ -113,6 +117,8 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
           _horizontal = Math.abs(horizontal),
           _vertical = Math.abs(vertical);
 
+      console.log('Quadrant values: ', quadrantValues);
+
       // Is popup on a corner? If so, don't do an arrow
       if (_horizontal === 2 && _vertical === 2)
         return;
@@ -161,8 +167,14 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
           onPositionUpdated={this.onPositionUpdated}
           visible={!!quadrantValues}
         >
-          <View style={this.style('container', `container${quadrantX}`, `container${quadrantY}`, this.props.style)}>
-            <View style={this.style('innerContainer', `innerContainer${quadrantX}`, `innerContainer${quadrantY}`, this.props.innerContainerStyle)}>
+          <View
+            className={this.getClassName(componentName, 'container')}
+            style={this.style('container', `container${quadrantX}`, `container${quadrantY}`, this.props.style)}
+          >
+            <View
+              className={this.getClassName(componentName, 'innerContainer')}
+              style={this.style('innerContainer', `innerContainer${quadrantX}`, `innerContainer${quadrantY}`, this.props.innerContainerStyle)}
+            >
               {this.getChildren(children)}
             </View>
 

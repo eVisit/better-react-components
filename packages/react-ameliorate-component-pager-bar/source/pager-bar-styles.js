@@ -50,7 +50,6 @@ export default createStyleSheet(function(theme) {
       flexDirection: 'column'
     },
     tabIconContainer: {
-      padding: 0
     },
     tabIcon: {
       fontSize: theme.FONT_SIZE_SMALL,

@@ -22,7 +22,8 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
       onRender: PropTypes.func,
       onRenderChild: PropTypes.func,
       pointerEvents: PropTypes.string,
-      childProps: PropTypes.object
+      childProps: PropTypes.object,
+      rootViewRef: PropTypes.func
     };
 
     resolveState({ initial, props, _props }) {
@@ -144,6 +145,7 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
           className={this.getRootClassName(componentName, this.props.className)}
           style={this.style('container', this.props.style, this.getAnimationStyle(this._childHandlerState))}
           pointerEvents={this.props.pointerEvents}
+          ref={this.props.rootViewRef}
         >
           {children}
         </Animated.View>

@@ -111,9 +111,10 @@ export const DynamicForm = componentFactory('DynamicForm', ({ Parent, componentN
       var type            = field.type,
           component       = this.getFieldComponentFromType({ type, field }),
           FieldComponent  = component.component,
-          extraProps      = component.props || {};
+          extraProps      = component.props || {},
+          fieldProps      = this.passProps(/^(type)$/, extraProps, field, { defaultValue: this.getFieldDataValue(field.field) });
 
-      return (<FieldComponent {...this.passProps(/^(type|colSpan)$/, extraProps, { defaultValue: this.getFieldDataValue(field.field) }, field)}/>);
+      return (<FieldComponent {...fieldProps}/>);
     }
 
     generateFieldComponents({ children, fields }) {

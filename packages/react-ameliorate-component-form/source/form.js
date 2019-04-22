@@ -122,7 +122,13 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
 
       currentData[field] = value;
 
-      return this.callProvidedCallback('onValueChange', { ...args, value: currentData, data: this.props.data });
+      return this.callProvidedCallback((args.userInitiated) ? 'onChange' : 'onValueChange', { ...args, value: currentData, data: this.props.data });
+    }
+
+    onChange(args) {
+    }
+
+    onValueChange(args) {
     }
 
     value() {

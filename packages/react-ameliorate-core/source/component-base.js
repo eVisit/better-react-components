@@ -23,8 +23,8 @@ import {
   getUniqueComponentID,
   isValidComponent,
   toNumber,
-  layoutToBoundingClientRect,
-  findDOMNode
+  findDOMNode,
+  calculateObjectDifferences
 }                                         from '@react-ameliorate/utils';
 
 var logCache = {};
@@ -607,11 +607,17 @@ export default class ComponentBase {
   }
 
   getProps(...args) {
-    return Object.assign({}, this.props, ...(args.filter(Boolean)));
+    if (!args.length)
+      return Object.assign({}, this.props);
+    else
+      return Object.assign({}, ...(args.filter(Boolean)));
   }
 
   filterProps(filter, ...args) {
-    return filterObjectKeys.call(this, filter, this.props, ...args);
+    if (!args.length)
+      return filterObjectKeys.call(this, filter, this.props);
+    else
+      return filterObjectKeys.call(this, filter, ...args);
   }
 
   passProps(filter, ...args) {
@@ -923,6 +929,14 @@ export default class ComponentBase {
         _componentFlags: 0x0
       })
     };
+  }
+
+  _debugMonitorStateVariables(filter, newState, oldState) {
+    var diff = calculateObjectDifferences(newState, oldState, filter);
+    if (!diff)
+      return;
+
+    console.trace(`STATE UPDATE [${this.getComponentName()}]: `, diff, [newState, oldState]);
   }
 
   delay(func, time, _id) {
@@ -1730,7 +1744,7 @@ export default class ComponentBase {
         allHooks = globalEventActionHooks[componentID];
 
     if (!allHooks)
-      allHooks = globalEventActionHooks[componentID] = { _order: this.getComponentOrder(), _id: componentID };
+      allHooks = globalEventActionHooks[componentID] = { _order: componentID, _id: componentID };
 
     var actions = allHooks[eventName];
     if (!actions)
