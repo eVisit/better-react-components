@@ -157,7 +157,7 @@ export function componentFactory(_name, definer, _options) {
       mixins = (options.mixins || []).filter((mixin) => (typeof mixin === 'function'));
 
   if (mixins && mixins.length)
-    Parent = mixinClasses(Parent, displayName, name, mixins);
+    Parent = mixinClasses.call(this, Parent, displayName, name, mixins);
 
   if (typeof Parent !== 'function')
     debugger;
