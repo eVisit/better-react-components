@@ -246,10 +246,26 @@ export class Theme {
     U.defineROProperty(this, 'platform', undefined, () => opts.platform);
 
     U.defineRWProperty(this, '_cachedTheme', null);
+    U.defineRWProperty(this, '_cachedStyles', {});
     U.defineRWProperty(this, '_lastRebuildTime', 0);
     U.defineRWProperty(this, '_themeID', themeIDCounter++);
 
     this.rebuildTheme(_extraThemeProps);
+  }
+
+  invalidateCache() {
+    this._cachedTheme = null;
+
+    Object.keys(this._cachedStyles).forEach((key) => this._cachedStyles[key].invalidateCache());
+    this._cachedStyles = {};
+  }
+
+  getCachedStyle(id) {
+    return this._cachedStyles[id];
+  }
+
+  setCachedStyle(id, style) {
+    this._cachedStyles[id] = style;
   }
 
   getScreenInfo() {
@@ -298,6 +314,8 @@ export class Theme {
 
       extraThemeProps[key] = value;
     });
+
+    this.invalidateCache();
 
     var currentTheme = this._cachedTheme = new ThemePropertiesClass(extraThemeProps, this);
     this._lastRebuildTime = (new Date()).valueOf();

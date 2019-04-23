@@ -19,7 +19,8 @@ Object.defineProperties(Platform, {
 
 //###}###//
 
-var styleSheetID = 1;
+var styleSheetID = 1,
+    uniqueStyleIDCounter = 1;
 
 const transformAxis = [
   'translateX',
@@ -55,7 +56,7 @@ export class StyleSheetBuilder {
     U.defineRWProperty(this, '_styleHelper', styleHelper);
     U.defineRWProperty(this, '_style', null);
     U.defineRWProperty(this, '_rawStyle', null);
-    U.defineRWProperty(this, '_cachedBaseStyles', null);
+    U.defineRWProperty(this, '_styleCache', {});
     U.defineRWProperty(this, '_lastStyleUpdateTime', 0);
     U.defineRWProperty(this, '_lastRawStyleUpdateTime', 0);
 
@@ -142,6 +143,10 @@ export class StyleSheetBuilder {
     });
 
     return styleFunction;
+  }
+
+  invalidateCache() {
+    this._styleCache = {};
   }
 
   getTheme() {
@@ -256,6 +261,55 @@ export class StyleSheetBuilder {
     return ruleValue;
   }
 
+  calculateStyleCacheKey(_styles) {
+    var styles = _styles;
+    if (!styles)
+      return ('' + styles);
+
+    if (typeof styles.valueOf === 'function')
+      styles = styles.valueOf();
+
+    var objType = typeof styles;
+    if (objType === 'string' || objType === 'number' || objType === 'boolean' || objType === 'bigint')
+      return ('' + styles);
+
+    var isArray = (styles instanceof Array);
+
+    // If this isn't a standard object (i.e. Animated.Value)
+    // then attempt to give the object a hidden style id
+    // if the object is sealed or frozen, then we always
+    // just return a new unique id, which will invalidate the cache
+    if (!isArray && styles.constructor !== Object.prototype.constructor) {
+      if (styles.__raObjStyleID)
+        return styles.__raObjStyleID;
+
+      var objID = ('' + (uniqueStyleIDCounter++));
+      Object.defineProperty(styles, '__raObjStyleID', {
+        writable: false,
+        enumerable: false,
+        configurable: false,
+        value: objID
+      });
+
+      return objID;
+    }
+
+    var keys        = Object.keys(styles),
+        finalArray  = [];
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i],
+          value = styles[key];
+
+      finalArray.push(`${key}:${this.calculateStyleCacheKey(value)}`);
+    }
+
+    if (!isArray)
+      finalArray.sort();
+
+    return finalArray.join(',');
+  }
+
   styleWithHelper(helper, ...args) {
     const resolveAllStyles = (styles, finalStyles) => {
       for (var i = 0, il = styles.length; i < il; i++) {
@@ -273,6 +327,9 @@ export class StyleSheetBuilder {
 
           if (typeof helper === 'function')
             style = helper({ styleName, style, styles: sheet, sheet: this });
+
+          if (styleName === 'horizontalTabButtonActive')
+            console.log('STYLE: ', style);
         }
 
         if (!style || style === true)
@@ -290,6 +347,12 @@ export class StyleSheetBuilder {
       }
     };
 
+    var cacheKey = this.calculateStyleCacheKey(args),
+        cachedStyle = this._styleCache[cacheKey];
+
+    if (cachedStyle)
+      return cachedStyle;
+
     var sheet = this.getInternalStyleSheet(),
         mergedStyles = [];
 
@@ -298,7 +361,8 @@ export class StyleSheetBuilder {
     if (mergedStyles.length < 2)
       return mergedStyles[0];
 
-    return this.flattenInternalStyleSheet(mergedStyles);
+    var finalStyle = this._styleCache[cacheKey] = this.flattenInternalStyleSheet(mergedStyles);
+    return finalStyle;
   }
 
   rawStyle(...args) {
@@ -352,6 +416,7 @@ export class StyleSheetBuilder {
     if (this._rawStyle && lut <= this._lastRawStyleUpdateTime)
       return this._rawStyle;
 
+    this.invalidateCache();
     this._lastRawStyleUpdateTime = lut;
 
     var currentTheme = (currentTheme) ? currentTheme.getThemeProperties() : {},
@@ -536,7 +601,7 @@ export class StyleSheetBuilder {
   }
 
   _getStylePropMutators() {
-    const mutateFourWay = (testKey, props) => {
+    const mutateFourWay = (testKey, props, keyNameFormatter) => {
       var value = props[testKey];
       if (value == null)
         return;
@@ -544,7 +609,7 @@ export class StyleSheetBuilder {
       var mutatedProps = {};
       for (var i = 0, il = sides.length; i < il; i++) {
         var side = sides[i],
-            keyName = (testKey === 'borderWidth') ? `border${side}Width` : `${testKey}${side}`;
+            keyName = (typeof keyNameFormatter === 'function') ? keyNameFormatter(side) : `${testKey}${side}`;
 
         mutatedProps[keyName] = value;
       }
@@ -556,7 +621,9 @@ export class StyleSheetBuilder {
     return [
       mutateFourWay.bind(this, 'margin'),
       mutateFourWay.bind(this, 'padding'),
-      mutateFourWay.bind(this, 'borderWidth')
+      mutateFourWay.bind(this, 'borderWidth', (side) => `border${side}Width`),
+      mutateFourWay.bind(this, 'borderColor', (side) => `border${side}Color`),
+      mutateFourWay.bind(this, 'borderStyle', (side) => `border${side}Style`)
     ];
   }
 

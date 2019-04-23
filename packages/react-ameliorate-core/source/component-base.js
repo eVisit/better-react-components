@@ -352,26 +352,14 @@ export default class ComponentBase {
     if (!theme)
       throw new Error('"theme" is required to create a style-sheet');
 
-    var styleCache = theme._cachedStyles;
-    if (!styleCache) {
-      Object.defineProperty(theme, '_cachedStyles', {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: {}
-      });
-
-      styleCache = theme._cachedStyles;
-    }
-
     var styleSheetFactory = _styleSheetFactory;
     if (typeof styleSheetFactory !== 'function') {
       console.warn('static styleSheet for component is not a proper styleSheet');
       return;
     }
 
-    var styleID = styleSheetFactory._raStyleSheetID,
-        cachedStyle = styleCache[styleID];
+    var styleID     = styleSheetFactory._raStyleSheetID,
+        cachedStyle = theme.getCachedStyle(styleID);
 
     if (!cachedStyle) {
       cachedStyle = styleSheetFactory(theme, theme.platform, {
@@ -379,7 +367,7 @@ export default class ComponentBase {
         styleHelper: this.styleHelper
       });
 
-      styleCache[styleID] = cachedStyle;
+      theme.setCachedStyle(styleID, cachedStyle);
     }
 
     return cachedStyle;

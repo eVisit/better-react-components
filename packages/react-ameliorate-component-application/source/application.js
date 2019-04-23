@@ -212,6 +212,11 @@ export const Application = componentFactory('Application', ({ Parent, componentN
           document.body.removeEventListener(eventName, this.globalEventActionListener);
         });
       }
+
+      // Clear style cache
+      var theme = this.getTheme();
+      if (theme)
+        theme.invalidateCache();
     }
 
     resolveState() {
