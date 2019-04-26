@@ -4,6 +4,7 @@ export default createStyleSheet(function(theme) {
   const DEFAULT_ACTIVE_TAB_BG_COLOR = theme.blendColors(theme.contrastColor(theme.MAIN_COLOR), theme.transparentColor(theme.MAIN_COLOR, 1 - theme.DEFAULT_HOVER_OPACITY));
 
   return {
+    DEFAULT_ACTIVE_TAB_BG_COLOR,
     container: {
       flex: 0,
       flexDirection: 'row',
@@ -16,7 +17,7 @@ export default createStyleSheet(function(theme) {
     verticalContainer: {
       flexDirection: 'column'
     },
-    tabTouchableContainer: {
+    buttonContainer: {
       flex: 0,
       browser: {
         cursor: 'pointer'
@@ -24,33 +25,31 @@ export default createStyleSheet(function(theme) {
       alignItems: 'stretch',
       justifyContent: 'center'
     },
-    horizontalTabTouchableContainer: {
+    horizontalButtonContainer: {
       flexDirection: 'row'
     },
-    verticalTabTouchableContainer: {
+    verticalButtonContainer: {
       flexDirection: 'column'
     },
-    tabContainer: {
+    tabButton: {
       flex: 0,
       padding: theme.DEFAULT_PADDING * 0.2,
       textAlign: 'center',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      borderWidth: 0,
+      borderRadius: 0
     },
-    tabContainerActive: {
+    tabButtonActive: {
       backgroundColor: DEFAULT_ACTIVE_TAB_BG_COLOR
     },
-    horizontalTabContainer: {
+    horizontalTabButton: {
       flexDirection: 'row'
     },
-    verticalTabContainer: {
+    verticalTabButton: {
       flexDirection: 'column'
     },
     tabIconContainer: {
-      flex: 0,
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center'
     },
     tabIcon: {
       fontSize: theme.FONT_SIZE_SMALL,

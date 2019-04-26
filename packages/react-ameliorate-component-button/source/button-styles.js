@@ -14,58 +14,63 @@ export default createStyleSheet(function(theme) {
       flexDirection: 'column',
       alignItems: 'stretch',
       justifyContent: 'center',
-      borderRadius: theme.DEFAULT_RADIUS,
       browser: {
         cursor: 'pointer',
         userSelect: 'none'
       }
     },
-    defaultContainer: {
-      borderWidth: 1,
+    internalContainer: {
+      borderWidth: theme.DEFAULT_BORDER_WIDTH,
+      borderRadius: theme.DEFAULT_BORDER_RADIUS,
+      minHeight: theme.DEFAULT_BUTTON_HEIGHT,
+      paddingTop: theme.DEFAULT_PADDING * 0.25,
+      paddingBottom: theme.DEFAULT_PADDING * 0.25,
+      paddingLeft: theme.DEFAULT_PADDING * 0.5,
+      paddingRight: theme.DEFAULT_PADDING * 0.5,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    defaultInternalContainer: {
       borderColor: theme.MAIN_COLOR,
       backgroundColor: DEFAULT_BG_COLOR
     },
-    defaultContainerHovered: {
+    defaultInternalContainerHovered: {
       backgroundColor: DEFAULT_HOVER_BG_COLOR
     },
-    defaultPressedContainer: {
+    defaultInternalContainerPressed: {
       backgroundColor: DEFAULT_PRESSED_BG_COLOR
     },
-    defaultContainerDisabled: {
+    defaultInternalContainerDisabled: {
       borderColor: theme.GREY03_COLOR,
       backgroundColor: theme.GREY02_COLOR,
       browser: {
         cursor: 'default'
       }
     },
-    whiteContainer: {
-      borderWidth: 1,
+    whiteInternalContainer: {
+      borderWidth: theme.DEFAULT_BORDER_WIDTH,
       borderColor: theme.MAIN_COLOR,
       backgroundColor: WHITE_BG_COLOR
     },
-    whiteContainerHovered: {
+    whiteInternalContainerHovered: {
       backgroundColor: WHITE_HOVER_BG_COLOR
     },
-    whitePressedContainer: {
+    whiteInternalContainerPressed: {
       backgroundColor: WHITE_PRESSED_BG_COLOR
     },
-    whiteContainerDisabled: {
+    whiteInternalContainerDisabled: {
       backgroundColor: theme.GREY02_COLOR,
       browser: {
         cursor: 'default'
       }
     },
-    internalContainer: {
-      minHeight: theme.DEFAULT_INPUT_HEIGHT - 2,
-      padding: theme.DEFAULT_PADDING * 0.3,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center'
-    },
     caption: {
       fontSize: theme.DEFAULT_FONT_SIZE,
       textAlign: 'center',
-      userSelect: 'none'
+      browser: {
+        userSelect: 'none'
+      }
     },
     defaultCaption: {
       color: theme.textColor(DEFAULT_BG_COLOR)
@@ -73,23 +78,66 @@ export default createStyleSheet(function(theme) {
     defaultCaptionHovered: {
       color: theme.textColor(DEFAULT_HOVER_BG_COLOR)
     },
-    defaultPressedCaption: {
+    defaultCaptionPressed: {
       color: theme.textColor(DEFAULT_PRESSED_BG_COLOR)
     },
     defaultCaptionDisabled: {
       color: theme.textColor(DEFAULT_HOVER_BG_COLOR, 3)
     },
     whiteCaption: {
-      color: theme.textColor(WHITE_BG_COLOR, 7)
+      color: theme.textColor(WHITE_BG_COLOR, 6, undefined, true)
     },
     whiteCaptionHovered: {
-      color: theme.textColor(WHITE_HOVER_BG_COLOR, 7)
+      color: theme.textColor(WHITE_HOVER_BG_COLOR, 6)
     },
-    whitePressedCaption: {
-      color: theme.textColor(WHITE_PRESSED_BG_COLOR, 7)
+    whiteCaptionPressed: {
+      color: theme.textColor(WHITE_PRESSED_BG_COLOR, 6)
     },
     whiteCaptionDisabled: {
       color: theme.textColor(WHITE_PRESSED_BG_COLOR, 6)
     },
+    icon: {
+      fontSize: theme.DEFAULT_BUTTON_ICON_SIZE,
+      textAlign: 'center',
+      browser: {
+        userSelect: 'none'
+      }
+    },
+    defaultIcon: {
+      color: theme.textColor(DEFAULT_BG_COLOR)
+    },
+    defaultIconHovered: {
+      color: theme.textColor(DEFAULT_HOVER_BG_COLOR)
+    },
+    defaultIconPressed: {
+      color: theme.textColor(DEFAULT_PRESSED_BG_COLOR)
+    },
+    defaultIconDisabled: {
+      color: theme.textColor(DEFAULT_HOVER_BG_COLOR, 3)
+    },
+    whiteIcon: {
+      color: theme.textColor(WHITE_BG_COLOR, 6)
+    },
+    whiteIconHovered: {
+      color: theme.textColor(WHITE_HOVER_BG_COLOR, 6)
+    },
+    whiteIconPressed: {
+      color: theme.textColor(WHITE_PRESSED_BG_COLOR, 6)
+    },
+    whiteIconDisabled: {
+      color: theme.textColor(WHITE_PRESSED_BG_COLOR, 6)
+    },
+    iconContainer: {
+    },
+    leftIconContainer: {
+    },
+    leftIconContainerWithCaption: {
+      paddingRight: theme.DEFAULT_PADDING * 0.25
+    },
+    rightIconContainer: {
+    },
+    rightIconContainerWithCaption: {
+      paddingLeft: theme.DEFAULT_PADDING * 0.25
+    }
   };
 });

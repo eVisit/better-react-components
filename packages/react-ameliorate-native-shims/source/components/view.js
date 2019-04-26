@@ -5,9 +5,9 @@ import { utils as U }               from 'evisit-js-utils';
 import React                        from 'react';
 import {
   sendOnLayoutEvent,
-  findDOMNode,
   isElementOrDescendant,
-  filterToNativeElementProps
+  filterToNativeElementProps,
+  findDOMNode
 }                                   from '@react-ameliorate/utils';
 import { flattenStyle }             from '../shim-utils';
 import ViewPropTypes                from '../prop-types/view';
@@ -41,6 +41,14 @@ class View extends React.Component {
         style.flexBasis = 'auto';
     }
 
+    var pointerEvents = providedProps.pointerEvents;
+    if (pointerEvents) {
+      if (pointerEvents === 'box-none')
+        pointerEvents = 'none';
+
+      style.pointerEvents = pointerEvents;
+    }
+
     return {
       ...providedProps,
       className: this.getClassName('raView', this.props.className),
@@ -51,18 +59,74 @@ class View extends React.Component {
     };
   }
 
-  onWindowResize = (event) => {
-    sendOnLayoutEvent.call(this, this.props.onLayout, this.rootElement);
+  sendOnLayoutEvent(callback) {
+    sendOnLayoutEvent.call(this, callback, this.rootElement);
   }
 
-  viewRef = (_elem) => {
-    this.rootElement = findDOMNode(_elem);
+  measure(resolve) {
+    var me = findDOMNode(this);
+    if (!me)
+      return;
+
+    resolve(
+      me.offsetLeft,
+      me.offsetTop,
+      me.offsetWidth,
+      me.offsetHeight
+    );
+  }
+
+  measureInWindow(resolve) {
+    var me = findDOMNode(this);
+    if (!me)
+      return;
+
+    var rect = me.getBoundingClientRect();
+    resolve(
+      rect.left,
+      rect.top,
+      rect.width,
+      rect.height
+    );
+  }
+
+  measureLayout(node, resolve, reject) {
+    var me = findDOMNode(this);
+
+    if (!node || !me) {
+      reject();
+      return;
+    }
+
+    var rect1 = node.getBoundingClientRect(),
+        rect2 = me.getBoundingClientRect();
+
+    resolve(
+      (rect2.left - rect1.left),
+      (rect2.top  - rect1.top),
+      rect2.width,
+      rect2.height
+    );
+  }
+
+  doOnLayout = (event) => {
+    return this.sendOnLayoutEvent.call(this, this.props.onLayout);
+  };
+
+  onWindowResize = (event) => {
+    this.doOnLayout(event);
+  }
+
+  viewRef = (elem) => {
+    this.rootElement = elem;
+    if (typeof this.props.domRef === 'function')
+      this.props.domRef.call(this, elem);
   }
 
   componentDidMount() {
     if (typeof this.props.onLayout === 'function') {
       window.addEventListener('resize', this.onWindowResize);
-      sendOnLayoutEvent.call(this, this.props.onLayout, this.rootElement);
+      this.doOnLayout(null);
     }
   }
 
@@ -71,7 +135,7 @@ class View extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    sendOnLayoutEvent.call(this, prevProps.onLayout, this.rootElement);
+    this.doOnLayout(null);
   }
 
   onMouseOver = (event) => {

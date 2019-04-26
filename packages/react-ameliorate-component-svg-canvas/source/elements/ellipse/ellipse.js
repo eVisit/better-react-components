@@ -42,9 +42,8 @@ export const SVGEllipse = componentFactory('SVGEllipse', ({ Parent, componentNam
 
     render(_children) {
       var props = this.getPropsFromStyle(this.props.style);
-      console.log('Circle props: ', props);
 
-      return (
+      return super.render(
         <ellipse {...this.passProps(props)}>{this.getChildren(_children)}</ellipse>
       );
     }

@@ -42,13 +42,15 @@ export const NumberField = componentFactory('NumberField', ({ Parent, componentN
         if (args.focussed)
           return newValue;
 
-        var precision = this.props.precision,
-            num = parseFloat(('' + newValue).trim().replace(/(\S+).*/g, '$1').replace(/[^\d.-]+/g, ''));
+        var precision = this.props.precision;
+        if (typeof precision !== 'number' || !isFinite(precision))
+          precision = null;
 
+        var num = parseFloat(('' + newValue).trim().replace(/(\S+).*/g, '$1').replace(/[^\d.-]+/g, ''));
         if (!isFinite(num))
           num = 0;
 
-        if (typeof precision === 'number' && isFinite(precision)) {
+        if (precision) {
           var scalar = Math.pow(10, Math.round(precision));
           num = Math.round(num * scalar) / scalar;
         }
@@ -61,7 +63,7 @@ export const NumberField = componentFactory('NumberField', ({ Parent, componentN
           if (!unit)
             unit = '';
 
-          return `${num} ${unit}`;
+          return `${(precision) ? num.toFixed(precision) : num} ${unit}`;
         }
       };
 

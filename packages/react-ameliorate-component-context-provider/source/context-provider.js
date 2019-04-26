@@ -27,7 +27,7 @@ export const ContextProvider = componentFactory('ContextProvider', ({ Parent, co
     }
 
     render(children) {
-      return (
+      return super.render(
         <View {...this.passProps(/^(context)$/)}>
           {this.getChildren(children)}
         </View>

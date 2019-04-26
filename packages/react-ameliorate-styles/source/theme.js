@@ -1,5 +1,6 @@
-import { utils as U }                     from 'evisit-js-utils';
-import { buildPalette, Color, ColorConstants } from './colors';
+import { utils as U, data as D }                from 'evisit-js-utils';
+import { buildPalette, Color, ColorConstants }  from './colors';
+import { getPlatform }                          from '@react-ameliorate/utils';
 
 var themeIDCounter = 1;
 
@@ -129,15 +130,18 @@ export class ThemeProperties {
     if (!theme)
       return {};
 
-    var screenInfo = this.getScreenInfo(),
-        width = safeNumber(themeProps.SCREEN_WIDTH, screenInfo.width),
-        height = safeNumber(themeProps.SCREEN_HEIGHT, screenInfo.width),
-        IS_MOBILE = (this.getPlatform() !== 'browser'),
-        FONT_SCALAR = themeProps.FONT_SCALAR || 1,
-        SCREEN_WIDTH = width,
-        SCREEN_HEIGHT = height,
-        SCROLLBAR_WIDTH = 0,
-        DEFAULT_PADDING = 30;
+    var screenInfo            = this.getScreenInfo(),
+        width                 = safeNumber(themeProps.SCREEN_WIDTH, screenInfo.width),
+        height                = safeNumber(themeProps.SCREEN_HEIGHT, screenInfo.width),
+        platform              = this.getPlatform(),
+        IS_MOBILE             = (platform !== 'browser' && platform !== 'desktop'),
+        FONT_SCALAR           = themeProps.FONT_SCALAR || 1,
+        SCREEN_WIDTH          = width,
+        SCREEN_HEIGHT         = height,
+        SCROLLBAR_WIDTH       = 0,
+        DEFAULT_PADDING       = 30,
+        DEFAULT_INPUT_HEIGHT  = 30,
+        DEFAULT_FIELD_HEIGHT  = DEFAULT_INPUT_HEIGHT;
 
     //###if(!MOBILE) {###//
     SCROLLBAR_WIDTH = getScrollbarWidth();
@@ -185,10 +189,14 @@ export class ThemeProperties {
 
       DEFAULT_PADDING,
       DEFAULT_CONTENT_PADDING: DEFAULT_PADDING * 0.25,
+      DEFAULT_BORDER_WIDTH: 1,
       DEFAULT_BORDER_RADIUS: 4,
-      DEFAULT_BUTTON_HEIGHT: 48,
-      DEFAULT_FIELD_HEIGHT: 30,
+      DEFAULT_BORDER_COLOR: this.fadedColor(this.inverseContrastColor(paletteProps.palette.MAIN_COLOR)),
+      DEFAULT_BUTTON_HEIGHT: DEFAULT_INPUT_HEIGHT,
+      DEFAULT_INPUT_HEIGHT,
+      DEFAULT_FIELD_HEIGHT,
       DEFAULT_HOVER_OPACITY: 0.2,
+      DEFAULT_ACTIVE_OPACITY: 0.4,
       MAX_DIALOG_CONTENT_HEIGHT: (IS_MOBILE) ? (SCREEN_HEIGHT * 0.75) : '75vh',
 
       NO_SELECT: (IS_MOBILE) ? {} : {
@@ -198,11 +206,30 @@ export class ThemeProperties {
       }
     };
 
-    finalThemeProps.DEFAULT_FONT_SIZE = finalThemeProps.FONT_SIZE_SMALL;
-    finalThemeProps.DEFAULT_ICON_SIZE = finalThemeProps.DEFAULT_FONT_SIZE;
-    finalThemeProps.REM = finalThemeProps.DEFAULT_FONT_SIZE;
+    finalThemeProps = Object.assign(finalThemeProps, themeProps, paletteProps.palette);
 
-    return Object.assign(finalThemeProps, themeProps, paletteProps.palette);
+    var specialMerge = {
+      'DEFAULT_FONT_SIZE': finalThemeProps.FONT_SIZE_SMALL,
+      'DEFAULT_ICON_SIZE': finalThemeProps.DEFAULT_FONT_SIZE,
+      'DEFAULT_BUTTON_ICON_SIZE': finalThemeProps.DEFAULT_FONT_SIZE,
+      'REM': finalThemeProps.DEFAULT_FONT_SIZE,
+      'TOOLTIP_COLOR': finalThemeProps.GREY02_COLOR
+    };
+
+    var keys = Object.keys(specialMerge);
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key   = keys[i],
+          value = finalThemeProps[key];
+
+      if (value == null)
+        finalThemeProps[key] = specialMerge[key];
+    }
+
+    return finalThemeProps;
+  }
+
+  mergeStyles(...args) {
+    return D.extend(true, {}, ...(args.filter(Boolean)));
   }
 }
 
@@ -210,17 +237,35 @@ export class Theme {
   static getScreenInfo = getScreenInfo;
 
   constructor(_extraThemeProps, _opts) {
-    var opts = Object.assign({}, _opts || {});
+    var opts = Object.assign({
+      platform: getPlatform()
+    }, _opts || {});
 
     U.defineROProperty(this, '_options', undefined, () => opts);
     U.defineROProperty(this, 'ThemePropertiesClass', undefined, () => this._options.ThemePropertiesClass);
     U.defineROProperty(this, 'platform', undefined, () => opts.platform);
 
     U.defineRWProperty(this, '_cachedTheme', null);
+    U.defineRWProperty(this, '_cachedStyles', {});
     U.defineRWProperty(this, '_lastRebuildTime', 0);
     U.defineRWProperty(this, '_themeID', themeIDCounter++);
 
     this.rebuildTheme(_extraThemeProps);
+  }
+
+  invalidateCache() {
+    this._cachedTheme = null;
+
+    Object.keys(this._cachedStyles).forEach((key) => this._cachedStyles[key].invalidateCache());
+    this._cachedStyles = {};
+  }
+
+  getCachedStyle(id) {
+    return this._cachedStyles[id];
+  }
+
+  setCachedStyle(id, style) {
+    this._cachedStyles[id] = style;
   }
 
   getScreenInfo() {
@@ -269,6 +314,8 @@ export class Theme {
 
       extraThemeProps[key] = value;
     });
+
+    this.invalidateCache();
 
     var currentTheme = this._cachedTheme = new ThemePropertiesClass(extraThemeProps, this);
     this._lastRebuildTime = (new Date()).valueOf();

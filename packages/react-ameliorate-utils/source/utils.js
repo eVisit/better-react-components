@@ -2,7 +2,9 @@ import React          from 'react';
 import { utils as U } from 'evisit-js-utils';
 
 //###if(!MOBILE) {###//
-import { findDOMNode as reactFindDOMNode } from 'react-dom';
+import { findDOMNode as reactFindDOMNode }  from 'react-dom';
+//###} else {###//
+import { Platform, findNodeHandle }         from 'react-native';
 //###}###//
 
 const componentReferenceMap = {};
@@ -38,11 +40,36 @@ export function addComponentReference(instance) {
 
 export function removeComponentReference(instance) {
   var componentID = instance.getComponentID();
+  componentReferenceMap[componentID] = null;
   delete componentReferenceMap[componentID];
 }
 
 export function getComponentReference(componentID) {
   return componentReferenceMap[componentID];
+}
+
+export function findComponentReference(_searchString) {
+  var searchString = ('' + _searchString),
+      index = searchString.indexOf(':');
+
+  if (index < 0)
+    return getComponentReference(searchString);
+
+  var prop  = searchString.substring(0, index),
+      value = searchString.substring(index + 1),
+      keys  = Object.keys(componentReferenceMap);
+
+  for (var i = 0, il = keys.length; i < il; i++) {
+    var key = keys[i],
+        instance = componentReferenceMap[key],
+        instanceProps = (instance && instance.props);
+
+    if (!instanceProps)
+      continue;
+
+    if (instanceProps[prop] === value)
+      return instance;
+  }
 }
 
 function iteratePrototype(klass, func) {
@@ -242,7 +269,8 @@ const acceptableElementProps = [
   'style',
   'ref',
   'children',
-  'draggable'
+  'draggable',
+  'dangerouslySetInnerHTML'
 ];
 
 export function filterToNativeElementProps(props, elementType) {
@@ -274,7 +302,7 @@ export function filterToNativeElementProps(props, elementType) {
       return (value !== null);
 
     // Blacklist
-    if ((/^on(Press|Layout$|dangerouslySetInnerHTML$)/).test(key))
+    if ((/^on(Press|Layout$$)/).test(key))
       return false;
 
     // Events
@@ -459,11 +487,18 @@ export function findDOMNode(elem) {
   if (!elem)
     return elem;
 
-  //###if(MOBILE) {###//
-  return elem;
-  //###} else {###//
-  return reactFindDOMNode(elem);
-  //###}###//
+  if (typeof elem.getDOMNode === 'function')
+    return elem.getDOMNode();
+
+  try {
+    //###if(MOBILE) {###//
+    return findNodeHandle(elem);
+    //###} else {###//
+    return reactFindDOMNode(elem);
+    //###}###//
+  } catch (e) {
+    return null;
+  }
 }
 
 export function nextTick(callback) {
@@ -697,9 +732,92 @@ export function calculateObjectDifferences(_obj1, _obj2, filter, maxDepth, _curr
   return (isDiff) ? diffObj : undefined;
 }
 
-export function compileLanguageTerm(args) {
-  var term = args.term;
-  return (typeof term === 'function') ? term.call(this, args) : term;
+export function formatClientText(text, raw) {
+  //###if(MOBILE) {###//
+  return text.replace(/\r/g, ' ');
+  //###} else {###//
+  if (raw === true)
+    return ('' + text).replace(/[\r\n]/g, '<br>');
+
+  return ('' + text).split(/[\r\n]/g).reduce((result, line, i, a) => {
+    result.push(line);
+    if (i < a.length)
+      result.push(<br key={i} />);
+    return result;
+  }, []);
+  //###}###//
+}
+
+export function selectFirst(...args) {
+  for (var i = 0, il = args.length; i < il; i++) {
+    var arg = args[i];
+    if (arg != null)
+      return arg;
+  }
+}
+
+export function getPlatform() {
+  //###if(MOBILE) {###//
+  return Platform.OS;
+  //###} else {###//
+  if (typeof global.navigator !== 'undefined') {
+    if (global.navigator.userAgent.match(/(iPad|iPhone|iPod|android|webOS|mobile)/i))
+      return 'mobile_browser';
+  }
+
+  return 'desktop';
+  //###}###//
+}
+
+export function layoutToBoundingClientRect(layout) {
+  if (!layout)
+    return layout;
+
+  return {
+    top: layout.y,
+    left: layout.x,
+    right: layout.x + layout.width,
+    bottom: layout.y + layout.height,
+    width: layout.width,
+    height: layout.height
+  };
+}
+
+export function findClosestComponentFromDOMElement(_element) {
+  var element = _element;
+  while (element) {
+    var className = element.getAttribute('class'),
+        parts     = ('' + className).match(/\w+(Component_\d{13,})/);
+
+    if (!parts)
+      element = element.parentElement;
+
+    return getComponentReference(parts[1]);
+  }
+}
+
+export function specializeEvent(event) {
+  event.propagationStopped = false;
+  event.immediatePropagationStopped = false;
+
+  event.stopImmediatePropagation = (function(func) {
+    return function() {
+      event.propagationStopped = true;
+      event.immediatePropagationStopped = true;
+
+      return func.call(event);
+    };
+  })(event.stopImmediatePropagation);
+
+  event.stopPropagation = (function(func) {
+    return function() {
+      event.propagationStopped = true;
+
+      return func.call(event);
+    };
+  })(event.stopPropagation);
+
+  return event;
 }
 
 export {

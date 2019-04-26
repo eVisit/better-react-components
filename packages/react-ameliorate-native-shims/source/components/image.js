@@ -35,18 +35,31 @@ class Image extends View {
 
     return {
       ...props,
+      className: this.getClassName('raImage', this.props.className),
       src,
       style
     };
   }
 
+  renderImage(props) {
+    var src = props.src;
+
+    return (
+      <img
+        style={{ opacity: 0, width: '1px', height: '1px', position: 'absolute', visibility: 'none' }}
+        src={src}
+        onLoad={props.onLoadEnd}
+        onError={props.onLoadEnd}
+      />
+    );
+  }
+
   render(_props, _children) {
-    var props = this.getProps.call(this, this.props),
-        src = props.src;
+    var props = this.getProps.call(this, this.props);
 
     return super.render(
       props,
-      (_children) ? _children : (<img style={{ opacity: '0 !important', width: '1px', height: '1px', position: 'absolute' }} src={src} onLoad={this.props.onLoadEnd} onError={this.props.onLoadEnd}/>)
+      (_children) ? _children : this.renderImage(props)
     );
   }
 }

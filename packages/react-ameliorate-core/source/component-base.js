@@ -1,7 +1,8 @@
-import { utils as U }                 from 'evisit-js-utils';
-import PropTypes                      from '@react-ameliorate/prop-types';
-
-import React                          from 'react';
+import moment                             from 'moment';
+import { utils as U, formatters }         from 'evisit-js-utils';
+import PropTypes                          from '@react-ameliorate/prop-types';
+import { View, Platform, findNodeHandle } from '@react-ameliorate/native-shims';
+import React                              from 'react';
 import {
   CONTEXT_PROVIDER_KEY,
   areObjectsEqualShallow,
@@ -12,6 +13,7 @@ import {
   addComponentReference,
   removeComponentReference,
   getComponentReference,
+  findComponentReference,
   removeDuplicateStrings,
   postRenderProcessChildProps,
   postRenderProcessChild,
@@ -21,8 +23,9 @@ import {
   getUniqueComponentID,
   isValidComponent,
   toNumber,
-  compileLanguageTerm
-}                                     from '@react-ameliorate/utils';
+  findDOMNode,
+  calculateObjectDifferences
+}                                         from '@react-ameliorate/utils';
 
 var logCache = {};
 
@@ -36,7 +39,18 @@ const COMPONENT_FLAGS = {
   DISABLED: 0x40
 };
 
+var globalEventActionHooks = {};
+
 const NOOP = () => {};
+
+const MEASURABLE_VIEW_STYLE = {
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  opacity: 0
+};
 
 export default class ComponentBase {
   static getClassNamePrefix() {
@@ -74,10 +88,16 @@ export default class ComponentBase {
 
     Object.defineProperties(this, {
       '_raID': {
-        writable: true,
+        writable: false,
         enumerable: false,
-        configurable: true,
+        configurable: false,
         value: getUniqueComponentID()
+      },
+      '_raComponent': {
+        writable: false,
+        enumerable: false,
+        configurable: false,
+        value: true
       },
       '_raMemoizeCache': {
         writable: true,
@@ -175,6 +195,12 @@ export default class ComponentBase {
         configurable: true,
         value: null
       },
+      '_raLanguageTermFormatterFlagFormatterCache': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: null
+      },
       '_raRefs': {
         writable: true,
         enumerable: false,
@@ -208,7 +234,8 @@ export default class ComponentBase {
       },
     });
 
-    addComponentReference(this);
+    if (props.raConstruct !== false)
+      addComponentReference(this);
 
     // Setup the styleSheet getter to build style-sheets when requested
     this._defineStyleSheetProperty('styleSheet', this.constructor.styleSheet);
@@ -296,6 +323,10 @@ export default class ComponentBase {
     return this._raReactComponent._renderCount;
   }
 
+  _getReactComponent() {
+    return this._raReactComponent;
+  }
+
   _fetchContext() {
     var reactProps = this._raReactProps,
         keys = Object.keys(reactProps),
@@ -321,33 +352,22 @@ export default class ComponentBase {
     if (!theme)
       throw new Error('"theme" is required to create a style-sheet');
 
-    var styleCache = theme._cachedStyles;
-    if (!styleCache) {
-      Object.defineProperty(theme, '_cachedStyles', {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: {}
-      });
-
-      styleCache = theme._cachedStyles;
-    }
-
     var styleSheetFactory = _styleSheetFactory;
     if (typeof styleSheetFactory !== 'function') {
       console.warn('static styleSheet for component is not a proper styleSheet');
       return;
     }
 
-    var styleID = styleSheetFactory._raStyleSheetID,
-        cachedStyle = styleCache[styleID];
+    var styleID     = styleSheetFactory._raStyleSheetID,
+        cachedStyle = theme.getCachedStyle(styleID);
 
     if (!cachedStyle) {
       cachedStyle = styleSheetFactory(theme, theme.platform, {
-        StyleSheetBuilder: (typeof this['_getStyleSheetBuilderClass'] === 'function') ? this._getStyleSheetBuilderClass(styleSheetFactory._raStyleSheetBuilder) : null
+        StyleSheetBuilder: (typeof this['_getStyleSheetBuilderClass'] === 'function') ? this._getStyleSheetBuilderClass(styleSheetFactory._raStyleSheetBuilder) : null,
+        styleHelper: this.styleHelper
       });
 
-      styleCache[styleID] = cachedStyle;
+      theme.setCachedStyle(styleID, cachedStyle);
     }
 
     return cachedStyle;
@@ -406,6 +426,10 @@ export default class ComponentBase {
     return elements;
   }
 
+  _getRenderCount() {
+    return this._raReactComponent._renderCount;
+  }
+
   _renderInterceptor(renderID) {
     const updateRenderState = (elems, skipMutate) => {
       this._raRenderCacheInvalid = false;
@@ -428,7 +452,7 @@ export default class ComponentBase {
     }
 
     // Async render
-    if (typeof elements.then === 'function' && typeof elements.catch === 'function') {
+    if (typeof elements.then === 'function') {
       elements.then((elems) => {
         if (renderID !== this._raPreviousRenderID) {
           console.warn(`Warning: Discarding render ID = ${renderID}... is your render function taking too long?`);
@@ -461,9 +485,13 @@ export default class ComponentBase {
     });
   }
 
+  shouldClearInternalPropsCache() {
+    return false;
+  }
+
   _invokeResolveState(propsUpdated, stateUpdated, initial, newProps, ...args) {
-    const getResolvedProps = () => {
-      if (this._raResolvedPropsCache && !initial && !propsUpdated && !stateUpdated)
+    const getResolvedProps = (force) => {
+      if (force !== true && this._raResolvedPropsCache && !initial && !propsUpdated && !stateUpdated)
         return this._raResolvedPropsCache;
 
       var formattedProps = this.resolveProps(newProps || {}, oldProps || {});
@@ -474,7 +502,7 @@ export default class ComponentBase {
     };
 
     var oldProps = this.props,
-        props = getResolvedProps(),
+        props = getResolvedProps(this.shouldClearInternalPropsCache(newProps, initial)),
         newState,
         shouldRender;
 
@@ -541,6 +569,9 @@ export default class ComponentBase {
   }
 
   _invokeComponentDidMount() {
+    if (this._raStateUpdateCounter > this._raReactComponent._stateUpdateCounter)
+      this._setReactComponentState(this.getState());
+
     this.componentMounted();
   }
 
@@ -565,11 +596,17 @@ export default class ComponentBase {
   }
 
   getProps(...args) {
-    return Object.assign({}, this.props, ...(args.filter(Boolean)));
+    if (!args.length)
+      return Object.assign({}, this.props);
+    else
+      return Object.assign({}, ...(args.filter(Boolean)));
   }
 
   filterProps(filter, ...args) {
-    return filterObjectKeys.call(this, filter, this.props, ...args);
+    if (!args.length)
+      return filterObjectKeys.call(this, filter, this.props);
+    else
+      return filterObjectKeys.call(this, filter, ...args);
   }
 
   passProps(filter, ...args) {
@@ -626,6 +663,22 @@ export default class ComponentBase {
     return this.getComponents((children === undefined) ? this.props.children : children, asArray);
   }
 
+  getRootViewNode() {
+    var ref = this.getReference('_rootView');
+    if (!ref)
+      return null;
+
+    return ref;
+  }
+
+  getDOMNode() {
+    var node = this.getRootViewNode();
+    if (!node)
+      return node;
+
+    return findDOMNode(node);
+  }
+
   getResolvableProps(...args) {
     function convertArrayToObj(_props) {
       var props = _props;
@@ -638,13 +691,36 @@ export default class ComponentBase {
       }
 
       return props;
-    };
+    }
 
     return Object.assign(
       {},
       convertArrayToObj(this.constructor._raResolvableProps) || {},
       ...(args.filter((val) => (val != null)).map(convertArrayToObj))
     );
+  }
+
+  formatPropValue(name, value) {
+    return value;
+  }
+
+  formatVerbiageProp(caption) {
+    if (!caption)
+      return caption;
+
+    if (typeof caption === 'function')
+      return caption.call(this, caption, this);
+
+    if (U.instanceOf(caption, 'string', 'number', 'boolean'))
+      return ('' + caption);
+
+    if (Array.isArray(caption))
+      return this.langTerm(caption);
+
+    if (caption.term)
+      return this.langTerm(caption.term, caption.params);
+
+    return null;
   }
 
   resolveProps(props, prevProps, extraResolvableKeys) {
@@ -659,7 +735,7 @@ export default class ComponentBase {
       if (_raResolvableProps && typeof value === 'function' && _raResolvableProps[key])
         value = value.call(this, props, prevProps);
 
-      formattedProps[key] = value;
+      formattedProps[key] = this.formatPropValue(key, value);
     }
 
     return formattedProps;
@@ -703,7 +779,7 @@ export default class ComponentBase {
   }
 
   getPlatform() {
-    return 'browser';
+    return Platform.OS;
   }
 
   getTheme() {
@@ -791,7 +867,8 @@ export default class ComponentBase {
     var oldState = this._raInternalState,
         currentState = this._raInternalState = Object.assign({}, oldState, newState);
 
-    this._raStateUpdateCounter++;
+    if (!areObjectsEqualShallow(oldState, currentState))
+      this._raStateUpdateCounter++;
 
     if (typeof this._debugStateUpdates === 'function')
       this._debugStateUpdates(currentState, oldState, newState);
@@ -842,6 +919,14 @@ export default class ComponentBase {
         _componentFlags: 0x0
       })
     };
+  }
+
+  _debugMonitorStateVariables(filter, newState, oldState) {
+    var diff = calculateObjectDifferences(newState, oldState, filter);
+    if (!diff)
+      return;
+
+    console.trace(`STATE UPDATE [${this.getComponentName()}]: `, diff, [newState, oldState]);
   }
 
   delay(func, time, _id) {
@@ -922,7 +1007,11 @@ export default class ComponentBase {
     clearTimeout(this._componentDelayTimers[id]);
   }
 
-  memoizeWithCacheID(cacheID, cb, args) {
+  memoizeDefaultArguments() {
+    return [ this.getCurrentLocale() ];
+  }
+
+  memoizeWithCacheID(cacheID, cb, _args) {
     const isCacheValid = (cache) => {
       if (!cache)
         return false;
@@ -939,7 +1028,9 @@ export default class ComponentBase {
       return true;
     };
 
-    var cache = this._raMemoizeCache[cacheID];
+    var args = _args.concat(this.memoizeDefaultArguments(cacheID, cb, args) || []),
+        cache = this._raMemoizeCache[cacheID];
+
     if (isCacheValid(cache))
       return cache.value;
 
@@ -958,8 +1049,7 @@ export default class ComponentBase {
     delete this._raMemoizeCache[cacheID];
   }
 
-  shouldComponentUpdate(newState, oldState) {
-    return undefined;
+  shouldComponentUpdate(oldProps, oldState) {
   }
 
   render(children) {
@@ -1051,6 +1141,9 @@ export default class ComponentBase {
         classNames = this.generateNames({ prefix, base }, '', ...args);
 
     var specifiedClassName = this.props.className;
+    if (specifiedClassName)
+      specifiedClassName = ('' + specifiedClassName).replace(/(\w+)Component_\d{13,}/g, '');
+
     return removeDuplicateStrings(classNames.concat((!specifiedClassName) ? [] : specifiedClassName.split(/\s+/g), this.getDefaultClassName())).join(' ');
   }
 
@@ -1341,12 +1434,11 @@ export default class ComponentBase {
       return toNumber(duration);
 
     var theme = this.getTheme();
-    if (!theme)
-      return 250;
-
-    var themeProps = theme.getThemeProperties();
-    if (themeProps && themeProps.DEFAULT_ANIMATION_DURATION != null)
-      return themeProps.DEFAULT_ANIMATION_DURATION;
+    if (theme) {
+      var themeProps = theme.getThemeProperties();
+      if (themeProps && themeProps.DEFAULT_ANIMATION_DURATION != null)
+        return themeProps.DEFAULT_ANIMATION_DURATION;
+    }
 
     return 250;
   }
@@ -1365,6 +1457,12 @@ export default class ComponentBase {
   }
 
   getLanguages() {
+    var locale = this.getCurrentLocale(),
+        lang   = {};
+
+    lang[locale] = { terms: {} };
+
+    return lang;
   }
 
   getLocaleLanguageTerms(_locale) {
@@ -1391,7 +1489,7 @@ export default class ComponentBase {
     if (!lastTerm)
       throw new Error(`Requested language term '${(termIDs.length === 1) ? termIDs[0] : termIDs}', but no such term exists!`);
 
-    return U.prettify(lastTerm.replace(/_+/g, ' '), true);
+    return { term: U.prettify(lastTerm.replace(/^@ra\//, '').replace(/_+/g, ' '), true), termID: lastTerm };
   }
 
   langTerm(_termID, _params) {
@@ -1407,20 +1505,18 @@ export default class ComponentBase {
         if (thisTerm)
           return { term: thisTerm, termID: thisTermID };
       }
-
-      return this.getDefaultLangTerm(termIDs, params);
     };
 
     const throwTermNotFound = () => {
       throw new Error(`Requested language term '${(termIDs.length === 1) ? termIDs[0] : termIDs}', but no such term exists!`);
     };
 
-    var params  = _params || {},
+    var params        = (U.instanceOf(_params, 'string')) ? { format: _params } : (_params || {}),
         defaultLocale = this.getDefaultLocale(),
-        locale  = this.getCurrentLocale(),
-        terms   = this.getLocaleLanguageTerms(locale),
-        termIDs = (Array.isArray(_termID)) ? _termID : [ _termID ],
-        term    = getLocaleTerm();
+        locale        = this.getCurrentLocale(),
+        terms         = this.getLocaleLanguageTerms(locale),
+        termIDs       = (Array.isArray(_termID)) ? _termID : [ _termID ],
+        term          = getLocaleTerm();
 
     if (!term && locale !== defaultLocale) {
       console.warn(`Language pack ${locale} doesn't contain requested term '${(termIDs.length === 1) ? termIDs[0] : termIDs}'... falling back to ${defaultLocale}`);
@@ -1428,13 +1524,241 @@ export default class ComponentBase {
       term = getLocaleTerm();
 
       if (!term)
+        term = this.getDefaultLangTerm(termIDs, params);
+
+      if (!term)
         throwTermNotFound();
     }
 
     if (!term)
+        term = this.getDefaultLangTerm(termIDs, params);
+
+    if (!term)
       throwTermNotFound();
 
-    return compileLanguageTerm({ terms, term: term.term, termID: term.termID, params, locale });
+    return this.compileLanguageTerm({ terms, term: term.term, termID: term.termID, params, locale });
+  }
+
+  _getLanguageTermFormatterFlagFormatters() {
+    var cache = this._raLanguageTermFormatterFlagFormatterCache;
+    if (!cache)
+      cache = this._raLanguageTermFormatterFlagFormatterCache = this.getLanguageTermFormatterFlagFormatters();
+
+    return cache;
+  }
+
+  getLanguageTermFormatterFlagFormatters() {
+    return [
+      {
+        flag: '_',
+        formatter: (value) => ('' + value).toLowerCase()
+      },
+      {
+        flag: '^^^',
+        formatter: (value) => ('' + value).toUpperCase()
+      },
+      {
+        flag: '^^',
+        formatter: (value) => U.prettify('' + value, true)
+      },
+      {
+        flag: '^',
+        formatter: (value) => capitalize(('' + value).toLowerCase())
+      },
+      {
+        flag: '$',
+        formatter: (value) => {
+          var formatter = formatters.formatterFunction('money');
+          return formatter(value, 'format');
+        }
+      },
+      {
+        flag: '%',
+        formatter: (value) => {
+          var formatter = formatters.formatterFunction('percent');
+          return formatter(value, 'format');
+        }
+      },
+      {
+        flag: '@@@',
+        formatter: (value) => {
+          return moment(value).format('MM/DD/YYYY HH:mm:ssa');
+        }
+      },
+      {
+        flag: '@@',
+        formatter: (value) => {
+          return moment(value).format('HH:mm:ssa');
+        }
+      },
+      {
+        flag: '@',
+        formatter: (value) => {
+          return moment(value).format('MM/DD/YYYY');
+        }
+      }
+    ];
+  }
+
+  formatLanguageTerm(term, format, args) {
+    const findMatchingFormatFlag = (flags, offset) => {
+      for (var i = 0, il = flagFormatters.length; i < il; i++) {
+        var formatter = flagFormatters[i],
+            formatterFlag = formatter.flag,
+            thisFlag  = flags.substring(offset, offset + formatterFlag.length);
+
+        if (thisFlag !== formatterFlag)
+          continue;
+
+        return formatter;
+      }
+    };
+
+    const formatValueWithFlag = (value, flags, offset) => {
+      var formatter = findMatchingFormatFlag(flags, offset);
+      if (!formatter)
+        return { value, offset: offset + 1 };
+
+      var { formatter, flag } = formatter;
+      return { value: formatter.call(this, value), offset: offset + flag.length };
+    };
+
+    var { params, termID } = args,
+        flagFormatters = this._getLanguageTermFormatterFlagFormatters();
+
+    return format.replace(/(^|[^\\])\{([^}]+)\}/g, (m, start, capture) => {
+      var flags,
+          key;
+
+      capture.replace(/^([^a-zA-Z0-9]*)(.*)$/g, (m, _flags, _key) => {
+        flags = _flags || '';
+        key = _key;
+      });
+
+      var termValue;
+      if (key === termID)
+        termValue = termID;
+      else if (key === 'term')
+        termValue = term;
+      else
+        termValue = params[key];
+
+      if (typeof termValue === 'function')
+        termValue = termValue.call(this, { ...args, term });
+
+      if (termValue == null || (typeof termValue === 'number' && !isFinite(termValue)))
+        return (start || '');
+
+      for (var i = 0, il = flags.length; i < il;) {
+        var { value, offset } = formatValueWithFlag(termValue, flags, i);
+
+        termValue = value;
+        i = offset;
+      }
+
+      return `${(start || '')}${termValue}`;
+    });
+  }
+
+  compileLanguageTerm(args) {
+    var { term, params } = args;
+
+    if (typeof term === 'function') {
+      const format = (format) => this.formatLanguageTerm(term, format, args);
+      term = term.call(this, { ...args, format });
+    }
+
+    if (params && params.format && ('' + params.format).indexOf('{') >= 0)
+      term = this.formatLanguageTerm(term, params.format, args);
+
+    return term;
+  }
+
+  clearDefaultEventActionHooks(eventName) {
+    var componentID = this.getComponentID(),
+        globalEventActionHooks = this.getGlobalEventActionHooks();
+
+    if (eventName) {
+      var hooks = globalEventActionHooks[componentID];
+      if (!hooks)
+        return;
+
+      delete hooks[eventName];
+      if (U.noe(hooks))
+        delete globalEventActionHooks[componentID];
+    } else {
+      delete globalEventActionHooks[componentID];
+    }
+  }
+
+  getDefaultEventActions(eventName) {
+    var globalEventActionHooks = this.getGlobalEventActionHooks(),
+        componentID = this.getComponentID(),
+        allHooks = globalEventActionHooks[componentID];
+
+    if (!allHooks)
+      return (eventName) ? [] : { _order: this.getComponentOrder(), _id: componentID };
+
+    if (!eventName)
+      return allHooks;
+
+    return (allHooks[eventName] || []);
+  }
+
+  unregisterDefaultEventActions(eventName) {
+    this.clearDefaultEventActionHooks(eventName);
+  }
+
+  unregisterDefaultEventAction(eventName, callback) {
+    if (!callback)
+      return this.clearDefaultEventActionHooks(eventName);
+
+    var globalEventActionHooks = this.getGlobalEventActionHooks(),
+        newActions = this.getDefaultEventActions(eventName).filter((action) => (action.callback !== callback)),
+        componentID = this.getComponentID(),
+        allHooks = globalEventActionHooks[componentID];
+
+    if (!allHooks)
+      return;
+
+    if (newActions.length)
+      allHooks[eventName] = newActions;
+    else
+      this.clearDefaultEventActionHooks(eventName);
+  }
+
+  registerDefaultEventAction(eventName, callback) {
+    var globalEventActionHooks = this.getGlobalEventActionHooks(),
+        componentID = this.getComponentID(),
+        allHooks = globalEventActionHooks[componentID];
+
+    if (!allHooks)
+      allHooks = globalEventActionHooks[componentID] = { _order: componentID, _id: componentID };
+
+    var actions = allHooks[eventName];
+    if (!actions)
+      actions = allHooks[eventName] = [];
+
+    actions.push({
+      eventName,
+      callback
+    });
+  }
+
+  getGlobalEventActionHooks() {
+    return this.constructor.getGlobalEventActionHooks();
+  }
+
+  _getComponentReference(componentID) {
+    return getComponentReference(componentID);
+  }
+
+  _findComponentReference(value) {
+    return findComponentReference(value);
+  }
+
+  static getGlobalEventActionHooks() {
+    return globalEventActionHooks;
   }
 
   static getAllComponentFlags() {

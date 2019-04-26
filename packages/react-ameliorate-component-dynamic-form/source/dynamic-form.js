@@ -4,7 +4,8 @@ import { Form }                         from '@react-ameliorate/component-form';
 import { TextField }                    from '@react-ameliorate/component-text-field';
 import { CheckBoxField }                from '@react-ameliorate/component-checkbox-field';
 import { NumberField }                  from '@react-ameliorate/component-number-field';
-import { DateField }                  from '@react-ameliorate/component-date-field';
+import { DateField }                    from '@react-ameliorate/component-date-field';
+import { SelectField }                  from '@react-ameliorate/component-select-field';
 import styleSheet                       from './dynamic-form-styles';
 
 export const DynamicForm = componentFactory('DynamicForm', ({ Parent, componentName }) => {
@@ -91,6 +92,9 @@ export const DynamicForm = componentFactory('DynamicForm', ({ Parent, componentN
         },
         'checkbox': {
           component: CheckBoxField
+        },
+        'list': {
+          component: SelectField
         }
       };
 
@@ -107,14 +111,15 @@ export const DynamicForm = componentFactory('DynamicForm', ({ Parent, componentN
       var type            = field.type,
           component       = this.getFieldComponentFromType({ type, field }),
           FieldComponent  = component.component,
-          extraProps      = component.props || {};
+          extraProps      = component.props || {},
+          fieldProps      = this.passProps(/^(type)$/, extraProps, field, { defaultValue: this.getFieldDataValue(field.field) });
 
-      return (<FieldComponent {...this.passProps(/^(type|colSpan)$/, extraProps, field)}/>);
+      return (<FieldComponent {...fieldProps}/>);
     }
 
     generateFieldComponents({ children, fields }) {
-      return fields.map((field) => {
-        return this.getFieldComponentFromFieldDefinition({ field, fields });
+      return fields.map((field, index) => {
+        return this.getFieldComponentFromFieldDefinition({ field, index, fields });
       });
     }
 
@@ -129,4 +134,4 @@ export const DynamicForm = componentFactory('DynamicForm', ({ Parent, componentN
   };
 }, Form);
 
-export { styleSheet as formStyles };
+export { styleSheet as dynamicFormStyles };

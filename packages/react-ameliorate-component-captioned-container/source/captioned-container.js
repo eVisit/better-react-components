@@ -8,16 +8,25 @@ export const CaptionedContainer = componentFactory('CaptionedContainer', ({ Pare
     static styleSheet = styleSheet;
 
     static propTypes = {
-      caption: PropTypes.string,
+      caption: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
       captionContainerStyle: PropTypes.any,
       captionStyle: PropTypes.any,
       contentContainerStyle: PropTypes.any
     };
 
+    formatPropValue(name, _value) {
+      var value = super.formatPropValue(name, _value);
+
+      if (name === 'caption')
+        return this.formatVerbiageProp(value);
+
+      return value;
+    }
+
     render(_children) {
       var caption = this.props.caption || '';
 
-      return (
+      return super.render(
         <View className={this.getRootClassName(componentName)} style={this.style('container', this.props.style)}>
           <View className={this.getClassName(componentName, 'title')} style={this.style('captionContainer', this.props.captionContainerStyle)}>
             <Text style={this.style('caption', this.props.captionStyle)}>{caption}</Text>

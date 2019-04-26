@@ -25,7 +25,7 @@ export default createStyleSheet(function(theme) {
       paddingLeft: FIELD_SIDE_PADDING,
       paddingRight: FIELD_SIDE_PADDING,
       paddingTop: FIELD_SIDE_PADDING,
-      color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 7)
+      color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 6)
     },
     fieldStateError: {
       color: theme.ERROR_COLOR,

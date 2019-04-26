@@ -4,15 +4,18 @@ export default createStyleSheet(function(theme) {
   return {
     container: {
       flex: 0,
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      overflow: 'hidden'
+      browser: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        overflow: 'hidden'
+      }
     },
     internalContainer: {
       browser: {
+        flex: 1,
         cursor: 'default'
       }
     },
@@ -26,9 +29,7 @@ export default createStyleSheet(function(theme) {
       right: 0,
       top: 0,
       bottom: 0,
-      zIndex: 100,
-      browser: {
-      }
+      zIndex: 100
     },
     containerHasChildren: {
       browser: {

@@ -88,6 +88,10 @@ export default class ReactComponentBase extends React.Component {
     instance._construct();
   }
 
+  getComponentInstance() {
+    return this._componentInstance;
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
     const handleUpdate = () => {
       // Props have changed... update componentInstance
@@ -108,14 +112,16 @@ export default class ReactComponentBase extends React.Component {
         }
       }
 
-      if (propsDiffer)
+      if (propsDiffer) {
         this._propUpdateCounter++;
+        this._componentInstance._invalidateRenderCache();
+      }
 
       if (statesDiffer)
         this._stateUpdateCounter = this._componentInstance._raStateUpdateCounter;
 
       var shouldUpdate = this._componentInstance._invokeResolveState.call(this._componentInstance, propsDiffer, statesDiffer, false, nextProps);
-      if (this._stateUpdateCounter < this._componentInstance._raStateUpdateCounter) {
+      if (!shouldUpdate && this._stateUpdateCounter < this._componentInstance._raStateUpdateCounter) {
         this._stateUpdateCounter = this._componentInstance._raStateUpdateCounter;
         shouldUpdate = true;
       }
@@ -123,10 +129,13 @@ export default class ReactComponentBase extends React.Component {
       return shouldUpdate;
     };
 
-    var shouldUpdate = handleUpdate(),
-        shouldUserUpdate = this._componentInstance.shouldComponentUpdate.apply(this._componentInstance, arguments);
+    var shouldUpdateUser = this._componentInstance.shouldComponentUpdate.call(this._componentInstance, nextProps, nextState),
+        shouldUpdate = handleUpdate();
 
-    return (shouldUserUpdate === false || shouldUserUpdate === true) ? shouldUserUpdate : shouldUpdate;
+    if (shouldUpdateUser === true || shouldUpdateUser === false)
+      return shouldUpdateUser;
+
+    return shouldUpdate;
   }
 
   componentDidMount() {
@@ -149,9 +158,8 @@ export default class ReactComponentBase extends React.Component {
         providedContext = this._providedContext,
         instanceProvidedContext = (typeof contextProvider === 'function') ? Object.assign({}, baseContext, contextProvider.call(this._componentInstance) || {}) : null;
 
-    if (instanceProvidedContext && !areObjectsEqualShallow(instanceProvidedContext, providedContext)) {
+    if (instanceProvidedContext && !areObjectsEqualShallow(instanceProvidedContext, providedContext))
       this._providedContext = providedContext = getContextObject(Object.assign({}, baseContext, instanceProvidedContext));
-    }
 
     return providedContext;
   }
@@ -170,6 +178,10 @@ export default class ReactComponentBase extends React.Component {
         return elements;
       }
     };
+
+    // Update my state
+    this._stateUpdateCounter = this._componentInstance._raStateUpdateCounter;
+    Object.assign(this.state, this._componentInstance.getState());
 
     return doRender();
   }

@@ -2,6 +2,7 @@ import React                            from 'react';
 import { componentFactory, PropTypes }  from '@react-ameliorate/core';
 import { View, Text, TouchableOpacity } from '@react-ameliorate/native-shims';
 import { Icon }                         from '@react-ameliorate/component-icon';
+import { Button }                       from '@react-ameliorate/component-button';
 import styleSheet                       from './pager-bar-styles';
 
 export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName }) => {
@@ -63,44 +64,49 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       return (this.props.direction || 'horizontal').toLowerCase();
     }
 
-    renderTabButton({
-      activeTab,
-      tab,
-      tabIndex,
-      active,
-      direction,
-      flags,
-      tabContainerNames,
-      tabIconContainerNames,
-      tabIconNames,
-      tabCaptionContainerNames,
-      tabCaptionNames
-    }) {
+    renderTabButton(args) {
+      var {
+        children,
+        activeTab,
+        tab,
+        tabIndex,
+        active,
+        direction,
+        flags,
+        tabButtonNames,
+        tabIconNames,
+        tabIconContainerNames,
+        tabCaptionNames
+      } = args;
+
       return (
-        <TouchableOpacity
-          className={this.getRootClassName(componentName, tabContainerNames)}
+        <Button
+          className={this.getRootClassName(componentName, tabButtonNames)}
           key={('' + tabIndex)}
           onPress={this.onTabPress.bind(this, tab, tabIndex)}
-          style={this.style(this.generateStyleNames(direction, 'tabTouchableContainer', flags))}
+          style={this.style(this.generateStyleNames(direction, 'buttonContainer', flags))}
+          internalContainerStyle={this.style(tabButtonNames, this.props.tabStyle, active && this.props.activeTabStyle)}
+          leftIcon={(!!tab.icon && this.props.showIcons !== false) ? tab.icon : null}
+          leftIconStyle={this.style(tabIconNames, this.props.tabIconStyle, active && this.props.activeTabIconStyle)}
+          iconContainerStyle={this.style(tabIconContainerNames, this.props.tabIconContainerStyle)}
+          caption={(!!tab.caption && this.props.showCaptions !== false) ? tab.caption : null}
+          captionStyle={this.style(tabCaptionNames, this.props.tabCaptionStyle, active && this.props.activeTabCaptionStyle)}
+          tooltip={tab.tooltip}
+          tooltipSide={tab.tooltipSide}
+          theme={tab.theme || 'white'}
         >
-          <View style={this.style(tabContainerNames, this.props.tabStyle, active && this.props.activeTabStyle)}>
-            {(!!tab.icon && this.props.showIcons !== false) && (
-              <View className={this.getClassName(componentName, tabIconContainerNames)} style={this.style(tabIconContainerNames, this.props.tabContainerStyle, active && this.props.activeTabContainerStyle)}>
-                <Icon
-                  className={this.getClassName(componentName, tabIconNames)}
-                  icon={tab.icon}
-                  style={this.style(tabIconNames, this.props.tabIconStyle, active && this.props.activeTabIconStyle)}
-                />
-              </View>
-            )}
+          {(args, button) => {
+            return (
+              <React.Fragment>
+                {button.renderDefaultContent(args)}
 
-            {(!!tab.caption && this.props.showCaptions !== false) && (
-              <View className={this.getClassName(componentName, tabCaptionContainerNames)} style={this.style(tabCaptionContainerNames, this.props.tabCaptionContainerStyle, active && this.props.activeTabCaptionContainerStyle)}>
-                <Text className={this.getClassName(componentName, tabCaptionNames)} style={this.style(tabCaptionNames, this.props.tabCaptionStyle, active && this.props.activeTabCaptionStyle)}>{tab.caption || ''}</Text>
-              </View>
-            )}
-          </View>
-        </TouchableOpacity>
+                {children}
+
+                {(typeof tab.renderExtra === 'function') ? tab.renderExtra.call(this, args) : null}
+              </React.Fragment>
+            );
+          }}
+        </Button>
       );
     }
 
@@ -109,10 +115,9 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
           active                    = (activeTab === tabIndex),
           direction                 = this.getDirection(),
           flags                     = { active },
-          tabContainerNames         = this.generateStyleNames(direction, 'tabContainer', flags),
-          tabIconContainerNames     = this.generateStyleNames(direction, 'tabIconContainer', flags),
+          tabButtonNames            = this.generateStyleNames(direction, 'tabButton', flags),
           tabIconNames              = this.generateStyleNames(direction, 'tabIcon', flags),
-          tabCaptionContainerNames  = this.generateStyleNames(direction, 'tabCaptionContainer', flags),
+          tabIconContainerNames     = this.generateStyleNames(direction, 'tabIconContainer', flags),
           tabCaptionNames           = this.generateStyleNames(direction, 'tabCaption', flags);
 
       return this.renderTabButton({
@@ -122,10 +127,9 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
         active,
         direction,
         flags,
-        tabContainerNames,
-        tabIconContainerNames,
+        tabButtonNames,
         tabIconNames,
-        tabCaptionContainerNames,
+        tabIconContainerNames,
         tabCaptionNames
       });
     }
@@ -139,7 +143,7 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       var direction = this.getDirection(),
           tabs = this.props.tabs || [];
 
-      return (
+      return super.render(
         <View className={this.getRootClassName(componentName, this.generateStyleNames(direction, 'container'))} style={this.getContainerStyle()}>
           {tabs.map((tab, tabIndex) => this._renderTabButton({ tab, tabIndex }))}
           {this.getChildren(_children)}

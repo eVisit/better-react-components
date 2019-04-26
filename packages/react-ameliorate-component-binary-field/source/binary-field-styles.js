@@ -25,7 +25,7 @@ export default createStyleSheet(function(theme) {
     },
     caption: {
       fontSize: theme.DEFAULT_FONT_SIZE,
-      color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 7)
+      color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 6)
     }
   };
 }, {

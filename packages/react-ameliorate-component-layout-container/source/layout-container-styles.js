@@ -13,7 +13,8 @@ export default createStyleSheet(function(theme) {
       flexDirection: 'column'
     },
     spacer: {
-      flex: 0
+      flex: 0,
+      alignSelf: 'stretch'
     }
   };
 });

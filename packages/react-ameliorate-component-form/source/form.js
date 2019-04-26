@@ -1,3 +1,4 @@
+import { utils as U }                   from 'evisit-js-utils';
 import React                            from 'react';
 import { componentFactory, PropTypes }  from '@react-ameliorate/core';
 import { View }                         from '@react-ameliorate/native-shims';
@@ -13,11 +14,14 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
       horizontalSpacing: PropTypes.number,
       verticalSpacing: PropTypes.number,
       calcChildColspan: PropTypes.func,
-      calcChildKey: PropTypes.func
+      calcChildKey: PropTypes.func,
+      data: PropTypes.oneOfType([ PropTypes.object, PropTypes.array ]),
+      mask: PropTypes.number
     };
 
     static defaultProps = {
-      columns: 1
+      columns: 1,
+      mask: 0xFFFF
     };
 
     construct() {
@@ -38,6 +42,17 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
       var parentForm = this.getParentForm();
       if (parentForm)
         parentForm.unregisterField(this);
+    }
+
+    getFieldDataValue(fieldName) {
+      var data = this.props.data,
+          parentForm = this.getParentForm();
+
+      if (!data && parentForm)
+        return parentForm.getFieldDataValue(fieldName);
+
+      if (data)
+        return data[fieldName];
     }
 
     getParentForm() {
@@ -62,6 +77,7 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
       return {
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
+          currentData: props.data
         })
       };
     }
@@ -94,6 +110,25 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
 
       if (field && typeof field.focus === 'function')
         field.focus();
+    }
+
+    onFieldValueChange(args) {
+      var { ref, value } = args;
+      var currentData = this.getState('currentData', {}),
+          field       = ref.getField();
+
+      if (!field)
+        return;
+
+      currentData[field] = value;
+
+      return this.callProvidedCallback((args.userInitiated) ? 'onChange' : 'onValueChange', { ...args, value: currentData, data: this.props.data });
+    }
+
+    onChange(args) {
+    }
+
+    onValueChange(args) {
     }
 
     value() {
@@ -272,14 +307,28 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
       );
     }
 
-    renderChildren(args) {
-      var {
+    renderChildren(_args) {
+      var args = Object.assign({}, _args || {}),
+          {
             children,
             horizontalSpacing,
             verticalSpacing,
             columns
-          }                 = args,
-          rowCount          = this.getRowCount(args),
+          } = args;
+
+      var masterMask = this.props.mask;
+      children = args.children = (children || []).filter((child) => {
+        if (!child || child === true)
+          return false;
+
+        var mask = U.get(child, 'props.mask');
+        if (typeof mask !== 'number' || !isFinite(mask))
+          return true;
+
+        return !!(masterMask & mask);
+      });
+
+      var rowCount          = this.getRowCount(args),
           oldRow            = 0,
           totalColumns      =  rowCount * columns,
           totalUsedColumns  = this.getChildColumn(Object.assign({}, args, {

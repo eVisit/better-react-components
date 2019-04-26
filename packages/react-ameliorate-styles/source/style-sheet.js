@@ -1,21 +1,26 @@
 /* globals __DEV__ */
 
-import { data as D, utils as U }  from 'evisit-js-utils';
-import { filterObjectKeys }       from '@react-ameliorate/utils';
+import { data as D, utils as U }          from 'evisit-js-utils';
+import { getPlatform, filterObjectKeys }  from '@react-ameliorate/utils';
 
 //###if(MOBILE) {###//
 import { StyleSheet, Platform }   from 'react-native';
+//###} else {###//
+const Platform = {};
+
+Object.defineProperties(Platform, {
+  'OS': {
+    enumerable: true,
+    configurable: true,
+    get: () => getPlatform(),
+    set: () => {}
+  }
+});
+
 //###}###//
 
-const PLATFORM = (() => {
-  //###if(MOBILE) {###//
-  return Platform.OS;
-  //###} else {###//
-  return 'browser';
-  //###}###//
-})();
-
-var styleSheetID = 1;
+var styleSheetID = 1,
+    uniqueStyleIDCounter = 1;
 
 const transformAxis = [
   'translateX',
@@ -36,7 +41,7 @@ const transformAxis = [
 var singletonStyleSheetBuilder;
 
 export class StyleSheetBuilder {
-  constructor({ thisSheetID, styleExports, sheetName, theme, platform, factory, mergeStyles, resolveStyles, onUpdate }) {
+  constructor({ thisSheetID, styleExports, sheetName, theme, platform, factory, mergeStyles, resolveStyles, onUpdate, styleHelper }) {
     if (!(factory instanceof Function))
       throw new Error('Theme factory must be a function');
 
@@ -48,9 +53,10 @@ export class StyleSheetBuilder {
     U.defineROProperty(this, '_mergeStyles', (mergeStyles instanceof Array) ? mergeStyles : [mergeStyles]);
     U.defineROProperty(this, '_resolveStyles', (resolveStyles instanceof Array) ? resolveStyles : [resolveStyles]);
     U.defineROProperty(this, '_onUpdate', onUpdate);
+    U.defineRWProperty(this, '_styleHelper', styleHelper);
     U.defineRWProperty(this, '_style', null);
     U.defineRWProperty(this, '_rawStyle', null);
-    U.defineRWProperty(this, '_cachedBaseStyles', null);
+    U.defineRWProperty(this, '_styleCache', {});
     U.defineRWProperty(this, '_lastStyleUpdateTime', 0);
     U.defineRWProperty(this, '_lastRawStyleUpdateTime', 0);
 
@@ -91,9 +97,21 @@ export class StyleSheetBuilder {
     var sheetName = (props.name) ? '' + props.name : styleSheetName(),
         styleFunction = function(theme, platform, _opts) {
           var opts = _opts || {},
-              thisBuilderClass = (opts.StyleSheetBuilder) ? opts.StyleSheetBuilder : builderClass;
+              thisBuilderClass = (opts.StyleSheetBuilder) ? opts.StyleSheetBuilder : builderClass,
+              styleHelper = opts.styleHelper;
 
-          return new thisBuilderClass({ thisSheetID, styleExports, sheetName, theme, platform, factory, mergeStyles, resolveStyles, onUpdate });
+          return new thisBuilderClass({
+            thisSheetID,
+            styleExports,
+            sheetName,
+            theme,
+            platform,
+            factory,
+            mergeStyles,
+            resolveStyles,
+            onUpdate,
+            styleHelper
+          });
         };
 
     Object.defineProperty(styleFunction, '_raStyleFactory', {
@@ -125,6 +143,10 @@ export class StyleSheetBuilder {
     });
 
     return styleFunction;
+  }
+
+  invalidateCache() {
+    this._styleCache = {};
   }
 
   getTheme() {
@@ -239,6 +261,55 @@ export class StyleSheetBuilder {
     return ruleValue;
   }
 
+  calculateStyleCacheKey(_styles) {
+    var styles = _styles;
+    if (!styles)
+      return ('' + styles);
+
+    if (typeof styles.valueOf === 'function')
+      styles = styles.valueOf();
+
+    var objType = typeof styles;
+    if (objType === 'string' || objType === 'number' || objType === 'boolean' || objType === 'bigint')
+      return ('' + styles);
+
+    var isArray = (styles instanceof Array);
+
+    // If this isn't a standard object (i.e. Animated.Value)
+    // then attempt to give the object a hidden style id
+    // if the object is sealed or frozen, then we always
+    // just return a new unique id, which will invalidate the cache
+    if (!isArray && styles.constructor !== Object.prototype.constructor) {
+      if (styles.__raObjStyleID)
+        return styles.__raObjStyleID;
+
+      var objID = ('' + (uniqueStyleIDCounter++));
+      Object.defineProperty(styles, '__raObjStyleID', {
+        writable: false,
+        enumerable: false,
+        configurable: false,
+        value: objID
+      });
+
+      return objID;
+    }
+
+    var keys        = Object.keys(styles),
+        finalArray  = [];
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i],
+          value = styles[key];
+
+      finalArray.push(`${key}:${this.calculateStyleCacheKey(value)}`);
+    }
+
+    if (!isArray)
+      finalArray.sort();
+
+    return finalArray.join(',');
+  }
+
   styleWithHelper(helper, ...args) {
     const resolveAllStyles = (styles, finalStyles) => {
       for (var i = 0, il = styles.length; i < il; i++) {
@@ -255,7 +326,10 @@ export class StyleSheetBuilder {
           style = sheet[styleName];
 
           if (typeof helper === 'function')
-            style = helper(this, styleName, style, sheet);
+            style = helper({ styleName, style, styles: sheet, sheet: this });
+
+          if (styleName === 'horizontalTabButtonActive')
+            console.log('STYLE: ', style);
         }
 
         if (!style || style === true)
@@ -273,6 +347,12 @@ export class StyleSheetBuilder {
       }
     };
 
+    var cacheKey = this.calculateStyleCacheKey(args),
+        cachedStyle = this._styleCache[cacheKey];
+
+    if (cachedStyle)
+      return cachedStyle;
+
     var sheet = this.getInternalStyleSheet(),
         mergedStyles = [];
 
@@ -281,11 +361,16 @@ export class StyleSheetBuilder {
     if (mergedStyles.length < 2)
       return mergedStyles[0];
 
-    return this.flattenInternalStyleSheet(mergedStyles);
+    var finalStyle = this._styleCache[cacheKey] = this.flattenInternalStyleSheet(mergedStyles);
+    return finalStyle;
+  }
+
+  rawStyle(...args) {
+    return this.style(...args);
   }
 
   style(...args) {
-    return this.styleWithHelper(null, ...args);
+    return this.styleWithHelper(this._styleHelper, ...args);
   }
 
   styleProp(name, defaultProp) {
@@ -331,6 +416,7 @@ export class StyleSheetBuilder {
     if (this._rawStyle && lut <= this._lastRawStyleUpdateTime)
       return this._rawStyle;
 
+    this.invalidateCache();
     this._lastRawStyleUpdateTime = lut;
 
     var currentTheme = (currentTheme) ? currentTheme.getThemeProperties() : {},
@@ -341,6 +427,21 @@ export class StyleSheetBuilder {
 
     // Now merge all style sheets
     rawStyle = this._rawStyle = D.extend(true, this.styleExports, ...[currentTheme, ...mergeStyles, rawStyle]);
+
+    Object.defineProperty(rawStyle, '_CONSTANTS', {
+      enumerable: false,
+      configurable: true,
+      get: () => {
+        return Object.keys(rawStyle).reduce((obj, key) => {
+          if (!key.match(/^[A-Z_0-9]+$/))
+            return obj;
+
+          obj[key] = rawStyle[key];
+          return obj;
+        }, {});
+      },
+      set: () => {}
+    });
 
     return rawStyle;
   }
@@ -390,11 +491,13 @@ export class StyleSheetBuilder {
   getAllPlatforms() {
     return {
       'tablet': ['mobile'],
-      'mobile': ['android', 'ios', 'microsoft'],
+      'mobile': ['android', 'ios', 'microsoft', 'mobile_browser'],
       'android': ['mobile'],
       'ios': ['mobile'],
+      'mobile_browser': ['mobile'],
       'microsoft': ['mobile'],
-      'browser': ['browser']
+      'browser': ['desktop', 'mobile_browser'],
+      'desktop': ['browser']
     };
   }
 
@@ -430,6 +533,9 @@ export class StyleSheetBuilder {
 
     if (!platform)
       return false;
+
+    if (platform === this.platform)
+      return true;
 
     var allPlatforms = _allPlatforms;
     if (!allPlatforms)
@@ -495,7 +601,7 @@ export class StyleSheetBuilder {
   }
 
   _getStylePropMutators() {
-    const mutateFourWay = (testKey, props) => {
+    const mutateFourWay = (testKey, props, keyNameFormatter) => {
       var value = props[testKey];
       if (value == null)
         return;
@@ -503,7 +609,7 @@ export class StyleSheetBuilder {
       var mutatedProps = {};
       for (var i = 0, il = sides.length; i < il; i++) {
         var side = sides[i],
-            keyName = (testKey === 'borderWidth') ? `border${side}Width` : `${testKey}${side}`;
+            keyName = (typeof keyNameFormatter === 'function') ? keyNameFormatter(side) : `${testKey}${side}`;
 
         mutatedProps[keyName] = value;
       }
@@ -515,7 +621,9 @@ export class StyleSheetBuilder {
     return [
       mutateFourWay.bind(this, 'margin'),
       mutateFourWay.bind(this, 'padding'),
-      mutateFourWay.bind(this, 'borderWidth')
+      mutateFourWay.bind(this, 'borderWidth', (side) => `border${side}Width`),
+      mutateFourWay.bind(this, 'borderColor', (side) => `border${side}Color`),
+      mutateFourWay.bind(this, 'borderStyle', (side) => `border${side}Style`)
     ];
   }
 
@@ -534,6 +642,48 @@ export class StyleSheetBuilder {
     return this._expandStyleProps(parentName, finalStyle);
   }
 
+  compileTransformStyleProp(_value) {
+    const objectToOperations = (obj) => {
+      var keys = Object.keys(obj || {});
+
+      for (var i = 0, il = keys.length; i < il; i++) {
+        var key = keys[i],
+            value = obj[key],
+            transform = transformArray.find((t) => (t.type === key));
+
+        if (!transform) {
+          transform = { type: key, value: null };
+          transformArray.push(transform);
+        }
+
+        if (value == null) {
+          transform.value = null;
+          continue;
+        }
+
+        transform.value = (typeof value !== 'string') ? `${value}px` : value;
+      }
+    };
+
+    var value = _value;
+    if (!value)
+      return value;
+
+    if (!Array.isArray(value))
+      value = [ value ];
+
+    var transformArray = [];
+    for (var i = 0, il = value.length; i < il; i++) {
+      var part = value[i];
+      if (!part)
+        return;
+
+      objectToOperations(part);
+    }
+
+    return transformArray.filter((t) => (t.value != null)).map((t) => `${t.type}(${t.value})`).join(' ');
+  }
+
   _flattenInternalStyleSheet(style, _finalStyle) {
     var finalStyle = _finalStyle || {};
     if (!(style instanceof Array))
@@ -544,10 +694,15 @@ export class StyleSheetBuilder {
       if (!thisStyle)
         continue;
 
-      if (thisStyle instanceof Array)
+      if (thisStyle instanceof Array) {
         finalStyle = this._flattenInternalStyleSheet(thisStyle, finalStyle);
-      else
+      } else {
+        var currentTransform = finalStyle.transform;
         finalStyle = Object.assign(finalStyle, (thisStyle || {}));
+
+        if (currentTransform instanceof Array && finalStyle.transform !== currentTransform && finalStyle.transform instanceof Array)
+          finalStyle.transform = currentTransform.concat(finalStyle.transform).filter(Boolean);
+      }
     }
 
     if (finalStyle.flex === 0)
@@ -560,27 +715,32 @@ export class StyleSheetBuilder {
     //###if(MOBILE) {###//
     return StyleSheet.flatten(...args);
     //###} else {###//
-    return this._flattenInternalStyleSheet(args, {});
+    var finalStyle = this._flattenInternalStyleSheet(args, {});
+
+    if (finalStyle.hasOwnProperty('transform') && typeof finalStyle.transform !== 'string')
+      finalStyle.transform = this.compileTransformStyleProp(finalStyle.transform);
+
+    return finalStyle;
     //###}###//
   }
 
   static flattenInternalStyleSheet() {
     if (!singletonStyleSheetBuilder)
-      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, PLATFORM);
+      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, Platform.OS);
 
     return singletonStyleSheetBuilder.flattenInternalStyleSheet.apply(singletonStyleSheetBuilder, arguments);
   }
 
   static getCSSRuleName(...args) {
     if (!singletonStyleSheetBuilder)
-      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, PLATFORM);
+      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, Platform.OS);
 
     return singletonStyleSheetBuilder.getCSSRuleName.apply(singletonStyleSheetBuilder, arguments);
   }
 
   static getCSSRuleValue(...args) {
     if (!singletonStyleSheetBuilder)
-      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, PLATFORM);
+      singletonStyleSheetBuilder = StyleSheetBuilder.createStyleSheet(() => ({}))(null, Platform.OS);
 
     return singletonStyleSheetBuilder.getCSSRuleValue.apply(singletonStyleSheetBuilder, arguments);
   }
@@ -593,6 +753,5 @@ export class StyleSheetBuilder {
 const createStyleSheet = StyleSheetBuilder.createStyleSheet;
 
 export {
-  createStyleSheet,
-  PLATFORM
+  createStyleSheet
 };

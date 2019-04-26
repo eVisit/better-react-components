@@ -1,30 +1,32 @@
-export class Draggable {
-  getDraggableProps(...args) {
-    return {
-      onDragStart: this.onDragStart.bind(this, ...args),
-      onDragEnd: this.onDragEnd.bind(this, ...args)
-    };
-  }
+export function Draggable({ Parent, componentName }) {
+  return class Draggable extends Parent {
+    getDraggableProps(...args) {
+      return {
+        onDragStart: this.onDragStart.bind(this, ...args),
+        onDragEnd: this.onDragEnd.bind(this, ...args)
+      };
+    }
 
-  onDragStart(args = {}) {
-    if (this.isComponentFlag('dragging'))
-      return;
+    onDragStart(args = {}) {
+      if (this.isComponentFlag('dragging'))
+        return;
 
-    if (this.callProvidedCallback('onDragStart', args) === false)
-      return;
+      if (this.callProvidedCallback('onDragStart', args) === false)
+        return;
 
-    //preventEventDefault(args.event);
-    this.setComponentFlagsFromObject(Object.assign({ dragging: true }, args.extraState || {}));
-  }
+      //preventEventDefault(args.event);
+      this.setComponentFlagsFromObject(Object.assign({ dragging: true }, args.extraState || {}));
+    }
 
-  onDragEnd(args) {
-    if (!this.isComponentFlag('dragging'))
-      return;
+    onDragEnd(args) {
+      if (!this.isComponentFlag('dragging'))
+        return;
 
-    if (this.callProvidedCallback('onDragEnd', args) === false)
-      return;
+      if (this.callProvidedCallback('onDragEnd', args) === false)
+        return;
 
-    //preventEventDefault(args.event);
-    this.setComponentFlagsFromObject(Object.assign({ dragging: false }, args.extraState || {}));
-  }
+      //preventEventDefault(args.event);
+      this.setComponentFlagsFromObject(Object.assign({ dragging: false }, args.extraState || {}));
+    }
+  };
 }

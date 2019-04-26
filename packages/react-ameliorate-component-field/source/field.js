@@ -13,7 +13,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       defaultValue: PropTypes.any,
       value: PropTypes.any,
       field: PropTypes.string,
-      caption: PropTypes.string,
+      caption: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
       validate: PropTypes.oneOfType([PropTypes.string, PropTypes.func]),
       onFocus: PropTypes.func,
       onBlur: PropTypes.func,
@@ -35,14 +35,17 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       getOptionCaption: PropTypes.func,
       maxOptions: PropTypes.number,
       fieldState: PropTypes.number,
-      skipFormRegistration: PropTypes.bool
+      skipFormRegistration: PropTypes.bool,
+      mask: PropTypes.number
     }
 
-    onPropUpdated_options(value) {
-      if (typeof value === 'function')
-        return this.setState({ options: [] });
+    static defaultProps = {
+      _raMeasurable: true
+    };
 
-      this.setState({ options: this.formatOptions((value == null) ? [] : value) });
+    onPropUpdated_options(value) {
+      this.setState({ options: value });
+      this.filterOptions(null);
     }
 
     onPropUpdated_value() {
@@ -62,6 +65,10 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       var parentForm = this.getParentForm();
       if (parentForm)
         parentForm.registerField(this);
+
+      var value = this.value();
+      if (value != null)
+        this.onValueChange({ event: null, value, _value: null });
     }
 
     componentUnmounting() {
@@ -100,7 +107,9 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
       if (props.field == null)
         props.field = ('' + props.caption).replace(/\W+/g, '_').toLowerCase();
 
-      props.caption = U.prettify(props.caption, true);
+      props.caption = this.formatVerbiageProp(props.caption);
+      if (props.caption)
+        props.caption = U.prettify(props.caption, true);
 
       return props;
     }
@@ -164,14 +173,22 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
     }
 
     // Called every time the value is set, but only when it is set by the user
-    onChange({ event, value }) {
+    onChange(args) {
+      var parentForm = this.getParentForm();
+      if (parentForm)
+        parentForm.onFieldValueChange({ ...args, ref: this, userInitiated: true });
+
       this.setErrorState(null);
-      return this.callProvidedCallback('onChange', { event, value });
+      return this.callProvidedCallback('onChange', args);
     }
 
     // Called every time the value is set
-    onValueChange({ event, value }) {
-      return this.callProvidedCallback('onValueChange', { event, value });
+    onValueChange(args) {
+      var parentForm = this.getParentForm();
+      if (parentForm)
+        parentForm.onFieldValueChange({ ...args, ref: this });
+
+      return this.callProvidedCallback('onValueChange', args);
     }
 
     onFocus({ event }) {
@@ -370,9 +387,10 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
         return '';
 
       var thisOption = option.option,
-          caption = this.callProvidedCallback('getOptionCaption', option, thisOption.caption || thisOption);
+          caption = this.callProvidedCallback('getOptionCaption', option, thisOption.caption || thisOption),
+          finalCaption = this.formatVerbiageProp(caption);
 
-      return (caption == null) ? '' : ('' + caption);
+      return (finalCaption == null) ? '' : finalCaption;
     }
 
     getSelectedOptionCaption() {
@@ -485,14 +503,15 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
     render(children) {
       var flags = this.getComponentFlagsAsObject();
 
-      return (
+      return super.render(
         <View
           className={this.getRootClassName(componentName, flags)}
           style={this.style('rootContainer', this.props.style)}
           onMouseOver={this.onMouseOver}
           onMouseOut={this.onMouseOut}
-          data-tooltip={this.props.tooltip}
+          data-tooltip={this.formatVerbiageProp(this.props.tooltip)}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
+          ref={this.captureReference('_rootView')}
         >
           {this.getChildren(children)}
         </View>

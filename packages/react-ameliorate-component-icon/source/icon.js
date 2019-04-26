@@ -10,15 +10,24 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
     static propTypes = {
       icon: PropTypes.string.isRequired,
       container: PropTypes.bool,
-      containerStyle: PropTypes.any
+      containerStyle: PropTypes.any,
+      size: PropTypes.number
     }
 
     getGlyphMap() {
-      return this.iconGlyphMap || this.context.iconGlyphMap;
+      var glyphMap = this.iconGlyphMap || this.context.iconGlyphMap;
+      if (!glyphMap)
+        glyphMap = this.getApp(({ app }) => app.getIconGlyphMap());
+
+      return glyphMap;
     }
 
     getDefaultFontFamily() {
-      return this.iconDefaultFontFamily || this.context.iconDefaultFontFamily;
+      var iconDefaultFontFamily = this.iconDefaultFontFamily || this.context.iconDefaultFontFamily;
+      if (!iconDefaultFontFamily)
+        iconDefaultFontFamily = this.getApp(({ app }) => app.getIconDefaultFontFamily());
+
+      return iconDefaultFontFamily;
     }
 
     getIconGlyphInfo() {
@@ -53,12 +62,19 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
       return { fontFamily, glyph };
     }
 
-    renderIcon(glyphInfo) {
+    _renderIcon(glyphInfo) {
+      var extraStyle = { fontFamily: glyphInfo.fontFamily };
+      if (typeof this.props.size === 'number' && isFinite(this.props.size))
+        extraStyle.fontSize = this.props.size;
+
+      return this.renderIcon({ glyphInfo, extraStyle });
+    }
+
+    renderIcon({ glyphInfo, extraStyle }) {
       return (
         <Text
           className={this.getRootClassName(componentName, 'icon')}
-          style={this.style('icon', this.props.style, { fontFamily: glyphInfo.fontFamily })}
-          numberOfLines={1}
+          style={this.style('icon', this.props.style, extraStyle)}
         >
           {glyphInfo.glyph}
         </Text>
@@ -69,11 +85,11 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
       var glyphInfo = this.getIconGlyphInfo();
 
       if (this.props.container === false)
-        return this.renderIcon(glyphInfo);
+        return super.render(this.renderIcon(glyphInfo));
 
-      return (
+      return super.render(
         <View className={this.getRootClassName(componentName, 'container')} style={this.style('container', this.props.containerStyle)}>
-          {this.renderIcon(glyphInfo)}
+          {this._renderIcon(glyphInfo)}
           {this.getChildren(_children)}
         </View>
       );
