@@ -368,14 +368,14 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       }, (time || 10), 'anchorLayoutUpdateDelay');
     }
 
-    updateLayout(time) {
+    updateLayout(event, time) {
       this.delay(() => {
         if (!this.mounted())
           return this.updateLayout();
 
         var rootView = this.getReference('_rootView');
         if (!rootView)
-          return this.updateLayout(100);
+          return this.updateLayout(null, 100);
 
         var paperContext = this.props.raPaperContext || this.context._raPaperContext,
             node = findDOMNode(paperContext);
