@@ -45,9 +45,11 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
       this.callProvidedCallback('onClose', { event: null, result: -2 });
     }
 
-    async close(args) {
+    async close(_args) {
       if (this._closing)
         return;
+
+      var args = _args || {};
 
       this._closing = true;
 
