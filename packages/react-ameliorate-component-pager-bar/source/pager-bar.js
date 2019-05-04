@@ -93,6 +93,7 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
           captionStyle={this.style(tabCaptionNames, this.props.tabCaptionStyle, active && this.props.activeTabCaptionStyle)}
           tooltip={tab.tooltip}
           tooltipSide={tab.tooltipSide}
+          tooltipType={tab.tooltipType || 'default'}
           theme={tab.theme || 'white'}
         >
           {(args, button) => {

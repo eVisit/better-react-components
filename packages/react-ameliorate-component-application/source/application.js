@@ -134,6 +134,13 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       return 250;
     }
 
+    getTooltipPropsFromType(type) {
+      return {
+        innerContainerStyle: this.style(this.generateStyleNames('tooltip', 'container', type)),
+        captionStyle: this.style(this.generateStyleNames('tooltip', 'caption', type))
+      };
+    }
+
     registerTooltipMouseOverHandler() {
       const tooltipHandlerFactory = (eventType) => {
         return (event) => {
@@ -174,12 +181,21 @@ export const Application = componentFactory('Application', ({ Parent, componentN
               return;
 
             var tooltipSide = tooltipElement.getAttribute('data-tooltip-side'),
+                tooltipType = tooltipElement.getAttribute('data-tooltip-type') || 'default',
+                tooltipStyleProps = this.getTooltipPropsFromType(tooltipType),
                 anchorPosition = ANCHOR_POSITION_MAP[tooltipSide];
 
             if (!anchorPosition)
               anchorPosition = ANCHOR_POSITION_MAP['bottom'];
 
-            this.pushTooltip({ id: tooltipID, caption: tooltip, anchorPosition, anchor: tooltipComponent });
+            this.pushTooltip({
+              ...(tooltipStyleProps || {}),
+              id: tooltipID,
+              caption: tooltip,
+              anchorPosition,
+              anchor: tooltipComponent
+            });
+
           }, time, tooltipID);
         };
       };

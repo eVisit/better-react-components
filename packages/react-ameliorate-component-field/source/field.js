@@ -501,7 +501,8 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
     }
 
     render(children) {
-      var flags = this.getComponentFlagsAsObject();
+      var flags = this.getComponentFlagsAsObject(),
+          errorMessage = this.getState('errorMessage');
 
       return super.render(
         <View
@@ -509,8 +510,9 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
           style={this.style('rootContainer', this.props.style)}
           onMouseOver={this.onMouseOver}
           onMouseOut={this.onMouseOut}
-          data-tooltip={this.formatVerbiageProp(this.props.tooltip)}
+          data-tooltip={(U.noe(errorMessage)) ? this.formatVerbiageProp(this.props.tooltip) : errorMessage}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
+          data-tooltip-type={this.props.tooltipType || ((U.noe(errorMessage)) ? 'default' : 'error')}
           ref={this.captureReference('_rootView')}
         >
           {this.getChildren(children)}

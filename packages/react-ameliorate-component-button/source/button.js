@@ -24,6 +24,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       theme: PropTypes.string,
       tooltip: PropTypes.string,
       tooltipSide: PropTypes.string,
+      tooltipType: PropTypes.string,
       iconStyle: PropTypes.any,
       iconContainerStyle: PropTypes.any,
       leftIcon: PropTypes.string,
@@ -304,6 +305,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           onPressEnd={this.onPressEnd}
           data-tooltip={this.props.tooltip}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
+          data-tooltip-type={this.props.tooltipType || 'default'}
           {...this.getHoverableProps()}
           ref={this.captureReference('_rootView')}
         >

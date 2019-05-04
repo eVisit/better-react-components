@@ -789,10 +789,13 @@ export function findClosestComponentFromDOMElement(_element) {
     var className = element.getAttribute('class'),
         parts     = ('' + className).match(/\w+(Component_\d{13,})/);
 
-    if (!parts)
+    if (!parts) {
       element = element.parentElement;
+      continue;
+    }
 
-    return getComponentReference(parts[1]);
+    var component = getComponentReference(parts[1]);
+    return component;
   }
 }
 
