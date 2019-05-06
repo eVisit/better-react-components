@@ -71,6 +71,9 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
     }
 
     onTabPress({ tab, tabIndex, event }) {
+      if (this.callProvidedCallback('onTabPress', { event, tab, tabIndex }) === false)
+        return false;
+
       if (tabIndex === this.getState('activeTab'))
         return;
 
