@@ -576,6 +576,8 @@ export default class ComponentBase {
   }
 
   _raCleanup() {
+    var componentID = this.getComponentID();
+
     removeComponentReference(this);
 
     // Free references so we don't leak memory
@@ -585,6 +587,9 @@ export default class ComponentBase {
     this._raRenderCache = null;
     this._raResolvedPropsCache = null;
     this._raCompponentFlagsCache = null;
+
+    if (__DEV__ && globalEventActionHooks.hasOwnProperty(componentID))
+      console.error(`Component ${this.getComponentName()} registered global event listeners, but never removed the listeners when it was unmounted.`);
   }
 
   _invokeComponentWillUnmount() {

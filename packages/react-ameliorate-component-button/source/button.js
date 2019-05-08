@@ -61,6 +61,11 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       this.registerDefaultFocussedAction(value);
     }
 
+    componentUnmounting() {
+      super.componentUnmounting.apply(this, arguments);
+      this.unregisterDefaultEventActions();
+    }
+
     registerDefaultFocussedAction(focussed) {
       this.unregisterDefaultEventActions();
       if (!focussed)
