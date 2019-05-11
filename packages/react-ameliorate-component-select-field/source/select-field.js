@@ -253,8 +253,8 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
                   isSelected && ['optionSelected', this.props.optionSelectedStyle]
                 )}
                 onPress={this.onOptionSelect.bind(this, option, index)}
-                onMouseOver={this.onOptionMouseOver.bind(this, option, index)}
-                onMouseOut={this.onOptionMouseOut.bind(this, option, index)}
+                onMouseEnter={this.onOptionMouseOver.bind(this, option, index)}
+                onMouseLeave={this.onOptionMouseOut.bind(this, option, index)}
               >
                 <Text
                   className={this.getClassName(componentName, 'optionCaption')}
@@ -323,8 +323,8 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
                 fieldStyle={this.style('textField', this.props.textFieldFieldStyle)}
                 onFocus={this.onFocus}
                 onBlur={this.onBlur}
-                onMouseOver={this.onMouseOver}
-                onMouseOut={this.onMouseOut}
+                onMouseEnter={this.onMouseEnter}
+                onMouseLeave={this.onMouseLeave}
                 onSubmit={this.onSubmit}
                 onKeyDown={this.onKeyDown}
                 ref={this.captureReference('textField')}

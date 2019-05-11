@@ -508,8 +508,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
         <View
           className={this.getRootClassName(componentName, flags)}
           style={this.style('rootContainer', this.props.style)}
-          onMouseOver={this.onMouseOver}
-          onMouseOut={this.onMouseOut}
+          {...this.getHoverableProps()}
           data-tooltip={(U.noe(errorMessage)) ? this.formatVerbiageProp(this.props.tooltip) : errorMessage}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
           data-tooltip-type={this.props.tooltipType || ((U.noe(errorMessage)) ? 'default' : 'error')}

@@ -99,8 +99,8 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       return this.props.theme || 'default';
     }
 
-    onMouseOut(event) {
-      return super.onMouseOut(event, { pressed: false });
+    onMouseLeave(event) {
+      return super.onMouseLeave(event, { extraState: { pressed: false } });
     }
 
     async onPress(event) {
@@ -302,6 +302,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       return (
         <TouchableOpacity
           activeOpacity={this.styleProp('DEFAULT_ACTIVE_OPACITY')}
+          pointerEvents="auto"
           {...this.props}
           className={containerClassName}
           style={this.style(containerStyleNames, containerExtraStyle, this.props.style)}

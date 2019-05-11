@@ -135,6 +135,7 @@ export const DroppableView = componentFactory('DroppableView', ({ Parent, compon
     render(children) {
       return super.render(
         <View
+          pointerEvents="box-none"
           {...this.passProps((key) => {
             return (!!key.match(/^(on[A-Z])/));
           })}
