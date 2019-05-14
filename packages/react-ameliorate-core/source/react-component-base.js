@@ -26,7 +26,7 @@ export default class ReactComponentBase extends React.Component {
     if (propName in ReactComponentBase.prototype)
       return false;
 
-    return !(/^(UNSAFE_|componentWillMount$|componentDidMount$|componentWillUnmount$|componentWillReceiveProps$|shouldComponentUpdate$|componentWillUpdate$|render$|componentDidUpdate$|componentDidCatch$|constructor$|construct$|getMountState$|measure$)/).test(propName);
+    return !(/^(UNSAFE_|componentWillMount$|componentDidMount$|componentWillUnmount$|componentWillReceiveProps$|shouldComponentUpdate$|render$|componentWillUpdate$|componentDidUpdate$|componentDidCatch$|constructor$|construct$|getMountState$|measure$)/).test(propName);
   }
 
   constructor(InstanceClass, props, ...args) {
@@ -146,6 +146,18 @@ export default class ReactComponentBase extends React.Component {
   componentWillUnmount() {
     this._mounted = false;
     this._componentInstance._invokeComponentWillUnmount();
+  }
+
+  componentWillUpdate(...args) {
+    return this._componentInstance._invokeComponentWillUpdate(...args);
+  }
+
+  componentDidUpdate(...args) {
+    return this._componentInstance._invokeComponentDidUpdate(...args);
+  }
+
+  componentDidCatch(...args) {
+    return this._componentInstance._invokeComponentDidCatch(...args);
   }
 
   // The context object reference must stay the same or React

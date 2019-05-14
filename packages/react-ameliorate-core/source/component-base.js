@@ -600,6 +600,27 @@ export default class ComponentBase {
     }
   }
 
+  componentUpdating() {
+  }
+
+  componentUpdated() {
+  }
+
+  componentCaught() {
+  }
+
+  _invokeComponentWillUpdate() {
+    return this.componentUpdating.apply(this, arguments);
+  }
+
+  _invokeComponentDidUpdate() {
+    return this.componentUpdated.apply(this, arguments);
+  }
+
+  _invokeComponentDidCatch() {
+    return this.componentCaught.apply(this, arguments);
+  }
+
   getProps(...args) {
     if (!args.length)
       return Object.assign({}, this.props);
