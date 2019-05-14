@@ -1,8 +1,8 @@
-import moment                             from 'moment';
-import { utils as U, formatters }         from 'evisit-js-utils';
-import PropTypes                          from '@react-ameliorate/prop-types';
-import { View, Platform, findNodeHandle } from '@react-ameliorate/native-shims';
-import React                              from 'react';
+import moment                     from 'moment';
+import { utils as U, formatters } from 'evisit-js-utils';
+import PropTypes                  from '@react-ameliorate/prop-types';
+import { Platform }               from '@react-ameliorate/native-shims';
+import React                      from 'react';
 import {
   CONTEXT_PROVIDER_KEY,
   areObjectsEqualShallow,
@@ -24,8 +24,9 @@ import {
   isValidComponent,
   toNumber,
   findDOMNode,
-  calculateObjectDifferences
-}                                         from '@react-ameliorate/utils';
+  calculateObjectDifferences,
+  getLargestFlag
+}                                 from '@react-ameliorate/utils';
 
 var logCache = {};
 
@@ -1138,14 +1139,17 @@ export default class ComponentBase {
 
     var opts = ((typeof _opts === 'string') ? { prefix: _opts } : _opts) || {},
         prefix = opts.prefix || '',
-        base = capitalize(opts.base || ''),
+        base = opts.base || '',
         names = flattenArgs(args);
+
+    if (prefix)
+      base = capitalize(base);
 
     return removeDuplicateStrings(names.map((name) => `${prefix}${base}${capitalize(name)}`));
   }
 
   generateStyleNames(theme, name, ...args) {
-    return this.generateNames({ prefix: name }, '', args).concat(this.generateNames({ prefix: theme, base: name }, '', args));
+    return removeDuplicateStrings(this.generateNames({ prefix: name }, '', args).concat(this.generateNames({ prefix: theme, base: name }, '', args)));
   }
 
   getClassName(_componentName, ...args) {
@@ -1275,6 +1279,10 @@ export default class ComponentBase {
 
   getFlags() {
     return COMPONENT_FLAGS;
+  }
+
+  getLargestFlag(flags) {
+    return getLargestFlag(flags);
   }
 
   getComponentFlags(mergeStates) {

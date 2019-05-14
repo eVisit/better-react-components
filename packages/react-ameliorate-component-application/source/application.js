@@ -6,7 +6,8 @@ import { Tooltip }                            from '@react-ameliorate/component-
 import styleSheet                             from './application-styles';
 import {
   findClosestComponentFromDOMElement,
-  specializeEvent
+  specializeEvent,
+  removeDuplicateStrings
 }                                             from '@react-ameliorate/utils';
 import { ModalStackHandler }                  from '@react-ameliorate/mixin-modal-stack-handler';
 import { TooltipStackHandler }                from '@react-ameliorate/mixin-tooltip-stack-handler';
@@ -239,7 +240,8 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       return {
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
-          locale: null
+          locale: null,
+          _extraClasses: []
         })
       };
     }
@@ -262,11 +264,34 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       };
     }
 
+    addExtraClass(...args) {
+      var extraClasses = this.getState('_extraClasses', []);
+
+      console.log('ADDING EXTRA CLASSES: ', extraClasses, removeDuplicateStrings(extraClasses.concat(args.filter(Boolean))));
+
+      this.setState({
+        _extraClasses: removeDuplicateStrings(extraClasses.concat(args.filter(Boolean)))
+      });
+    }
+
+    removeExtraClass(...args) {
+      var extraClasses = this.getState('_extraClasses', []).filter((className) => {
+        return (args.indexOf(className) < 0);
+      });
+
+      this.setState({
+        _extraClasses: extraClasses
+      });
+    }
+
     render(_children) {
-      var tooltips = this.getTooltips();
+      var tooltips = this.getTooltips(),
+          extraClasses = this.getState('_extraClasses', []);
+
+      console.log('EXTRA CLASSES: ', extraClasses);
 
       return super.render(
-        <Overlay>
+        <Overlay className={extraClasses.join(' ')}>
           {this.getChildren(_children)}
 
           <ModalManager modals={this.getModals()}/>

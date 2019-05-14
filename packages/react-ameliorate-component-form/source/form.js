@@ -51,8 +51,7 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
       if (!data && parentForm)
         return parentForm.getFieldDataValue(fieldName);
 
-      if (data)
-        return data[fieldName];
+      return U.get(data, fieldName);
     }
 
     getParentForm() {

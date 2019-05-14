@@ -299,7 +299,7 @@ export function filterToNativeElementProps(props, elementType) {
   return filterObjectKeys((key, value) => {
     // Whitelist
     if (acceptableElementProps.indexOf(key) >= 0)
-      return (value !== null);
+      return (value != null);
 
     // Blacklist
     if ((/^on(Press|Layout$$)/).test(key))
@@ -821,6 +821,18 @@ export function specializeEvent(event) {
   })(event.stopPropagation);
 
   return event;
+}
+
+export function assignRef(prop, elem) {
+  if (typeof prop !== 'function' && !(prop && prop.hasOwnProperty('current')))
+    return;
+
+  if (typeof prop === 'function')
+    prop.call(this, elem);
+  else
+    prop.current = elem;
+
+  return elem;
 }
 
 export {

@@ -34,6 +34,11 @@ export const DraggableView = componentFactory('DraggableView', ({ Parent, compon
         return false;
       }
 
+      this.getApp(({ app }) => {
+        if (typeof app.addExtraClass === 'function')
+          app.addExtraClass(this.getClassName('DraggableView', 'draggingActive'));
+      });
+
       var nativeEvent = (event && event.nativeEvent);
       if (nativeEvent && nativeEvent.target)
         setDraggedItems([{ component: this, element: nativeEvent.target }]);
@@ -42,6 +47,11 @@ export const DraggableView = componentFactory('DraggableView', ({ Parent, compon
     }
 
     onDragEnd(event) {
+      this.getApp(({ app }) => {
+        if (typeof app.removeExtraClass === 'function')
+          app.removeExtraClass(this.getClassName('DraggableView', 'draggingActive'));
+      });
+
       if (this.props.disabled) {
         preventEventDefault(event);
         return false;

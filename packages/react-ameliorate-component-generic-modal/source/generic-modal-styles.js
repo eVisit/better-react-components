@@ -34,7 +34,7 @@ export default createStyleSheet(function(theme) {
     },
     titleBar: {
       flex: 0,
-      minHeight: (TITLE_BAR_PADDING * 2) +  theme.FONT_SIZE_XSMALL,
+      minHeight: (TITLE_BAR_PADDING * 2) + theme.FONT_SIZE_XSMALL,
       flexDirection: 'row',
       alignItems: 'center',
       padding: TITLE_BAR_PADDING,

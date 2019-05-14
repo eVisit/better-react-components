@@ -16,7 +16,9 @@ export const PromptModal = componentFactory('PromptModal', ({ Parent, componentN
       defaultAction: PropTypes.oneOf(['yes', 'no']),
       onDeny: PropTypes.func,
       onConfirm: PropTypes.func,
-      data: PropTypes.oneOfType([ PropTypes.object, PropTypes.array ])
+      data: PropTypes.oneOfType([ PropTypes.object, PropTypes.array ]),
+      denyButtonCaption: PropTypes.oneOfType([PropTypes.string, PropTypes.shape({ term: PropTypes.string })]),
+      confirmButtonCaption: PropTypes.oneOfType([PropTypes.string, PropTypes.shape({ term: PropTypes.string })])
     };
 
     static defaultProps = {
@@ -73,13 +75,13 @@ export const PromptModal = componentFactory('PromptModal', ({ Parent, componentN
 
       return [
         {
-          caption: this.langTerm('@ra/cancel'),
+          caption: this.props.denyButtonCaption || this.langTerm('@ra/cancel'),
           testID: 'promptModalDeny',
           focussed: (this.props.defaultAction === 'no'),
           onPress: this.resolve.bind(this, 'onDeny', 0)
         },
         {
-          caption: this.langTerm('@ra/okay'),
+          caption: this.props.confirmButtonCaption || this.langTerm('@ra/okay'),
           testID: 'promptModalConfirm',
           focussed: (this.props.defaultAction === 'yes'),
           onPress: this.resolve.bind(this, 'onConfirm', 1)

@@ -1,13 +1,12 @@
 //###if(MOBILE) {###//
 import { View }                     from 'react-native';
 //###} else {###//
-import { utils as U }               from 'evisit-js-utils';
 import React                        from 'react';
 import {
   sendOnLayoutEvent,
-  isElementOrDescendant,
   filterToNativeElementProps,
-  findDOMNode
+  findDOMNode,
+  assignRef
 }                                   from '@react-ameliorate/utils';
 import { flattenStyle }             from '../shim-utils';
 import ViewPropTypes                from '../prop-types/view';
@@ -53,8 +52,8 @@ class View extends React.Component {
       ...providedProps,
       className: this.getClassName('raView', this.props.className),
       style,
-      onMouseOver: (this.props.onMouseOver) ? this.onMouseOver : undefined,
-      onMouseOut: (this.props.onMouseOut) ? this.onMouseOut : undefined,
+      onMouseEnter: (this.props.onMouseEnter) ? this.onMouseEnter : undefined,
+      onMouseLeave: (this.props.onMouseLeave) ? this.onMouseLeave : undefined,
       ref: this.viewRef
     };
   }
@@ -119,8 +118,7 @@ class View extends React.Component {
 
   viewRef = (elem) => {
     this.rootElement = elem;
-    if (typeof this.props.domRef === 'function')
-      this.props.domRef.call(this, elem);
+    assignRef(this.props.domRef, elem);
   }
 
   componentDidMount() {
@@ -138,26 +136,14 @@ class View extends React.Component {
     this.doOnLayout(null);
   }
 
-  onMouseOver = (event) => {
-    // If we leave the root element then we are no longer hovering (we do not need to test children)
-    var nativeElem = U.get(event, 'nativeEvent.toElement');
-    if (!isElementOrDescendant(this.rootElement, nativeElem))
-      return;
-
-    if (typeof this.props.onMouseOver === 'function')
-      return this.props.onMouseOver.call(this, event);
+  onMouseEnter = (event) => {
+    if (typeof this.props.onMouseEnter === 'function')
+      return this.props.onMouseEnter.call(this, event);
   }
 
-  onMouseOut = (event) => {
-    // If we leave the root element then we are no longer hovering (we do not need to test children)
-    var nativeEvent = event.nativeEvent,
-        nativeElem = U.get(nativeEvent, 'toElement');
-
-    if (isElementOrDescendant(this.rootElement, nativeElem))
-      return;
-
-    if (typeof this.props.onMouseOut === 'function')
-      return this.props.onMouseOut.call(this, event);
+  onMouseLeave = (event) => {
+    if (typeof this.props.onMouseLeave === 'function')
+      return this.props.onMouseLeave.call(this, event);
   }
 
   render(_props, _children) {
