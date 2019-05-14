@@ -1,13 +1,12 @@
 //###if(MOBILE) {###//
 import { View }                     from 'react-native';
 //###} else {###//
-import { utils as U }               from 'evisit-js-utils';
 import React                        from 'react';
 import {
   sendOnLayoutEvent,
-  isElementOrDescendant,
   filterToNativeElementProps,
-  findDOMNode
+  findDOMNode,
+  assignRef
 }                                   from '@react-ameliorate/utils';
 import { flattenStyle }             from '../shim-utils';
 import ViewPropTypes                from '../prop-types/view';
@@ -119,8 +118,7 @@ class View extends React.Component {
 
   viewRef = (elem) => {
     this.rootElement = elem;
-    if (typeof this.props.domRef === 'function')
-      this.props.domRef.call(this, elem);
+    assignRef(this.props.domRef, elem);
   }
 
   componentDidMount() {

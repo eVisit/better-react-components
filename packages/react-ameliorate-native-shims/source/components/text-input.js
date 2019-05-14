@@ -7,7 +7,8 @@ import { flattenStyle }           from '../shim-utils';
 import {
   preventEventDefault,
   stopEventPropagation,
-  stopEventImmediatePropagation
+  stopEventImmediatePropagation,
+  assignRef
 }                                 from '@react-ameliorate/utils';
 import TextInputPropTypes         from '../prop-types/text-input';
 
@@ -158,8 +159,7 @@ class TextInputShim extends React.Component {
     if (elem && this.props.autoFocus === true)
       elem.focus();
 
-    if (typeof this.props.inputRef === 'function')
-      this.props.inputRef.call(this, elem);
+    assignRef(this.props.inputRef, elem);
   }
 
   clear = () => {
