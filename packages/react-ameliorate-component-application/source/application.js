@@ -267,8 +267,6 @@ export const Application = componentFactory('Application', ({ Parent, componentN
     addExtraClass(...args) {
       var extraClasses = this.getState('_extraClasses', []);
 
-      console.log('ADDING EXTRA CLASSES: ', extraClasses, removeDuplicateStrings(extraClasses.concat(args.filter(Boolean))));
-
       this.setState({
         _extraClasses: removeDuplicateStrings(extraClasses.concat(args.filter(Boolean)))
       });
@@ -287,8 +285,6 @@ export const Application = componentFactory('Application', ({ Parent, componentN
     render(_children) {
       var tooltips = this.getTooltips(),
           extraClasses = this.getState('_extraClasses', []);
-
-      console.log('EXTRA CLASSES: ', extraClasses);
 
       return super.render(
         <Overlay className={extraClasses.join(' ')}>
