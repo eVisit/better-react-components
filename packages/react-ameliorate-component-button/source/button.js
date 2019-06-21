@@ -181,7 +181,9 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           {(!!caption) && (
             <Text
               className={captionClassName}
-              style={this.style(captionStyleNames, extraCaptionStyle, this.props.captionStyle)}>{caption}
+              style={this.style(captionStyleNames, extraCaptionStyle, this.props.captionStyle)}
+            >
+              {caption}
             </Text>
           )}
 
