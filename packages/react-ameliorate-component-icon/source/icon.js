@@ -14,18 +14,38 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
       size: PropTypes.number
     }
 
+    getGlyphStyleMap() {
+      var glyphStyleMap = this.iconGlyphStyleMap || this.context.iconGlyphStyleMap;
+      if (!glyphStyleMap) {
+        glyphStyleMap = this.getApp(({ app }) => {
+          if (typeof app.getIconGlyphStyleMap === 'function')
+            return app.getIconGlyphStyleMap();
+        });
+      }
+
+      return glyphStyleMap || {};
+    }
+
     getGlyphMap() {
       var glyphMap = this.iconGlyphMap || this.context.iconGlyphMap;
-      if (!glyphMap)
-        glyphMap = this.getApp(({ app }) => app.getIconGlyphMap());
+      if (!glyphMap) {
+        glyphMap = this.getApp(({ app }) => {
+          if (typeof app.getIconGlyphMap === 'function')
+            return app.getIconGlyphMap();
+        });
+      }
 
       return glyphMap;
     }
 
     getDefaultFontFamily() {
       var iconDefaultFontFamily = this.iconDefaultFontFamily || this.context.iconDefaultFontFamily;
-      if (!iconDefaultFontFamily)
-        iconDefaultFontFamily = this.getApp(({ app }) => app.getIconDefaultFontFamily());
+      if (!iconDefaultFontFamily) {
+        iconDefaultFontFamily = this.getApp(({ app }) => {
+          if (typeof app.getIconDefaultFontFamily === 'function')
+            return app.getIconDefaultFontFamily();
+        });
+      }
 
       return iconDefaultFontFamily;
     }
@@ -34,17 +54,18 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
       const getIconGlyph = (glyphMap) => {
         var icons = ('' + this.props.icon).split(/\s*\|\s*/g);
         for (var i = 0, il = icons.length; i < il; i++) {
-          var icon = icons[i],
-              glyph = glyphMap[icon];
+          var name = ('' + icons[i]).trim(),
+              glyph = glyphMap[name];
 
           if (glyph)
-            return glyph;
+            return { glyph, name };
         }
 
         return null;
       };
 
       var iconGlyphMap = this.getGlyphMap(),
+          iconGlyphStyleMap = this.getGlyphStyleMap(),
           rawStyle = this.rawStyle('icon', this.props.style),
           fontFamily = (rawStyle && rawStyle.fontFamily);
 
@@ -58,8 +79,14 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
       if (!glyphMap)
         throw new TypeError(`Attempted to use Icon component, but found no defined glyph map for fontFamily "${fontFamily}" (missing "iconGlyphMap" on context?)`);
 
-      var glyph = getIconGlyph(glyphMap);
-      return { fontFamily, glyph };
+      var { glyph, name } = getIconGlyph(glyphMap),
+          glyphStyleMap = (iconGlyphStyleMap && iconGlyphStyleMap[fontFamily]),
+          style;
+
+      if (glyphStyleMap)
+        style = glyphStyleMap[name];
+
+      return { fontFamily, glyph, style, name };
     }
 
     _renderIcon(glyphInfo) {
@@ -71,10 +98,25 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
     }
 
     renderIcon({ glyphInfo, extraStyle }) {
+      if (!glyphInfo || !glyphInfo.glyph)
+        return null;
+
+      var rawGlyphStyle = this.style('icon', this.props.style, extraStyle),
+          glyphStyle = glyphInfo.style;
+
+      if (typeof glyphStyle === 'function')
+        glyphStyle = glyphStyle.call(this, { glyphInfo, style: rawGlyphStyle });
+
+      if (glyphStyle)
+        glyphStyle = this.style(glyphStyle, rawGlyphStyle, (glyphStyle.hasOwnProperty('fontSize')) ? { fontSize: glyphStyle.fontSize } : null);
+
+      if (!glyphStyle)
+        glyphStyle = rawGlyphStyle;
+
       return (
         <Text
           className={this.getRootClassName(componentName, 'icon')}
-          style={this.style('icon', this.props.style, extraStyle)}
+          style={glyphStyle}
         >
           {glyphInfo.glyph}
         </Text>
