@@ -412,6 +412,32 @@ export default class ComponentBase {
       console.error(message);
   }
 
+  _shouldDebugRender(nextProps, nextState) {
+    if (!__DEV__)
+      return { shouldDebugRender: false, debugRenderGroup: '' };
+
+    var shouldDebugRender = (this.context._raDebugRenders || this.constructor._raDebugRenders),
+        debugRenderGroup,
+        componentName;
+
+    if (!shouldDebugRender)
+      return { shouldDebugRender: false, debugRenderGroup: '' };
+
+    if (shouldDebugRender)
+      componentName = this.getComponentName();
+
+    if (shouldDebugRender instanceof RegExp) {
+      shouldDebugRender.lastIndex = 0;
+      shouldDebugRender = shouldDebugRender.test('' + componentName);
+    } else if (typeof shouldDebugRender === 'function') {
+      shouldDebugRender = !!shouldDebugRender.call(this, componentName, nextProps, nextState);
+    }
+
+    debugRenderGroup = this.context._raDebugRendersGroup || '';
+
+    return { shouldDebugRender, debugRenderGroup, componentName };
+  }
+
   _doComponentRender(propUpdateCounter, stateUpdateCounter) {
     if (this._raRenderAsyncResult) {
       this._raRenderAsyncResult = false;
@@ -438,11 +464,23 @@ export default class ComponentBase {
       return newElems;
     };
 
-    if (this.areUpdatesFrozen())
-      return (this._raRenderCache || null);
+    if (__DEV__) {
+      var { shouldDebugRender, debugRenderGroup, componentName } = this._shouldDebugRender(this.props, this.getState());
+    }
 
-    if (this._raRenderCacheInvalid !== true && this._raRenderCache !== undefined)
+    if (this.areUpdatesFrozen()) {
+      if (shouldDebugRender)
+        console.log(`----> ${componentName}${debugRenderGroup}: NOT rendering because component state updates are currently frozen`);
+
+      return (this._raRenderCache || null);
+    }
+
+    if (this._raRenderCacheInvalid !== true && this._raRenderCache !== undefined) {
+      if (shouldDebugRender)
+        console.log(`----> ${componentName}${debugRenderGroup}: NOT rendering because component render cache is still valid`);
+
       return this._raRenderCache;
+    }
 
     var elements = this.render();
     if (elements == null) {
@@ -814,8 +852,10 @@ export default class ComponentBase {
   }
 
   forceUpdate() {
-    if (this.mounted() && !this.areUpdatesFrozen())
+    if (this.mounted() && !this.areUpdatesFrozen()) {
+      this._invalidateRenderCache();
       this._raReactComponent.forceUpdate();
+    }
   }
 
   freezeUpdates() {
@@ -911,8 +951,13 @@ export default class ComponentBase {
   setState(_newState, doneCallback) {
     var newState = this.setStatePassive(_newState);
 
-    if (this.mounted() && !this.areUpdatesFrozen())
+    if (this.mounted() && !this.areUpdatesFrozen()) {
       this._setReactComponentState(newState, doneCallback);
+    } else if (__DEV__) {
+      var { shouldDebugRender, debugRenderGroup, componentName } = this._shouldDebugRender(this.props, this.getState());
+      if (shouldDebugRender)
+        console.log(`----> ${componentName}${debugRenderGroup}: NOT rendering because component state updates are currently frozen or component is not mounted`, { mounted: this.mounted(), frozen: this.areUpdatesFrozen() });
+    }
 
     return newState;
   }
