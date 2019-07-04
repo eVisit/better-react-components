@@ -61,7 +61,7 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
             return { glyph, name };
         }
 
-        return null;
+        return { glyph: null, name: icons[0] };
       };
 
       var iconGlyphMap = this.getGlyphMap(),
