@@ -787,8 +787,10 @@ export default class ComponentBase {
   }
 
   forceUpdate() {
-    if (this.mounted() && !this.areUpdatesFrozen())
+    if (this.mounted() && !this.areUpdatesFrozen()) {
+      this._invalidateRenderCache();
       this._raReactComponent.forceUpdate();
+    }
   }
 
   freezeUpdates() {
