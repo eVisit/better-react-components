@@ -100,10 +100,10 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
           tooltipType={tab.tooltipType || 'default'}
           theme={tab.theme || 'white'}
         >
-          {(args, button) => {
+          {(buttonArgs, button) => {
             return (
               <React.Fragment>
-                {button.renderDefaultContent(args)}
+                {button.renderDefaultContent(buttonArgs)}
 
                 {children}
 
