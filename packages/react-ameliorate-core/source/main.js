@@ -154,7 +154,12 @@ export function componentFactory(_name, definer, _options) {
   var options = (ComponentBase.isValidComponent(_options)) ? { parent: _options } : (_options || {}),
       ReactBaseComponent = getReactComponentClass(options.reactComponentBaseClass),
       Parent = getComponentClass(options.parent || ComponentBase),
-      mixins = (options.mixins || []).filter((mixin) => (typeof mixin === 'function'));
+      mixins = (options.mixins || []);
+
+  mixins.forEach((mixin) => {
+    if (typeof mixin !== 'function')
+      throw new TypeError(`${displayName}: Mixins must be functions. Got "${mixin}" for a mixin instead`);
+  });
 
   if (mixins && mixins.length)
     Parent = mixinClasses.call(this, Parent, displayName, name, mixins);
