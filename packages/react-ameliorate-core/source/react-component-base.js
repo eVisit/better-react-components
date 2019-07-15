@@ -18,6 +18,20 @@ function getContextObject(context) {
   return context;
 }
 
+function doRender() {
+  var elements = this._componentInstance._doComponentRender(this._propUpdateCounter, this._stateUpdateCounter);
+
+  if (typeof this._componentInstance.provideContext === 'function') {
+    return (
+      <RAContext.Provider value={this._getComponentContext()}>
+        {elements}
+      </RAContext.Provider>
+    );
+  } else {
+    return elements;
+  }
+}
+
 export default class ReactComponentBase extends React.Component {
   static proxyComponentInstanceMethod(propName) {
     if (propName in React.Component.prototype)
@@ -199,24 +213,10 @@ export default class ReactComponentBase extends React.Component {
   }
 
   render() {
-    const doRender = () => {
-      var elements = this._componentInstance._doComponentRender(this._propUpdateCounter, this._stateUpdateCounter);
-
-      if (typeof this._componentInstance.provideContext === 'function') {
-        return (
-          <RAContext.Provider value={this._getComponentContext()}>
-            {elements}
-          </RAContext.Provider>
-        );
-      } else {
-        return elements;
-      }
-    };
-
     // Update my state
     this._stateUpdateCounter = this._componentInstance._raStateUpdateCounter;
     Object.assign(this.state, this._componentInstance.getState());
 
-    return doRender();
+    return doRender.call(this);
   }
 }
