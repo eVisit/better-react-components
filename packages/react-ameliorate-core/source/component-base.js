@@ -1743,8 +1743,18 @@ export default class ComponentBase {
     var { term, params } = args;
 
     if (typeof term === 'function') {
-      const format = (format) => this.formatLanguageTerm(term, format, args);
-      term = term.call(this, { ...args, format });
+      const format = (format) => this.formatLanguageTerm(term, format, args),
+            hasParams = (...args) => {
+              for (var i = 0, il = args.length; i < il; i++) {
+                var arg = args[i];
+                if (U.noe(params[arg]))
+                  return false;
+              }
+
+              return true;
+            };
+
+      term = term.call(this, { ...args, format, hasParams });
     }
 
     if (params && params.format && ('' + params.format).indexOf('{') >= 0)
