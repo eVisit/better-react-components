@@ -816,7 +816,7 @@ export default class ComponentBase {
 
   callProvidedCallback(_names, opts, defaultValue) {
     var names = (_names instanceof Array) ? _names : [_names],
-        args = (opts == null || opts instanceof Array) ? opts : [ Object.assign({ ref: this }, opts || {}) ];
+        args = (opts == null || opts instanceof Array) ? opts : [ Object.assign({ ref: this, refProps: this.props }, opts || {}) ];
 
     if (args == null)
       args = [];
@@ -828,6 +828,10 @@ export default class ComponentBase {
     }
 
     return defaultValue;
+  }
+
+  hasProvidedCallback(name) {
+    return (typeof this.props[name] === 'function');
   }
 
   getID() {
