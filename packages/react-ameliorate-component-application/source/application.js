@@ -116,7 +116,9 @@ export const Application = componentFactory('Application', ({ Parent, componentN
           action.callback(newEvent);
 
           if (nativeEvent.immediatePropagationStopped || nativeEvent.propagationStopped) {
-            //console.log(`Event ${eventName} handled by ${componentID}`);
+            if (__DEV__)
+              console.log(`Event ${eventName} handled/captured by ${componentID}`, document.querySelector('.eVisitApp' + componentID));
+
             break;
           }
         }

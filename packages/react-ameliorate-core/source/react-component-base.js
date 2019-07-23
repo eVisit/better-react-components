@@ -116,7 +116,7 @@ export default class ReactComponentBase extends React.Component {
         return false;
 
       if (__DEV__ && shouldUpdateUser !== false && shouldDebugRender) {
-        if (propsDiffer !== statesDiffer ) {
+        if (propsDiffer !== statesDiffer) {
           var diff = (propsDiffer) ? calculateObjectDifferences(nextProps, this.props, null, 1) : calculateObjectDifferences(nextState, this.state, null, 1),
               whichDiffers = (propsDiffer) ? 'props' : 'state';
 
