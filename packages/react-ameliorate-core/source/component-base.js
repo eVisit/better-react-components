@@ -512,8 +512,8 @@ export default class ComponentBase {
     }
   }
 
-  _setReactComponentState(newState) {
-    return this._raReactComponent.setState(newState);
+  _setReactComponentState(newState, doneCallback) {
+    return this._raReactComponent.setState(newState, doneCallback);
   }
 
   _resolveState(initial, props, _props) {
