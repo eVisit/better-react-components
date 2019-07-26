@@ -1,6 +1,6 @@
 {
   "name": "@react-ameliorate/component-pager",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "./source/pager.js",
   "scripts": {
@@ -49,15 +49,16 @@
   "dependencies": {
     "evisit-js-utils": "^0.7.1",
     "color": "^3.1.0",
-    "@react-ameliorate/component-pager-bar": "^0.10.0"
+    "@react-ameliorate/component-pager-bar": "^0.11.0"
   },
   "peerDependencies": {
     "react": "^16.7.0",
     "babel-preset-react-ameliorate": ">=0.57.0",
-    "@react-ameliorate/core": "^0.10.0",
-    "@react-ameliorate/styles": "^0.10.0",
-    "@react-ameliorate/utils": "^0.10.0",
-    "@react-ameliorate/native-shims": "^0.10.0"
+    "@react-ameliorate/core": "^0.11.0",
+    "@react-ameliorate/styles": "^0.11.0",
+    "@react-ameliorate/utils": "^0.11.0",
+    "@react-ameliorate/native-shims": "^0.11.0",
+    "@react-ameliorate/component-pager-bar": "^0.11.0"
   },
   "scope": "@react-ameliorate"
 }
