@@ -10,7 +10,8 @@ export const Tooltip = componentFactory('Tooltip', ({ Parent, componentName }) =
 
     static propTypes = {
       containerStyle: PropTypes.any,
-      caption: PropTypes.string
+      caption: PropTypes.string,
+      captionStyle: PropTypes.any
     };
 
     static defaultProps = {
@@ -34,7 +35,7 @@ export const Tooltip = componentFactory('Tooltip', ({ Parent, componentName }) =
           className={this.getRootClassName(componentName, 'tooltipContainer')}
           style={this.style('tooltipContainer', this.props.containerStyle)}
         >
-          <Text style={this.style('tooltipCaption')}>{caption}</Text>
+          <Text style={this.style('tooltipCaption', this.props.captionStyle)}>{caption}</Text>
         </View>
       );
     }

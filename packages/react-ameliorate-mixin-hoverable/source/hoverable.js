@@ -2,8 +2,8 @@ export function Hoverable({ Parent, componentName }) {
   return class Hoverable extends Parent {
     getHoverableProps() {
       return {
-        onMouseOver: this._onMouseOver,
-        onMouseOut: this._onMouseOut
+        onMouseEnter: this._onMouseEnter,
+        onMouseLeave: this._onMouseLeave
       };
     }
 
@@ -18,15 +18,15 @@ export function Hoverable({ Parent, componentName }) {
       });
     }
 
-    _onMouseOver(event) {
-      return this.onMouseOver({ event });
+    _onMouseEnter(event) {
+      return this.onMouseEnter({ event });
     }
 
-    _onMouseOut(event) {
-      return this.onMouseOut({ event });
+    _onMouseLeave(event) {
+      return this.onMouseLeave({ event });
     }
 
-    onMouseOver(args = {}) {
+    onMouseEnter(args = {}) {
       var hoverClearTimeout = this._hoverClearTimeout;
       if (hoverClearTimeout)
         hoverClearTimeout.cancel();
@@ -34,17 +34,17 @@ export function Hoverable({ Parent, componentName }) {
       if (this.isComponentFlag('hovered'))
         return;
 
-      if (this.callProvidedCallback('onMouseOver', args) === false)
+      if (this.callProvidedCallback('onMouseEnter', args) === false)
         return;
 
       return this.setComponentFlagsFromObject(Object.assign({ hovered: true }, args.extraState || {}));
     }
 
-    onMouseOut(args = {}) {
+    onMouseLeave(args = {}) {
       if (!this.isComponentFlag('hovered'))
         return;
 
-      if (this.callProvidedCallback('onMouseOut', args) === false)
+      if (this.callProvidedCallback('onMouseLeave', args) === false)
         return;
 
       var delay = this.delay(() => {

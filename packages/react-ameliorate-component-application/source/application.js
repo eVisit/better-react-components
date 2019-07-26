@@ -6,7 +6,8 @@ import { Tooltip }                            from '@react-ameliorate/component-
 import styleSheet                             from './application-styles';
 import {
   findClosestComponentFromDOMElement,
-  specializeEvent
+  specializeEvent,
+  removeDuplicateStrings
 }                                             from '@react-ameliorate/utils';
 import { ModalStackHandler }                  from '@react-ameliorate/mixin-modal-stack-handler';
 import { TooltipStackHandler }                from '@react-ameliorate/mixin-tooltip-stack-handler';
@@ -115,7 +116,9 @@ export const Application = componentFactory('Application', ({ Parent, componentN
           action.callback(newEvent);
 
           if (nativeEvent.immediatePropagationStopped || nativeEvent.propagationStopped) {
-            //console.log(`Event ${eventName} handled by ${componentID}`);
+            if (__DEV__)
+              console.log(`Event ${eventName} handled/captured by ${componentID}`, document.querySelector('.eVisitApp' + componentID));
+
             break;
           }
         }
@@ -132,6 +135,13 @@ export const Application = componentFactory('Application', ({ Parent, componentN
 
     getTooltipHideTime() {
       return 250;
+    }
+
+    getTooltipPropsFromType(type) {
+      return {
+        innerContainerStyle: this.style(this.generateStyleNames('tooltip', 'container', type)),
+        captionStyle: this.style(this.generateStyleNames('tooltip', 'caption', type))
+      };
     }
 
     registerTooltipMouseOverHandler() {
@@ -174,12 +184,21 @@ export const Application = componentFactory('Application', ({ Parent, componentN
               return;
 
             var tooltipSide = tooltipElement.getAttribute('data-tooltip-side'),
+                tooltipType = tooltipElement.getAttribute('data-tooltip-type') || 'default',
+                tooltipStyleProps = this.getTooltipPropsFromType(tooltipType),
                 anchorPosition = ANCHOR_POSITION_MAP[tooltipSide];
 
             if (!anchorPosition)
               anchorPosition = ANCHOR_POSITION_MAP['bottom'];
 
-            this.pushTooltip({ id: tooltipID, caption: tooltip, anchorPosition, anchor: tooltipComponent });
+            this.pushTooltip({
+              ...(tooltipStyleProps || {}),
+              id: tooltipID,
+              caption: tooltip,
+              anchorPosition,
+              anchor: tooltipComponent
+            });
+
           }, time, tooltipID);
         };
       };
@@ -223,7 +242,8 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       return {
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
-          locale: null
+          locale: null,
+          _extraClasses: []
         })
       };
     }
@@ -246,11 +266,30 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       };
     }
 
+    addExtraClass(...args) {
+      var extraClasses = this.getState('_extraClasses', []);
+
+      this.setState({
+        _extraClasses: removeDuplicateStrings(extraClasses.concat(args.filter(Boolean)))
+      });
+    }
+
+    removeExtraClass(...args) {
+      var extraClasses = this.getState('_extraClasses', []).filter((className) => {
+        return (args.indexOf(className) < 0);
+      });
+
+      this.setState({
+        _extraClasses: extraClasses
+      });
+    }
+
     render(_children) {
-      var tooltips = this.getTooltips();
+      var tooltips = this.getTooltips(),
+          extraClasses = this.getState('_extraClasses', []);
 
       return super.render(
-        <Overlay>
+        <Overlay className={extraClasses.join(' ')}>
           {this.getChildren(_children)}
 
           <ModalManager modals={this.getModals()}/>

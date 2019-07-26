@@ -81,9 +81,18 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       });
     }
 
-    getTransformStyle(arrowStyle, styles) {
-      var transform = [{ translateX: 0 }, { translateY: 0 }],
-          arrowSize = arrowStyle.width;
+    getDynamicArrowStyles(arrowStyle, styles) {
+      var transform       = [{ translateX: 0 }, { translateY: 0 }],
+          arrowSize       = arrowStyle.width,
+          containerStyle  = this.rawStyle('innerContainer', this.props.innerContainerStyle),
+          arrowStyle      = {};
+
+      if (containerStyle.backgroundColor) {
+        arrowStyle.borderTopColor = containerStyle.backgroundColor;
+        arrowStyle.borderRightColor = containerStyle.backgroundColor;
+        arrowStyle.borderLeftColor = containerStyle.backgroundColor;
+        arrowStyle.borderBottomColor = containerStyle.backgroundColor;
+      }
 
       for (var i = 0, il = styles.length; i < il; i++) {
         var style = styles[i],
@@ -98,9 +107,9 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
         transform[index][key] = arrowSize * shift.value;
       }
 
-      return {
-        transform
-      };
+      arrowStyle.transform = transform;
+
+      return arrowStyle;
     }
 
     getArrowStyle() {
@@ -125,17 +134,18 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       if (_horizontal < 2 && _vertical < 2)
         return;
 
-      var styles = [];
+      var directionStyles = [],
+          styles          = [];
 
       if (targetSideX === 0)
-        styles.push('arrowHCenter');
+        directionStyles.push('arrowHCenter');
       else
-        styles.push((targetSideX > 0) ? 'arrowHLeft' : 'arrowHRight');
+        directionStyles.push((targetSideX > 0) ? 'arrowHLeft' : 'arrowHRight');
 
       if (targetSideY === 0)
-        styles.push('arrowVCenter');
+        directionStyles.push('arrowVCenter');
       else
-        styles.push((targetSideY > 0) ? 'arrowVTop' : 'arrowVBottom');
+        directionStyles.push((targetSideY > 0) ? 'arrowVTop' : 'arrowVBottom');
 
       if (vertical === -2)
         styles.push('arrowDown');
@@ -149,7 +159,7 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
 
       var arrowStyle = this.rawStyle('arrow', this.props.arrowStyle);
 
-      return this.style('arrow', styles, this.getTransformStyle(arrowStyle, styles), this.props.arrowStyle);
+      return this.style('arrow', directionStyles, styles, this.getDynamicArrowStyles(arrowStyle, directionStyles.concat(styles)), styles.map((style) => `${style}ColorMask`), this.props.arrowStyle);
     }
 
     render(children) {

@@ -28,6 +28,25 @@ class WebView extends View {
       dangerouslySetInnerHTML: source
     };
   }
+
+  componentDidUpdate() {
+    super.componentDidUpdate.apply(this, arguments);
+
+    if (this.rootElement) {
+      // Run scripts (scripts are not run when injected via innerHTML)
+      var scriptElements = Array.prototype.slice.apply(this.rootElement.getElementsByTagName('SCRIPT'));
+      for (var i = 0; i < scriptElements.length; i++) {
+        var scriptElement = scriptElements[i],
+            textNode = document.createTextNode(scriptElement.innerHTML),
+            parentNode = scriptElement.parentNode,
+            newScript = document.createElement("script");
+
+        parentNode.removeChild(scriptElement);
+        newScript.appendChild(textNode);
+        parentNode.appendChild(newScript);
+      }
+    }
+  }
 }
 //###}###//
 

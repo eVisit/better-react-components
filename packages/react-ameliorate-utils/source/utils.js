@@ -299,7 +299,7 @@ export function filterToNativeElementProps(props, elementType) {
   return filterObjectKeys((key, value) => {
     // Whitelist
     if (acceptableElementProps.indexOf(key) >= 0)
-      return (value !== null);
+      return (value != null);
 
     // Blacklist
     if ((/^on(Press|Layout$$)/).test(key))
@@ -789,10 +789,13 @@ export function findClosestComponentFromDOMElement(_element) {
     var className = element.getAttribute('class'),
         parts     = ('' + className).match(/\w+(Component_\d{13,})/);
 
-    if (!parts)
+    if (!parts) {
       element = element.parentElement;
+      continue;
+    }
 
-    return getComponentReference(parts[1]);
+    var component = getComponentReference(parts[1]);
+    return component;
   }
 }
 
@@ -818,6 +821,18 @@ export function specializeEvent(event) {
   })(event.stopPropagation);
 
   return event;
+}
+
+export function assignRef(prop, elem) {
+  if (typeof prop !== 'function' && !(prop && prop.hasOwnProperty('current')))
+    return;
+
+  if (typeof prop === 'function')
+    prop.call(this, elem);
+  else
+    prop.current = elem;
+
+  return elem;
 }
 
 export {

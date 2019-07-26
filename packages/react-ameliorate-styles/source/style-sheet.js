@@ -327,9 +327,6 @@ export class StyleSheetBuilder {
 
           if (typeof helper === 'function')
             style = helper({ styleName, style, styles: sheet, sheet: this });
-
-          if (styleName === 'horizontalTabButtonActive')
-            console.log('STYLE: ', style);
         }
 
         if (!style || style === true)

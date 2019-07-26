@@ -45,14 +45,31 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
       this.callProvidedCallback('onClose', { event: null, result: -2 });
     }
 
-    async close(args) {
+    async close(_args) {
+      const callCallback = async (eventName) => {
+        try {
+          return await this.callProvidedCallback(eventName, { ...args, eventName, modal: this });
+        } catch (e) {
+          return false;
+        }
+      };
+
       if (this._closing)
-        return;
+        return false;
+
+      var args = _args || {},
+          result;
 
       this._closing = true;
 
-      var result = await this.callProvidedCallback((args.eventName) ? args.eventName : 'onClose', args);
-      if (result === false) {
+      if (args.eventName && args.eventName !== 'onClose') {
+        if ((await callCallback(args.eventName)) === false) {
+          this._closing = false;
+          return false;
+        }
+      }
+
+      if ((await callCallback('onClose')) === false) {
         this._closing = false;
         return false;
       }

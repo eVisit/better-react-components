@@ -7,7 +7,8 @@ import { flattenStyle }           from '../shim-utils';
 import {
   preventEventDefault,
   stopEventPropagation,
-  stopEventImmediatePropagation
+  stopEventImmediatePropagation,
+  assignRef
 }                                 from '@react-ameliorate/utils';
 import TextInputPropTypes         from '../prop-types/text-input';
 
@@ -53,6 +54,9 @@ class TextInputShim extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
+    if (this.props.multiline && prevProps.value !== this.props.value)
+      this.autoExpand();
+
     if (!this._inputRef || prevProps.selection === this.props.selection)
       return;
 
@@ -76,7 +80,7 @@ class TextInputShim extends React.Component {
     if (!textarea)
       return;
 
-    textarea.style.height = 'inherit';
+    textarea.style.height = 'initial';
 
     var computed = window.getComputedStyle(textarea),
         minHeight = parseInt(computed.getPropertyValue('min-height'), 10),
@@ -138,7 +142,7 @@ class TextInputShim extends React.Component {
       return;
     }
 
-    if (nativeEvent.keyCode === 13)
+    if (!this.props.multiline && nativeEvent.keyCode === 13)
       this.doSubmit(event);
   }
 
@@ -158,8 +162,7 @@ class TextInputShim extends React.Component {
     if (elem && this.props.autoFocus === true)
       elem.focus();
 
-    if (typeof this.props.inputRef === 'function')
-      this.props.inputRef.call(this, elem);
+    assignRef(this.props.inputRef, elem);
   }
 
   clear = () => {

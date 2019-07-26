@@ -24,6 +24,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       theme: PropTypes.string,
       tooltip: PropTypes.string,
       tooltipSide: PropTypes.string,
+      tooltipType: PropTypes.string,
       iconStyle: PropTypes.any,
       iconContainerStyle: PropTypes.any,
       leftIcon: PropTypes.string,
@@ -60,6 +61,11 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       this.registerDefaultFocussedAction(value);
     }
 
+    componentUnmounting() {
+      super.componentUnmounting.apply(this, arguments);
+      this.unregisterDefaultEventActions();
+    }
+
     registerDefaultFocussedAction(focussed) {
       this.unregisterDefaultEventActions();
       if (!focussed)
@@ -93,8 +99,8 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       return this.props.theme || 'default';
     }
 
-    onMouseOut(event) {
-      return super.onMouseOut(event, { pressed: false });
+    onMouseLeave(event) {
+      return super.onMouseLeave(event, { extraState: { pressed: false } });
     }
 
     async onPress(event) {
@@ -175,7 +181,9 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           {(!!caption) && (
             <Text
               className={captionClassName}
-              style={this.style(captionStyleNames, extraCaptionStyle, this.props.captionStyle)}>{caption}
+              style={this.style(captionStyleNames, extraCaptionStyle, this.props.captionStyle)}
+            >
+              {caption}
             </Text>
           )}
 
@@ -296,6 +304,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       return (
         <TouchableOpacity
           activeOpacity={this.styleProp('DEFAULT_ACTIVE_OPACITY')}
+          pointerEvents="auto"
           {...this.props}
           className={containerClassName}
           style={this.style(containerStyleNames, containerExtraStyle, this.props.style)}
@@ -304,6 +313,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           onPressEnd={this.onPressEnd}
           data-tooltip={this.props.tooltip}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
+          data-tooltip-type={this.props.tooltipType || 'default'}
           {...this.getHoverableProps()}
           ref={this.captureReference('_rootView')}
         >

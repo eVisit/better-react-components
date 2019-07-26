@@ -18,6 +18,20 @@ function getContextObject(context) {
   return context;
 }
 
+function doRender() {
+  var elements = this._componentInstance._doComponentRender(this._propUpdateCounter, this._stateUpdateCounter);
+
+  if (typeof this._componentInstance.provideContext === 'function') {
+    return (
+      <RAContext.Provider value={this._getComponentContext()}>
+        {elements}
+      </RAContext.Provider>
+    );
+  } else {
+    return elements;
+  }
+}
+
 export default class ReactComponentBase extends React.Component {
   static proxyComponentInstanceMethod(propName) {
     if (propName in React.Component.prototype)
@@ -26,7 +40,7 @@ export default class ReactComponentBase extends React.Component {
     if (propName in ReactComponentBase.prototype)
       return false;
 
-    return !(/^(UNSAFE_|componentWillMount$|componentDidMount$|componentWillUnmount$|componentWillReceiveProps$|shouldComponentUpdate$|componentWillUpdate$|render$|componentDidUpdate$|componentDidCatch$|constructor$|construct$|getMountState$|measure$)/).test(propName);
+    return !(/^(UNSAFE_|componentWillMount$|componentDidMount$|componentWillUnmount$|componentWillReceiveProps$|shouldComponentUpdate$|render$|componentWillUpdate$|componentDidUpdate$|componentDidCatch$|constructor$|construct$|getMountState$|measure$)/).test(propName);
   }
 
   constructor(InstanceClass, props, ...args) {
@@ -101,14 +115,14 @@ export default class ReactComponentBase extends React.Component {
       if (!propsDiffer && !statesDiffer)
         return false;
 
-      if (this.constructor._raDebugRenders) {
+      if (__DEV__ && shouldUpdateUser !== false && shouldDebugRender) {
         if (propsDiffer !== statesDiffer) {
           var diff = (propsDiffer) ? calculateObjectDifferences(nextProps, this.props, null, 1) : calculateObjectDifferences(nextState, this.state, null, 1),
               whichDiffers = (propsDiffer) ? 'props' : 'state';
 
-          console.log(`----> ${this.constructor.displayName}: Rendering because of ${whichDiffers} updates: `, [ diff, (whichDiffers === 'props') ? nextProps : nextState, (whichDiffers === 'props') ? this.props : this.state ]);
+          console.log(`----> ${componentName}${debugRenderGroup}: Rendering because of ${whichDiffers} updates: `, [ diff, (whichDiffers === 'props') ? nextProps : nextState, (whichDiffers === 'props') ? this.props : this.state ]);
         } else {
-          console.log(`----> ${this.constructor.displayName}: Rendering because of props and state updates: `, [ calculateObjectDifferences(nextProps, this.props, null, 1), nextProps, this.props ], [ calculateObjectDifferences(nextState, this.state, null, 1), nextState, this.state ]);
+          console.log(`----> ${componentName}${debugRenderGroup}: Rendering because of props and state updates: `, [ calculateObjectDifferences(nextProps, this.props, null, 1), nextProps, this.props ], [ calculateObjectDifferences(nextState, this.state, null, 1), nextState, this.state ]);
         }
       }
 
@@ -124,13 +138,29 @@ export default class ReactComponentBase extends React.Component {
       if (!shouldUpdate && this._stateUpdateCounter < this._componentInstance._raStateUpdateCounter) {
         this._stateUpdateCounter = this._componentInstance._raStateUpdateCounter;
         shouldUpdate = true;
+
+        if (__DEV__ && shouldUpdateUser !== false && shouldDebugRender) {
+          var diff = calculateObjectDifferences(nextState, this.state, null, 1);
+          console.log(`----> ${componentName}${debugRenderGroup}: Rendering because of state updates: `, [ diff, nextState, this.state ]);
+        }
+      }
+
+      if (__DEV__ && !shouldUpdate && shouldUpdateUser !== false && shouldDebugRender) {
+        console.log(`----> ${componentName}${debugRenderGroup}: NOT rendering because component state and props are the same`);
       }
 
       return shouldUpdate;
     };
 
     var shouldUpdateUser = this._componentInstance.shouldComponentUpdate.call(this._componentInstance, nextProps, nextState),
-        shouldUpdate = handleUpdate();
+        shouldUpdate,
+        { shouldDebugRender, debugRenderGroup, componentName } = this._componentInstance._shouldDebugRender(nextProps, nextState);
+
+    if (__DEV__ && shouldDebugRender && shouldUpdateUser === false) {
+      console.log(`----> ${componentName}${debugRenderGroup}: NOT rendering because component returned 'false' from 'shouldComponentUpdate' method!`);
+    }
+
+    shouldUpdate = handleUpdate();
 
     if (shouldUpdateUser === true || shouldUpdateUser === false)
       return shouldUpdateUser;
@@ -148,6 +178,18 @@ export default class ReactComponentBase extends React.Component {
     this._componentInstance._invokeComponentWillUnmount();
   }
 
+  componentWillUpdate(...args) {
+    return this._componentInstance._invokeComponentWillUpdate(...args);
+  }
+
+  componentDidUpdate(...args) {
+    return this._componentInstance._invokeComponentDidUpdate(...args);
+  }
+
+  componentDidCatch(...args) {
+    return this._componentInstance._invokeComponentDidCatch(...args);
+  }
+
   // The context object reference must stay the same or React
   // will continually re-render the component tree.
   // So instead of delivering a new object we clear out the same
@@ -156,7 +198,13 @@ export default class ReactComponentBase extends React.Component {
     var contextProvider = this._componentInstance.provideContext,
         baseContext = this._componentInstance.context,
         providedContext = this._providedContext,
-        instanceProvidedContext = (typeof contextProvider === 'function') ? Object.assign({}, baseContext, contextProvider.call(this._componentInstance) || {}) : null;
+        instanceProvidedContext = null;
+
+    if (typeof contextProvider === 'function') {
+      instanceProvidedContext = Object.assign({}, baseContext, contextProvider.call(this._componentInstance) || {});
+      if (instanceProvidedContext._raDebugRenders)
+        instanceProvidedContext._raDebugRendersGroup = `${this.constructor.displayName}:${this._componentInstance.getComponentID()}`;
+    }
 
     if (instanceProvidedContext && !areObjectsEqualShallow(instanceProvidedContext, providedContext))
       this._providedContext = providedContext = getContextObject(Object.assign({}, baseContext, instanceProvidedContext));
@@ -165,24 +213,10 @@ export default class ReactComponentBase extends React.Component {
   }
 
   render() {
-    const doRender = () => {
-      var elements = this._componentInstance._doComponentRender(this._propUpdateCounter, this._stateUpdateCounter);
-
-      if (typeof this._componentInstance.provideContext === 'function') {
-        return (
-          <RAContext.Provider value={this._getComponentContext()}>
-            {elements}
-          </RAContext.Provider>
-        );
-      } else {
-        return elements;
-      }
-    };
-
     // Update my state
     this._stateUpdateCounter = this._componentInstance._raStateUpdateCounter;
     Object.assign(this.state, this._componentInstance.getState());
 
-    return doRender();
+    return doRender.call(this);
   }
 }

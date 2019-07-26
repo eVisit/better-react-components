@@ -64,17 +64,37 @@ export default createStyleSheet(function(theme) {
       bottom: 0,
       borderTopColor: POPUP_ARROW_COLOR
     },
+    arrowDownColorMask: {
+      borderLeftColor: 'transparent',
+      borderRightColor: 'transparent',
+      borderBottomColor: 'transparent'
+    },
     arrowUp: {
       top: 0,
       borderBottomColor: POPUP_ARROW_COLOR
+    },
+    arrowUpColorMask: {
+      borderLeftColor: 'transparent',
+      borderRightColor: 'transparent',
+      borderTopColor: 'transparent'
     },
     arrowLeft: {
       left: 0,
       borderRightColor: POPUP_ARROW_COLOR
     },
+    arrowLeftColorMask: {
+      borderLeftColor: 'transparent',
+      borderBottomColor: 'transparent',
+      borderTopColor: 'transparent'
+    },
     arrowRight: {
       right: 0,
       borderLeftColor: POPUP_ARROW_COLOR
-    }
+    },
+    arrowRightColorMask: {
+      borderRightColor: 'transparent',
+      borderBottomColor: 'transparent',
+      borderTopColor: 'transparent'
+    },
   };
 });

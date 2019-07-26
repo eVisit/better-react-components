@@ -53,6 +53,8 @@ export const NumberField = componentFactory('NumberField', ({ Parent, componentN
         if (precision) {
           var scalar = Math.pow(10, Math.round(precision));
           num = Math.round(num * scalar) / scalar;
+        } else {
+          num = Math.round(num);
         }
 
         if (op === 'unformat') {

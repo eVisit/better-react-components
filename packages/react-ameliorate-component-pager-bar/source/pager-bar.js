@@ -53,8 +53,12 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       };
     }
 
-    onTabPress(tab, tabIndex, event) {
-      if (this.callProvidedCallback('onTabPress', { event, tab, tabIndex }) === false)
+    async onTabPress(tab, tabIndex, event) {
+      var onPress = (tab && tab.onPress);
+      if (typeof onPress === 'function' && (await onPress.call(this, { tab, tabIndex, event })) === false)
+        return false;
+
+      if ((await this.callProvidedCallback('onTabPress', { event, tab, tabIndex })) === false)
         return false;
 
       this.setState({ activeTab: tabIndex });
@@ -93,12 +97,13 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
           captionStyle={this.style(tabCaptionNames, this.props.tabCaptionStyle, active && this.props.activeTabCaptionStyle)}
           tooltip={tab.tooltip}
           tooltipSide={tab.tooltipSide}
+          tooltipType={tab.tooltipType || 'default'}
           theme={tab.theme || 'white'}
         >
-          {(args, button) => {
+          {(buttonArgs, button) => {
             return (
               <React.Fragment>
-                {button.renderDefaultContent(args)}
+                {button.renderDefaultContent(buttonArgs)}
 
                 {children}
 

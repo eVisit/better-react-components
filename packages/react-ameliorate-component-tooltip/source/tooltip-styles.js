@@ -13,6 +13,7 @@ export default createStyleSheet(function(theme, popupStyles) {
       },
     },
     innerContainer: {
+      maxWidth: theme.TOOLTIP_MAX_WIDTH || 300,
       backgroundColor: BG_COLOR
     },
     arrowDown: {

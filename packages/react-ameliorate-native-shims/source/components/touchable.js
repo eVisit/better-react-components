@@ -4,7 +4,7 @@ import { View }                   from './view';
 
 export default class Touchable extends View {
   getProps(providedProps) {
-    var props = super.getProps(providedProps);
+    var props = super.getProps({ pointerEvents: "auto", ...providedProps });
 
     return {
       ...props,

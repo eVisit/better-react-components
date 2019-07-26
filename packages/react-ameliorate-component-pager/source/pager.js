@@ -70,11 +70,14 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       return (this.props.pagerBarPlacement || 'north').toLowerCase();
     }
 
-    onTabPress({ tab, tabIndex, event }) {
+    async onTabPress({ tab, tabIndex, event }) {
+      if ((await this.callProvidedCallback('onTabPress', { event, tab, tabIndex })) === false)
+        return false;
+
       if (tabIndex === this.getState('activeTab'))
         return;
 
-      if (this.callProvidedCallback('onPageChange', { event, tab, tabIndex }) === false)
+      if ((await this.callProvidedCallback('onPageChange', { event, tab, tabIndex })) === false)
         return false;
 
       this.setState({ activeTab: tabIndex });

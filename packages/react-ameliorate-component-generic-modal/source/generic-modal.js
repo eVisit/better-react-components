@@ -63,23 +63,8 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       return value;
     }
 
-    async resolve(eventName, result, args, force) {
-      if (force !== true && this.closing)
-        return false;
-
-      this.closing = true;
-
-      if (eventName) {
-        var callbackResult = await this.callProvidedCallback(eventName, { ...args, modal: this });
-        if (callbackResult === false) {
-          this.closing = false;
-          return false;
-        }
-      }
-
-      this.close({ ...args, result });
-
-      return false;
+    resolve(eventName, result, args) {
+      return this.close({ ...args, eventName, result });
     }
 
     onTitleBarMouseDown(event) {
@@ -197,7 +182,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
     }
 
     onCloseButtonPress(args) {
-      this.close({ ...args, eventName: this.props.closeButtonEventName, result: -1 });
+      this.resolve(this.props.closeButtonEventName, -1, args);
     }
 
     renderCloseButton({ children }) {
@@ -254,7 +239,11 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       };
 
       return (
-        <View key="generic-modal-content-container" style={this.style('contentContainer', this.props.contentContainerStyle)}>
+        <View
+          className={this.getClassName(componentName, 'contentContainer')}
+          key="generic-modal-content-container"
+          style={this.style('contentContainer', this.props.contentContainerStyle)}
+        >
           {doRender()}
         </View>
       );

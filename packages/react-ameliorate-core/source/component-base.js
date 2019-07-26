@@ -1,8 +1,8 @@
-import moment                             from 'moment';
-import { utils as U, formatters }         from 'evisit-js-utils';
-import PropTypes                          from '@react-ameliorate/prop-types';
-import { View, Platform, findNodeHandle } from '@react-ameliorate/native-shims';
-import React                              from 'react';
+import moment                     from 'moment';
+import { utils as U, formatters } from 'evisit-js-utils';
+import PropTypes                  from '@react-ameliorate/prop-types';
+import { Platform }               from '@react-ameliorate/native-shims';
+import React                      from 'react';
 import {
   CONTEXT_PROVIDER_KEY,
   areObjectsEqualShallow,
@@ -24,8 +24,9 @@ import {
   isValidComponent,
   toNumber,
   findDOMNode,
-  calculateObjectDifferences
-}                                         from '@react-ameliorate/utils';
+  calculateObjectDifferences,
+  getLargestFlag
+}                                 from '@react-ameliorate/utils';
 
 var logCache = {};
 
@@ -411,6 +412,32 @@ export default class ComponentBase {
       console.error(message);
   }
 
+  _shouldDebugRender(nextProps, nextState) {
+    if (!__DEV__)
+      return { shouldDebugRender: false, debugRenderGroup: '' };
+
+    var shouldDebugRender = (this.context._raDebugRenders || this.constructor._raDebugRenders),
+        debugRenderGroup,
+        componentName;
+
+    if (!shouldDebugRender)
+      return { shouldDebugRender: false, debugRenderGroup: '' };
+
+    if (shouldDebugRender)
+      componentName = this.getComponentName();
+
+    if (shouldDebugRender instanceof RegExp) {
+      shouldDebugRender.lastIndex = 0;
+      shouldDebugRender = shouldDebugRender.test('' + componentName);
+    } else if (typeof shouldDebugRender === 'function') {
+      shouldDebugRender = !!shouldDebugRender.call(this, componentName, nextProps, nextState);
+    }
+
+    debugRenderGroup = this.context._raDebugRendersGroup || '';
+
+    return { shouldDebugRender, debugRenderGroup, componentName };
+  }
+
   _doComponentRender(propUpdateCounter, stateUpdateCounter) {
     if (this._raRenderAsyncResult) {
       this._raRenderAsyncResult = false;
@@ -437,11 +464,23 @@ export default class ComponentBase {
       return newElems;
     };
 
-    if (this.areUpdatesFrozen())
-      return (this._raRenderCache || null);
+    if (__DEV__) {
+      var { shouldDebugRender, debugRenderGroup, componentName } = this._shouldDebugRender(this.props, this.getState());
+    }
 
-    if (this._raRenderCacheInvalid !== true && this._raRenderCache !== undefined)
+    if (this.areUpdatesFrozen()) {
+      if (shouldDebugRender)
+        console.log(`----> ${componentName}${debugRenderGroup}: NOT rendering because component state updates are currently frozen`);
+
+      return (this._raRenderCache || null);
+    }
+
+    if (this._raRenderCacheInvalid !== true && this._raRenderCache !== undefined) {
+      if (shouldDebugRender)
+        console.log(`----> ${componentName}${debugRenderGroup}: NOT rendering because component render cache is still valid`);
+
       return this._raRenderCache;
+    }
 
     var elements = this.render();
     if (elements == null) {
@@ -473,8 +512,8 @@ export default class ComponentBase {
     }
   }
 
-  _setReactComponentState(newState) {
-    return this._raReactComponent.setState(newState);
+  _setReactComponentState(newState, doneCallback) {
+    return this._raReactComponent.setState(newState, doneCallback);
   }
 
   _resolveState(initial, props, _props) {
@@ -576,6 +615,8 @@ export default class ComponentBase {
   }
 
   _raCleanup() {
+    var componentID = this.getComponentID();
+
     removeComponentReference(this);
 
     // Free references so we don't leak memory
@@ -585,6 +626,9 @@ export default class ComponentBase {
     this._raRenderCache = null;
     this._raResolvedPropsCache = null;
     this._raCompponentFlagsCache = null;
+
+    if (__DEV__ && globalEventActionHooks.hasOwnProperty(componentID))
+      console.error(`Component ${this.getComponentName()} registered global event listeners, but never removed the listeners when it was unmounted.`);
   }
 
   _invokeComponentWillUnmount() {
@@ -593,6 +637,27 @@ export default class ComponentBase {
     } finally {
       this._raCleanup();
     }
+  }
+
+  componentUpdating() {
+  }
+
+  componentUpdated() {
+  }
+
+  componentCaught() {
+  }
+
+  _invokeComponentWillUpdate() {
+    return this.componentUpdating.apply(this, arguments);
+  }
+
+  _invokeComponentDidUpdate() {
+    return this.componentUpdated.apply(this, arguments);
+  }
+
+  _invokeComponentDidCatch() {
+    return this.componentCaught.apply(this, arguments);
   }
 
   getProps(...args) {
@@ -751,7 +816,7 @@ export default class ComponentBase {
 
   callProvidedCallback(_names, opts, defaultValue) {
     var names = (_names instanceof Array) ? _names : [_names],
-        args = (opts == null || opts instanceof Array) ? opts : [ Object.assign({ ref: this }, opts || {}) ];
+        args = (opts == null || opts instanceof Array) ? opts : [ Object.assign({ ref: this, refProps: this.props }, opts || {}) ];
 
     if (args == null)
       args = [];
@@ -763,6 +828,10 @@ export default class ComponentBase {
     }
 
     return defaultValue;
+  }
+
+  hasProvidedCallback(name) {
+    return (typeof this.props[name] === 'function');
   }
 
   getID() {
@@ -886,8 +955,13 @@ export default class ComponentBase {
   setState(_newState, doneCallback) {
     var newState = this.setStatePassive(_newState);
 
-    if (this.mounted() && !this.areUpdatesFrozen())
+    if (this.mounted() && !this.areUpdatesFrozen()) {
       this._setReactComponentState(newState, doneCallback);
+    } else if (__DEV__) {
+      var { shouldDebugRender, debugRenderGroup, componentName } = this._shouldDebugRender(this.props, this.getState());
+      if (shouldDebugRender)
+        console.log(`----> ${componentName}${debugRenderGroup}: NOT rendering because component state updates are currently frozen or component is not mounted`, { mounted: this.mounted(), frozen: this.areUpdatesFrozen() });
+    }
 
     return newState;
   }
@@ -1114,14 +1188,17 @@ export default class ComponentBase {
 
     var opts = ((typeof _opts === 'string') ? { prefix: _opts } : _opts) || {},
         prefix = opts.prefix || '',
-        base = capitalize(opts.base || ''),
+        base = opts.base || '',
         names = flattenArgs(args);
+
+    if (prefix)
+      base = capitalize(base);
 
     return removeDuplicateStrings(names.map((name) => `${prefix}${base}${capitalize(name)}`));
   }
 
   generateStyleNames(theme, name, ...args) {
-    return this.generateNames({ prefix: name }, '', args).concat(this.generateNames({ prefix: theme, base: name }, '', args));
+    return removeDuplicateStrings(this.generateNames({ prefix: name }, '', args).concat(this.generateNames({ prefix: theme, base: name }, '', args)));
   }
 
   getClassName(_componentName, ...args) {
@@ -1251,6 +1328,10 @@ export default class ComponentBase {
 
   getFlags() {
     return COMPONENT_FLAGS;
+  }
+
+  getLargestFlag(flags) {
+    return getLargestFlag(flags);
   }
 
   getComponentFlags(mergeStates) {
@@ -1666,8 +1747,18 @@ export default class ComponentBase {
     var { term, params } = args;
 
     if (typeof term === 'function') {
-      const format = (format) => this.formatLanguageTerm(term, format, args);
-      term = term.call(this, { ...args, format });
+      const format = (format) => this.formatLanguageTerm(term, format, args),
+            hasParams = (...args) => {
+              for (var i = 0, il = args.length; i < il; i++) {
+                var arg = args[i];
+                if (U.noe(params[arg]))
+                  return false;
+              }
+
+              return true;
+            };
+
+      term = term.call(this, { ...args, format, hasParams });
     }
 
     if (params && params.format && ('' + params.format).indexOf('{') >= 0)
