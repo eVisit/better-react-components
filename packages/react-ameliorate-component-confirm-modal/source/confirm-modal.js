@@ -11,7 +11,7 @@ export const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componen
     static propTypes = {
       message: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
       contextTextStyle: PropTypes.any,
-      defaultAction: PropTypes.oneOf(['yes', 'no']),
+      defaultAction: PropTypes.oneOf([ 'yes', 'no' ]),
       onDeny: PropTypes.func,
       onConfirm: PropTypes.func,
       denyButtonCaption: PropTypes.oneOfType([PropTypes.string, PropTypes.shape({ term: PropTypes.string })]),

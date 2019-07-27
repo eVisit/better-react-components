@@ -11,7 +11,8 @@ export const AlertModal = componentFactory('AlertModal', ({ Parent, componentNam
     static propTypes = {
       message: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
       contextTextStyle: PropTypes.any,
-      denyButtonCaption: PropTypes.oneOfType([PropTypes.string, PropTypes.shape({ term: PropTypes.string })])
+      denyButtonCaption: PropTypes.oneOfType([PropTypes.string, PropTypes.shape({ term: PropTypes.string })]),
+      defaultAction: PropTypes.bool
     };
 
     static defaultProps = {
@@ -38,7 +39,8 @@ export const AlertModal = componentFactory('AlertModal', ({ Parent, componentNam
         {
           caption: this.props.denyButtonCaption || this.langTerm('@ra/okay'),
           testID: 'alertModalConfirm',
-          onPress: this.resolve.bind(this, null, 0)
+          onPress: this.resolve.bind(this, null, 0),
+          focussed: this.props.defaultAction
         }
       ];
     }

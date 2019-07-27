@@ -88,9 +88,14 @@ export const Application = componentFactory('Application', ({ Parent, componentN
 
       var componentIDs = Object.keys(hooks).sort((a, b) => {
             var x = hooks[a],
-                y = hooks[b];
+                y = hooks[b],
+                o1 = x._order,
+                o2 = y._order;
 
-            return (y._order - x._order);
+            if (o1 == o2)
+              return 0;
+
+            return (o1 < o2) ? 1 : -1;
           }),
           nativeEvent = doSpecializeEvent(event.nativeEvent),
           newEvent = { nativeEvent },
