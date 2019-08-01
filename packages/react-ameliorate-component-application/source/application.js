@@ -130,7 +130,10 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       }
     }
 
-    globalEventActionListener(event) {
+    globalEventActionListener(eventName, event) {
+      if (eventName.match(/^key/) && this.getCurrentlyFocussedField())
+        return;
+
       return this.triggerGlobalEventActions(this.getGlobalEventActionHooks(), { nativeEvent: event }, this.specializeEvent);
     }
 
@@ -219,7 +222,7 @@ export const Application = componentFactory('Application', ({ Parent, componentN
 
       if (typeof document !== 'undefined') {
         (this.getGlobalEventActionEventNames() || []).forEach((eventName) => {
-          document.body.addEventListener(eventName, this.globalEventActionListener);
+          document.body.addEventListener(eventName, this.globalEventActionListener.bind(this, eventName));
         });
 
         this.registerTooltipMouseOverHandler();

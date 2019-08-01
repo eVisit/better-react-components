@@ -1067,6 +1067,8 @@ export default class ComponentBase {
       promise.pending = () => {
         return (status === 'pending');
       };
+
+      promise._id = id;
     }
 
     pendingTimer.timeout = setTimeout(() => {

@@ -15,6 +15,7 @@ export default createStyleSheet(function(theme) {
       textAlign: 'center',
       browser: {
         WebkitFontSmoothing: 'auto',
+        MozOsxFontSmoothing: 'grayscale',
         WebkitUserSelect: 'none'
       }
     }

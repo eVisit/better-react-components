@@ -12,6 +12,11 @@ export const AppState = new (class AppStatePolyfill {
       if (!global._raAppHasPendingChanges || !global._raAppHasPendingChanges.length)
         return;
 
+      global._raAppHasPendingChanges.forEach((obj) => {
+        if (obj && typeof obj.onBeforeUnload === 'function')
+          obj.onBeforeUnload(obj);
+      });
+
       var dialogText = 'Changes in progress may not be saved. Are you sure you wish to leave this site?';
       event.returnValue = dialogText;
       return dialogText;
