@@ -8,6 +8,7 @@ export default createStyleSheet(function(theme, popupStyles) {
   return {
     tooltipContainer: {
       flex: 0,
+      textAlign: 'center',
       browser: {
         userSelect: 'none'
       },

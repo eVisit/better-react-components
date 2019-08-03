@@ -28,6 +28,19 @@ export const Tooltip = componentFactory('Tooltip', ({ Parent, componentName }) =
     }
 
     render(_children) {
+      const formatCaption = (_caption) => {
+        var caption = _caption;
+        if (caption == null || caption === '')
+          caption = '';
+
+        return ('' + caption).split(/[\r\n]/g).reduce((result, line, i, a) => {
+          result.push(line);
+          if (i < a.length)
+            result.push(<br key={i}/>);
+          return result;
+        }, []);
+      };
+
       var caption = this.props.caption;
 
       return super.render(
@@ -35,7 +48,7 @@ export const Tooltip = componentFactory('Tooltip', ({ Parent, componentName }) =
           className={this.getRootClassName(componentName, 'tooltipContainer')}
           style={this.style('tooltipContainer', this.props.containerStyle)}
         >
-          <Text style={this.style('tooltipCaption', this.props.captionStyle)}>{caption}</Text>
+          <Text style={this.style('tooltipCaption', this.props.captionStyle)}>{formatCaption(caption)}</Text>
         </View>
       );
     }

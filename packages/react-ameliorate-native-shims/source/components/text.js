@@ -14,12 +14,13 @@ class Text extends React.Component {
 
     if (this.props.numberOfLines === 1) {
       extraStyle.whiteSpace = 'nowrap';
-      extraStyle.overflow = 'hidden';
 
-      if (this.props.ellipsizeMode)
+      if (this.props.ellipsizeMode) {
+        extraStyle.overflow = 'hidden';
         extraStyle.textOverflow = (('' + this.props.ellipsizeMode).toLowerCase() === 'clip') ? 'clip' : 'ellipsis';
-      else
-        extraStyle.textOverflow = 'ellipsis';
+      } else {
+        extraStyle.textOverflow = 'clip';
+      }
     }
 
     return (
