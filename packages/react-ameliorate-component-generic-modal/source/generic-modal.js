@@ -36,6 +36,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       closeButtonEventName: PropTypes.string,
       closeButtonProps: PropTypes.object,
       closeButtonStyle: PropTypes.any,
+      closeButtonIconStyle: PropTypes.any,
       closeButtonContainerStyle: PropTypes.any,
     };
 
@@ -197,7 +198,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
           style={this.style('closeButton', this.props.closeButtonStyle)}
           internalContainerStyle={this.style('closeButtonInternalContainer', this.props.closeButtonContainerStyle)}
         >
-          {(children) ? children : (<Icon style={this.style('closeButtonIcon')} icon="close|cancel"/>)}
+          {(children) ? children : (<Icon style={this.style('closeButtonIcon', this.props.closeButtonIconStyle)} icon="close|cancel"/>)}
         </Button>
       );
     }
