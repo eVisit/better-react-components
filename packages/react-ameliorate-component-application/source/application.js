@@ -215,6 +215,7 @@ export const Application = componentFactory('Application', ({ Parent, componentN
 
       this.registerDefaultEventAction('mouseover', tooltipHandlerFactory('mouseover'));
       this.registerDefaultEventAction('mouseout', tooltipHandlerFactory('mouseout'));
+      this.registerDefaultEventAction('mousedown', tooltipHandlerFactory('mouseout'));
     }
 
     componentMounting() {

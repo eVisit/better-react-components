@@ -40,9 +40,32 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
       };
     }
 
-    componentUmounting() {
+    componentMounting() {
+      super.componentMounting.apply(this, arguments);
+
+      this.unregisterDefaultEventActions();
+      this.registerDefaultEventAction('keydown', (event) => {
+        var nativeEvent = event.nativeEvent,
+            key = ('' + nativeEvent.key).toLowerCase();
+
+        // Is this an event I am interested in?
+        if (key !== 'escape')
+          return;
+
+        nativeEvent.preventDefault();
+        nativeEvent.stopImmediatePropagation();
+
+        this.close({ event, result: -2 });
+      });
+    }
+
+    componentUnmounting() {
+      this.unregisterDefaultEventActions();
+
       this._closing = true;
       this.callProvidedCallback('onClose', { event: null, result: -2 });
+
+      return super.componentUnmounting.apply(this, arguments);
     }
 
     async close(_args) {
