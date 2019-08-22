@@ -17,7 +17,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
   return class GenericModal extends Parent {
     static styleSheet = styleSheet;
     static propTypes = {
-      title: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+      title: PropTypes.oneOfType([ PropTypes.string, PropTypes.object ]),
       icon: PropTypes.string,
       iconStyle: PropTypes.any,
       iconContainerStyle: PropTypes.any,

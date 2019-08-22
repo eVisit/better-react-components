@@ -131,9 +131,6 @@ export const Application = componentFactory('Application', ({ Parent, componentN
     }
 
     globalEventActionListener(eventName, event) {
-      if (eventName.match(/^key/) && this.getCurrentlyFocussedField())
-        return;
-
       return this.triggerGlobalEventActions(this.getGlobalEventActionHooks(), { nativeEvent: event }, this.specializeEvent);
     }
 

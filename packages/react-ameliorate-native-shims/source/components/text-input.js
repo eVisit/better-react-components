@@ -89,12 +89,12 @@ class TextInputShim extends React.Component {
     textarea.style.height = height + 'px';
   }
 
-  doSubmit = (event) => {
+  doSubmit = (event, reverseTabOrder) => {
     if (typeof this.props.onSubmitEditing === 'function') {
       preventEventDefault(event);
       stopEventImmediatePropagation(event);
 
-      this.props.onSubmitEditing.call(this, event);
+      this.props.onSubmitEditing.call(this, event, reverseTabOrder);
     }
 
     if (this.props.blurOnSubmit && this._inputRef)
@@ -124,7 +124,7 @@ class TextInputShim extends React.Component {
     // Keycode 9 never makes it to onKeyPress
     var nativeEvent = event.nativeEvent;
     if (nativeEvent.keyCode === 9)
-      this.doSubmit(event);
+      this.doSubmit(event, nativeEvent.shiftKey);
   }
 
   onKeyUp = (event) => {
