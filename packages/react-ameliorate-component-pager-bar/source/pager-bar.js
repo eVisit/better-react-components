@@ -10,24 +10,25 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
     static styleSheet = styleSheet;
 
     static propTypes = {
-      showIcons: PropTypes.bool,
-      showCaptions: PropTypes.bool,
-      direction: PropTypes.string,
       activeTab: PropTypes.number,
-      tabs: PropTypes.oneOfType([PropTypes.array, PropTypes.func]).isRequired,
-      onTabPress: PropTypes.func,
-      tabStyle: PropTypes.any,
-      tabIconStyle: PropTypes.any,
-      tabCaptionStyle: PropTypes.any,
-      tabContainerStyle: PropTypes.any,
-      tabIconContainerStyle: PropTypes.any,
-      tabCaptionContainerStyle: PropTypes.any,
-      activeTabStyle: PropTypes.any,
-      activeTabIconStyle: PropTypes.any,
+      activeTabCaptionContainerStyle: PropTypes.any,
       activeTabCaptionStyle: PropTypes.any,
       activeTabContainerStyle: PropTypes.any,
       activeTabIconContainerStyle: PropTypes.any,
-      activeTabCaptionContainerStyle: PropTypes.any
+      activeTabIconStyle: PropTypes.any,
+      activeTabStyle: PropTypes.any,
+      defaultActiveTab: PropTypes.number,
+      direction: PropTypes.string,
+      onTabPress: PropTypes.func,
+      showCaptions: PropTypes.bool,
+      showIcons: PropTypes.bool,
+      tabCaptionContainerStyle: PropTypes.any,
+      tabCaptionStyle: PropTypes.any,
+      tabContainerStyle: PropTypes.any,
+      tabIconContainerStyle: PropTypes.any,
+      tabIconStyle: PropTypes.any,
+      tabs: PropTypes.oneOfType([PropTypes.array, PropTypes.func]).isRequired,
+      tabStyle: PropTypes.any
     };
 
     onPropUpdated_activeTab(value) {
@@ -44,11 +45,11 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       return props;
     }
 
-    resolveState() {
+    resolveState({ props }) {
       return {
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
-          activeTab: 0
+          activeTab: ((this.props.activeTab != null) ? this.props.activeTab : this.props.defaultActiveTab) || 0
         })
       };
     }

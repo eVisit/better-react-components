@@ -10,29 +10,30 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
 
     static propTypes = {
       // Props for PagerBar
-      showIcons: PropTypes.bool,
-      showCaptions: PropTypes.bool,
       activeTab: PropTypes.number,
-      tabs: PropTypes.oneOfType([PropTypes.array, PropTypes.func]).isRequired,
-      onTabPress: PropTypes.func,
-      tabStyle: PropTypes.any,
-      tabIconStyle: PropTypes.any,
-      tabCaptionStyle: PropTypes.any,
-      tabContainerStyle: PropTypes.any,
-      tabIconContainerStyle: PropTypes.any,
-      tabCaptionContainerStyle: PropTypes.any,
-      activeTabStyle: PropTypes.any,
-      activeTabIconStyle: PropTypes.any,
+      activeTabCaptionContainerStyle: PropTypes.any,
       activeTabCaptionStyle: PropTypes.any,
       activeTabContainerStyle: PropTypes.any,
       activeTabIconContainerStyle: PropTypes.any,
-      activeTabCaptionContainerStyle: PropTypes.any,
+      activeTabIconStyle: PropTypes.any,
+      activeTabStyle: PropTypes.any,
+      defaultActiveTab: PropTypes.number,
+      onTabPress: PropTypes.func,
+      showCaptions: PropTypes.bool,
+      showIcons: PropTypes.bool,
+      tabCaptionContainerStyle: PropTypes.any,
+      tabCaptionStyle: PropTypes.any,
+      tabContainerStyle: PropTypes.any,
+      tabIconContainerStyle: PropTypes.any,
+      tabIconStyle: PropTypes.any,
+      tabs: PropTypes.oneOfType([PropTypes.array, PropTypes.func]).isRequired,
+      tabStyle: PropTypes.any,
 
       // Props for Pager
       onPageChange: PropTypes.func,
-      tabBarStyle: PropTypes.any,
       pagerBarPlacement: PropTypes.oneOf(['north', 'south', 'west', 'east']),
-      renderPage: PropTypes.func
+      renderPage: PropTypes.func,
+      tabBarStyle: PropTypes.any
     };
 
     static defaultProps = {
@@ -61,7 +62,7 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       return {
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
-          activeTab: 0
+          activeTab: ((this.props.activeTab != null) ? this.props.activeTab : this.props.defaultActiveTab) || 0
         })
       };
     }
