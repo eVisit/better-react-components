@@ -14,6 +14,54 @@ var componentIDCounter = 1,
 export const RAContext = React.createContext({});
 export const CONTEXT_PROVIDER_KEY  = 'data-ra-provider';
 
+const _eventListeners = {};
+
+if (typeof document !== 'undefined' && !global._raDocumentEventsAlreadyBound) {
+  global._raDocumentEventsAlreadyBound = true;
+
+  for (var eventName in document) {
+    if (!eventName.match(/^on/))
+      continue;
+
+    var thisEventName = eventName.substring(2);
+    document.addEventListener(thisEventName, generateDocumentEventProxy(thisEventName));
+  }
+}
+
+export function generateDocumentEventProxy(eventName) {
+  return function(event) {
+    var eventListeners = _eventListeners['*'];
+    if (eventListeners && eventListeners.length) {
+      for (var i = 0, il = eventListeners.length; i < il; i++) {
+        var eventListener = eventListeners[i];
+        eventListener(eventName, event);
+      }
+    }
+
+    var eventListeners = _eventListeners[eventName];
+    if (eventListeners && eventListeners.length) {
+      for (var i = 0, il = eventListeners.length; i < il; i++) {
+        var eventListener = eventListeners[i];
+        eventListener(eventName, event);
+      }
+    }
+  };
+}
+
+export function addDocumentEventListener(eventName, callback) {
+  if (!_eventListeners[eventName])
+    _eventListeners[eventName] = [];
+
+  _eventListeners[eventName].push(callback);
+}
+
+export function removeDocumentEventListener(eventName, callback) {
+  if (!_eventListeners[eventName])
+    _eventListeners[eventName] = [];
+
+  _eventListeners[eventName] = _eventListeners[eventName].filter((cb) => (cb !== callback));
+}
+
 export function prefixPad(_str, size = 0, char = '0') {
   var str = ('' + _str);
   if (str.length >= size)

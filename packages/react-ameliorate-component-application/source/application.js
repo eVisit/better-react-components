@@ -7,7 +7,9 @@ import styleSheet                             from './application-styles';
 import {
   findClosestComponentFromDOMElement,
   specializeEvent,
-  removeDuplicateStrings
+  removeDuplicateStrings,
+  addDocumentEventListener,
+  removeDocumentEventListener
 }                                             from '@react-ameliorate/utils';
 import { ModalStackHandler }                  from '@react-ameliorate/mixin-modal-stack-handler';
 import { TooltipStackHandler }                from '@react-ameliorate/mixin-tooltip-stack-handler';
@@ -70,19 +72,6 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       });
     }
 
-    getGlobalEventActionEventNames() {
-      return [
-        'keydown',
-        'keypress',
-        'keyup',
-        'mousedown',
-        'click',
-        'mouseup',
-        'mouseover',
-        'mouseout'
-      ];
-    }
-
     triggerGlobalEventActions(hooks, event, _specializeEvent) {
       const doSpecializeEvent = _specializeEvent || specializeEvent;
 
@@ -99,12 +88,19 @@ export const Application = componentFactory('Application', ({ Parent, componentN
           }),
           nativeEvent = doSpecializeEvent(event.nativeEvent),
           newEvent = { nativeEvent },
-          eventName = nativeEvent.type;
+          eventName = nativeEvent.type,
+          devMessageHappened = false;
 
       //console.log('Handling global event', eventName, componentIDs);
       for (var i = 0, il = componentIDs.length; i < il; i++) {
-        if (nativeEvent.propagationStopped)
+        if (nativeEvent.propagationStopped) {
+          if (__DEV__ && !devMessageHappened) {
+            devMessageHappened = true;
+            console.log(`Event ${eventName} handled/captured by ${componentID}`, document.querySelector('.eVisitApp' + componentID));
+          }
+
           break;
+        }
 
         var componentID = componentIDs[i],
             componentHooks = hooks[componentID],
@@ -120,14 +116,19 @@ export const Application = componentFactory('Application', ({ Parent, componentN
 
           action.callback(newEvent);
 
-          if (nativeEvent.immediatePropagationStopped || nativeEvent.propagationStopped) {
-            if (__DEV__)
+          if (nativeEvent.immediatePropagationStopped) {
+            if (__DEV__ && !devMessageHappened) {
+              devMessageHappened = true;
               console.log(`Event ${eventName} handled/captured by ${componentID}`, document.querySelector('.eVisitApp' + componentID));
+            }
 
             break;
           }
         }
       }
+
+      if (nativeEvent.defaultPrevented)
+        return false;
     }
 
     globalEventActionListener(eventName, event) {
@@ -219,10 +220,7 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       super.componentMounting.apply(this, arguments);
 
       if (typeof document !== 'undefined') {
-        (this.getGlobalEventActionEventNames() || []).forEach((eventName) => {
-          document.body.addEventListener(eventName, this.globalEventActionListener.bind(this, eventName));
-        });
-
+        addDocumentEventListener('*', this.globalEventActionListener);
         this.registerTooltipMouseOverHandler();
       }
     }
@@ -233,9 +231,7 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       if (typeof document !== 'undefined') {
         this.unregisterDefaultEventActions();
 
-        (this.getGlobalEventActionEventNames() || []).forEach((eventName) => {
-          document.body.removeEventListener(eventName, this.globalEventActionListener);
-        });
+        removeDocumentEventListener('*', this.globalEventActionListener);
       }
 
       // Clear style cache
