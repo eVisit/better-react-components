@@ -120,7 +120,7 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
     }
 
     render(children) {
-      if (this.props.inline === true && !this.getState('visible'))
+      if ((this.context._raModalManager || this.props.inline === true) && !this.getState('visible'))
           return super.render(null);
 
       if (this.context._raModalManager || this.props.inline === true)

@@ -60,7 +60,27 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
       return this.style('childContainer', containerStyle);
     }
 
-    onShouldClose(event) {
+    closeCurrentModal() {
+      var modals = this.getAllModals(),
+          lastModal = this.getCurrentModal(),
+          lastModalProps = (lastModal && lastModal.props),
+          autoClose = (lastModalProps && lastModalProps.autoClose);
+
+      if (autoClose && modals.length > 0) {
+        this.getApp(({ app }) => {
+          app.popModal(lastModal);
+        });
+      }
+    }
+
+    onShouldClose({ action }) {
+      if (action !== 'close')
+        return;
+
+      this.closeCurrentModal();
+    }
+
+    onCloseActiveModal(event) {
       stopEventPropagation(event);
 
       if (this.isMobileView)
@@ -75,16 +95,7 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
       if (isDescendantElement(rootElement, nativeEvent.target))
         return;
 
-      var modals = this.getAllModals(),
-          lastModal = this.getCurrentModal(),
-          lastModalProps = (lastModal && lastModal.props),
-          autoClose = (lastModalProps && lastModalProps.autoClose);
-
-      if (autoClose && modals.length > 0) {
-        this.getApp(({ app }) => {
-          app.popModal(lastModal);
-        });
-      }
+      this.closeCurrentModal();
     }
 
     render(_children) {
@@ -103,7 +114,7 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
           <TouchableWithoutFeedback
             className={this.getRootClassName(componentName)}
             style={this.style('fullSize')}
-            onPress={this.onShouldClose}
+            onPress={this.onCloseActiveModal}
             onKeyDown={this.onKeyDown}
             tabIndex="-1"
           >
