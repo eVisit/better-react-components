@@ -120,9 +120,10 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
           >
             <ContextProvider context={this.getContext} style={this.style('fullSize')}>
               <TransitionGroup
-                ref={this.captureReference('rootElement', findDOMNode)}
+                rootViewRef={this.captureReference('rootElement', findDOMNode)}
                 style={this.style('fullSize')}
                 onAnimationStyle={this.onAnimationStyle}
+                childProps={this.memoize(() => ({ pointerEvents: 'box-none' }))}
               >
                 {modals}
               </TransitionGroup>

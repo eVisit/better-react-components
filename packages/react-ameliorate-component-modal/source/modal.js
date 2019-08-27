@@ -113,7 +113,11 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
 
     renderModal(children) {
       return (
-        <View className={this.getRootClassName(componentName)} style={this.style('container', this.props.style, (!this.props.disallowReposition) ? this.getState('modalPositionStyle') : null)}>
+        <View
+          className={this.getRootClassName(componentName)}
+          style={this.style('container', this.props.style, (!this.props.disallowReposition) ? this.getState('modalPositionStyle') : null)}
+          pointerEvents="auto"
+        >
           {this.getChildren(children)}
         </View>
       );
