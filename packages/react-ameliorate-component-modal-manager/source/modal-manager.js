@@ -109,7 +109,7 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
           id={this.getID()}
           className={this.getRootClassName(componentName)}
           style={this.style('fullSize', 'overlay', this.props.style)}
-          onShouldClose={this.onShouldClose}
+          requiresLayout={false}
         >
           <TouchableWithoutFeedback
             className={this.getRootClassName(componentName)}

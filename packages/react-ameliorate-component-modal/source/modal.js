@@ -131,6 +131,7 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
           {...this.passProps(this.props)}
           id={this.props.id}
           className={this.getRootClassName(componentName)}
+          requiresLayout={false}
         >
           {this.renderModal(children)}
         </Paper>

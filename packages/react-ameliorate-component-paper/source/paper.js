@@ -228,21 +228,22 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
     static styleSheet = styleSheet;
 
     static propTypes = {
-      id: PropTypes.string,
-      position: PropTypes.func,
       anchor: PropTypes.any,
       anchorPosition: PropTypes.oneOfType([PropTypes.object, PropTypes.func]),
-      onPositionUpdated: PropTypes.func,
-      onShouldClose: PropTypes.func,
-      onEntering: PropTypes.func,
-      onMounted: PropTypes.func,
+      autoClose: PropTypes.bool,
+      requiresLayout: PropTypes.bool,
+      calculateStyle: PropTypes.func,
+      id: PropTypes.string,
       onEntered: PropTypes.func,
+      onEntering: PropTypes.func,
       onLeaving: PropTypes.func,
       onLeft: PropTypes.func,
-      calculateStyle: PropTypes.func,
+      onMounted: PropTypes.func,
+      onPositionUpdated: PropTypes.func,
+      onShouldClose: PropTypes.func,
       pointerEvents: PropTypes.string,
+      position: PropTypes.func,
       visible: PropTypes.bool,
-      autoClose: PropTypes.bool
     };
 
     provideContext() {
@@ -421,7 +422,7 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
 
     shouldComponentUpdate(oldProps, oldState) {
       var { anchorLayout, layout, position } = this.getState();
-      if (!anchorLayout || !layout || !position)
+      if (this.props.requiresLayout !== false && (!anchorLayout || !layout || !position))
         return false;
     }
 
