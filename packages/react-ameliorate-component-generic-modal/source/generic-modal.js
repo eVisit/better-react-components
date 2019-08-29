@@ -332,7 +332,12 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       return title;
     }
 
-    getContent({ children }) {
+    getContent(args) {
+      var { children } = (args || {});
+
+      if (typeof children === 'function')
+        return children.call(this, { ...(args || {}), ref: this, refProps: this.props });
+
       return children;
     }
 
