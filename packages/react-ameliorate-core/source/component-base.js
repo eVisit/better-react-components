@@ -1550,20 +1550,21 @@ export default class ComponentBase {
     return lang;
   }
 
-  getLocaleLanguageTerms(_locale) {
-    var languages = this.getLanguages(),
+  getLocaleLanguageTerms(_locale, _scope, noFallback) {
+    var scope     = _scope || 'terms',
+        languages = this.getLanguages(),
         locale    = (_locale) ? _locale : this.getCurrentLocale(),
         lang      = languages[locale],
-        terms     = (lang && lang.terms);
+        terms     = (lang && lang[scope]);
 
-    if (!terms) {
+    if (noFallback !== true && !terms) {
       var defaultLocale = this.getDefaultLocale();
       console.error(`Unknown locale: [${locale}]... falling back to ${defaultLocale}`);
       lang = languages[defaultLocale];
-      terms = (lang && lang.terms);
+      terms = (lang && lang[scope]);
     }
 
-    if (!terms)
+    if (noFallback !== true && !terms)
       throw new Error('No language packs defined');
 
     return terms;
@@ -1577,7 +1578,7 @@ export default class ComponentBase {
     return { term: U.prettify(lastTerm.replace(/^@ra\//, '').replace(/_+/g, ' '), true), termID: lastTerm };
   }
 
-  langTerm(_termID, _params) {
+  langTerm(_termID, _params, _scope) {
     const getLocaleTerm = () => {
       const convertTermID = (thisTerm) => {
         return thisTerm.replace(/^@ra\//, '');
@@ -1596,16 +1597,18 @@ export default class ComponentBase {
       throw new Error(`Requested language term '${(termIDs.length === 1) ? termIDs[0] : termIDs}', but no such term exists!`);
     };
 
-    var params        = (U.instanceOf(_params, 'string')) ? { format: _params } : (_params || {}),
+    var scope         = _scope,
+        params        = (U.instanceOf(_params, 'string')) ? { format: _params } : (_params || {}),
+        noFallback    = (!!params['_raNoFallback']) || scope !== 'terms',
         defaultLocale = this.getDefaultLocale(),
         locale        = this.getCurrentLocale(),
-        terms         = this.getLocaleLanguageTerms(locale),
+        terms         = this.getLocaleLanguageTerms(locale, scope, noFallback),
         termIDs       = (Array.isArray(_termID)) ? _termID : [ _termID ],
         term          = getLocaleTerm();
 
-    if (!term && locale !== defaultLocale) {
+    if (noFallback !== true && !term && locale !== defaultLocale) {
       console.warn(`Language pack ${locale} doesn't contain requested term '${(termIDs.length === 1) ? termIDs[0] : termIDs}'... falling back to ${defaultLocale}`);
-      terms = this.getLocaleLanguageTerms(defaultLocale);
+      terms = this.getLocaleLanguageTerms(defaultLocale, scope);
       term = getLocaleTerm();
 
       if (!term)
@@ -1615,11 +1618,14 @@ export default class ComponentBase {
         throwTermNotFound();
     }
 
-    if (!term)
+    if (noFallback !== true && !term)
         term = this.getDefaultLangTerm(termIDs, params);
 
-    if (!term)
+    if (noFallback !== true && !term)
       throwTermNotFound();
+
+    if (!term)
+      return;
 
     return this.compileLanguageTerm({ terms, term: term.term, termID: term.termID, params, locale });
   }
@@ -1767,6 +1773,35 @@ export default class ComponentBase {
       term = this.formatLanguageTerm(term, params.format, args);
 
     return term;
+  }
+
+  digitToLanguage(_number) {
+    // Scope to "numbers"
+    const lt = (term, params) => this.langTerm(term, params, 'numbers');
+
+    var number = _number;
+    if (number instanceof Number)
+      number = number.valueOf();
+
+    // Is it NaN?
+    if (typeof number !== 'number')
+      return lt('nan');
+
+    if (isNaN(number))
+      return lt('nan');
+
+    // Is it Infinity?
+    if (!isFinite(number))
+      return lt('infinity');
+
+    var numberS = ('' + number),
+        rawTerm = lt(numberS);
+
+    // Found exact match
+    if (rawTerm)
+      return rawTerm;
+
+
   }
 
   clearDefaultEventActionHooks(eventName) {
