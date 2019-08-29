@@ -18,6 +18,7 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       activeTabIconStyle: PropTypes.any,
       activeTabStyle: PropTypes.any,
       defaultActiveTab: PropTypes.number,
+      disabled: PropTypes.bool,
       onTabPress: PropTypes.func,
       showCaptions: PropTypes.bool,
       showIcons: PropTypes.bool,

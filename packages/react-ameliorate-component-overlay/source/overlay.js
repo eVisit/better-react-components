@@ -65,7 +65,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
     requestChildrenClose(_children, isException, sourceAction) {
       var children = (_children) ? _children : this.getState('children', []);
 
-      return children.filter((thisChild) => {
+      var remainingChildren = children.filter((thisChild) => {
         if (!thisChild)
           return false;
 
@@ -85,6 +85,8 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
 
         return shouldKeep();
       });
+
+      return remainingChildren;
     }
 
     addChild(child) {

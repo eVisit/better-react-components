@@ -19,6 +19,7 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       activeTabStyle: PropTypes.any,
       defaultActiveTab: PropTypes.number,
       direction: PropTypes.string,
+      disabled: PropTypes.bool,
       onTabPress: PropTypes.func,
       showCaptions: PropTypes.bool,
       showIcons: PropTypes.bool,
@@ -100,6 +101,7 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
           tooltipSide={tab.tooltipSide}
           tooltipType={tab.tooltipType || 'default'}
           theme={tab.theme || 'white'}
+          disabled={tab.disabled || this.props.disabled}
         >
           {(buttonArgs, button) => {
             return (

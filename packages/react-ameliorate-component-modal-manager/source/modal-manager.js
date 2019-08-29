@@ -15,6 +15,7 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
   return class ModalManager extends Parent {
     static styleSheet = styleSheet;
     static propTypes = {
+      autoClose: PropTypes.bool,
       modals: PropTypes.array
     };
 
@@ -75,7 +76,10 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
 
     onShouldClose({ action }) {
       if (action !== 'close')
-        return;
+        return false;
+
+      if (this.props.autoClose === false)
+        return false;
 
       this.closeCurrentModal();
     }
@@ -83,7 +87,7 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
     onCloseActiveModal(event) {
       stopEventPropagation(event);
 
-      if (this.isMobileView)
+      if (this.props.autoClose === false || this.isMobileView)
         return;
 
       var rootElement = this.getReference('rootElement'),
@@ -110,6 +114,7 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
           className={this.getRootClassName(componentName)}
           style={this.style('fullSize', 'overlay', this.props.style)}
           requiresLayout={false}
+          onShouldClose={this.onShouldClose}
         >
           <TouchableWithoutFeedback
             className={this.getRootClassName(componentName)}
