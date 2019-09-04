@@ -12,13 +12,13 @@ export function ModalStackHandler({ Parent, componentName }) {
       };
     }
 
-    showAlertModal(props, _children) {
-      var children = this.getChildren(_children);
+    showAlertModal(props) {
+      var children = this.getChildren((props || {}).children);
       return this.pushModal(<AlertModal {...props}>{children}</AlertModal>);
     }
 
-    showConfirmModal(props, _children) {
-      var children = this.getChildren(_children);
+    showConfirmModal(props) {
+      var children = this.getChildren((props || {}).children);
       return this.pushModal(<ConfirmModal {...props}>{children}</ConfirmModal>);
     }
 
