@@ -1,8 +1,13 @@
+import { PropTypes }    from '@react-ameliorate/core';
 import { AlertModal }   from '@react-ameliorate/component-alert-modal';
 import { ConfirmModal } from '@react-ameliorate/component-confirm-modal';
 
 export function ModalStackHandler({ Parent, componentName }) {
   return class ModalStackHandler extends Parent {
+    static propTypes = {
+      onModalStackChanged: PropTypes.func
+    };
+
     resolveState() {
       return {
         ...super.resolveState.apply(this, arguments),
@@ -10,6 +15,10 @@ export function ModalStackHandler({ Parent, componentName }) {
           _modals: []
         })
       };
+    }
+
+    onStateUpdated__modals(value, oldValue, initial) {
+      this.callProvidedCallback('onModalStackChanged', { modals: (value || []).slice(), _modals: (oldValue || []).slice(), initial });
     }
 
     showAlertModal(props) {
