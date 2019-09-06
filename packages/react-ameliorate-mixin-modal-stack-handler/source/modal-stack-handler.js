@@ -37,13 +37,16 @@ export function ModalStackHandler({ Parent, componentName }) {
 
     pushModal(_modal) {
       const onClose = async (args) => {
-        var modalProps = _modal.props,
-            func = (modalProps && modalProps.onClose);
+        var result;
 
-        if (typeof func === 'function') {
-          var result = await func.call(this, args);
-          if (result === false)
+        if (typeof userOnCloseFunc === 'function') {
+          try {
+            result = await userOnCloseFunc.call(this, args);
+            if (result === false)
+              return false;
+          } catch (e) {
             return false;
+          }
         }
 
         this.popModal(modal);
@@ -55,7 +58,9 @@ export function ModalStackHandler({ Parent, componentName }) {
       if (!modal)
         return;
 
-      var modalID = this.generateUniqueComponentID('Modal');
+      var modalProps = modal.props,
+          userOnCloseFunc = (modalProps && modalProps.onClose),
+          modalID = this.generateUniqueComponentID('Modal');
 
       modal = this.cloneComponents(modal, ({ childProps }) => {
         return Object.assign({}, childProps, {
