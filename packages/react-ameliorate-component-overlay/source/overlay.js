@@ -114,7 +114,9 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         children = children.slice();
         children.splice(index, 1);
 
-        this.setState({ children });
+        requestAnimationFrame(() => {
+          this.setState({ children });
+        });
       }
     }
 
