@@ -178,10 +178,6 @@ export default class ReactComponentBase extends React.Component {
     this._componentInstance._invokeComponentWillUnmount();
   }
 
-  componentWillUpdate(...args) {
-    return this._componentInstance._invokeComponentWillUpdate(...args);
-  }
-
   componentDidUpdate(...args) {
     return this._componentInstance._invokeComponentDidUpdate(...args);
   }
@@ -214,8 +210,11 @@ export default class ReactComponentBase extends React.Component {
 
   render() {
     // Update my state
+    var currentState = this._componentInstance.getState();
     this._stateUpdateCounter = this._componentInstance._raStateUpdateCounter;
-    Object.assign(this.state, this._componentInstance.getState());
+    Object.assign(this.state, currentState);
+
+    this._componentInstance._invokeComponentWillUpdate(this.props, currentState);
 
     return doRender.call(this);
   }
