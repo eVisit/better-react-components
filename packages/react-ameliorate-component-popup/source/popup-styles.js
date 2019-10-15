@@ -13,17 +13,20 @@ export default createStyleSheet(function(theme) {
     POPUP_ARROW_COLOR,
     container: {
       backgroundColor: 'transparent',
-      padding: POPUP_ARROW_SIZE_HALF
     },
-    containerRight: {
+    containerWithArrowRight: {
+      paddingLeft: POPUP_ARROW_SIZE_HALF
     },
-    containerLeft: {
+    containerWithArrowLeft: {
+      paddingRight: POPUP_ARROW_SIZE_HALF
     },
-    containerTop: {
+    containerWithArrowTop: {
+      paddingBottom: POPUP_ARROW_SIZE_HALF
     },
-    containerBottom: {
+    containerWithArrowBottom: {
+      paddingTop: POPUP_ARROW_SIZE_HALF
     },
-    innerContainer: {
+    internalContainer: {
       flex: 0,
       overflow: 'hidden',
       borderRadius: theme.DEFAULT_BORDER_RADIUS,

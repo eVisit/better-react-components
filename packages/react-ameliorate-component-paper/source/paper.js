@@ -32,7 +32,7 @@ function getSideAndOffset(key) {
   var offset = '',
       side;
 
-  ('' + key).trim().replace(/^(left|bottom|right|top|centerV|centerH)([+-].*)?$/i, (m, _side, _offset) => {
+  ('' + key).trim().replace(/^(left|bottom|right|top|centerV?|centerH?)([+-].*)?$/i, (m, _side, _offset) => {
     side = _side.toLowerCase();
 
     if (side === 'centerv' || side === 'centerh')
@@ -70,12 +70,13 @@ function getPositionInfo(anchorPosition) {
     if (!anchorSide || !targetSide)
       return;
 
-    if (anchorKey.match(/^left|right|centerH/i))
+    var isHorizontal = anchorKey.match(/^left|right|centerH/i);
+    if (isHorizontal)
       anchorXSide = anchorSide;
     else
       anchorYSide = anchorSide;
 
-    if (targetKey.match(/^left|right|centerH/i))
+    if (targetKey.match(/^left|right|centerH/i) || (targetKey.match(/^center\b/i) && isHorizontal))
       childXSide = targetSide;
     else
       childYSide = targetSide;
@@ -229,7 +230,7 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
 
     static propTypes = {
       anchor: PropTypes.any,
-      anchorPosition: PropTypes.oneOfType([PropTypes.object, PropTypes.func]),
+      anchorPosition: PropTypes.oneOfType([ PropTypes.object, PropTypes.func ]),
       autoClose: PropTypes.bool,
       requiresLayout: PropTypes.bool,
       calculateStyle: PropTypes.func,

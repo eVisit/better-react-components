@@ -7,8 +7,10 @@ import { TransitionGroup }                from '@react-ameliorate/component-tran
 import {
   findDOMNode,
   isDescendantElement,
-  areObjectsEqualShallow,
-  calculateObjectDifferences
+  preventEventDefault,
+  stopEventPropagation,
+  stopEventImmediatePropagation
+
 }                                         from '@react-ameliorate/utils';
 import styleSheet                         from './overlay-styles';
 
@@ -31,6 +33,18 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
     // }
 
     //###if(!MOBILE){###//
+    componentMounted() {
+      super.componentMounted.apply(this, arguments);
+
+      this.registerDefaultEventAction('keydown', this.onKeyDown);
+    }
+
+    componentUnmounting() {
+      this.unregisterDefaultEventActions();
+
+      return super.componentUnmounting.apply(this, arguments);
+    }
+
     onPress(event) {
       var nativeEvent = event && event.nativeEvent,
           rootElement = this.getReference('overlayRoot');
@@ -41,15 +55,39 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       if (isDescendantElement(rootElement, nativeEvent.target))
         return;
 
+      // Make sure it wasn't one of the anchors that was clicked on
+      var children = this.getState('children', []);
+      for (var i = 0, il = children.length; i < il; i++) {
+        var child = children[i],
+            anchor = (child && child.props && child.props.anchor),
+            anchorElem = (anchor && typeof anchor.getDOMNode === 'function' && anchor.getDOMNode());
+
+        if (!anchorElem)
+          continue;
+
+        if (isDescendantElement(anchorElem, nativeEvent.target))
+          return;
+      }
+
       this.closeAll();
     }
-    //###}###//
 
     onKeyDown(event) {
       var nativeEvent = (event && event.nativeEvent);
-      if (nativeEvent && nativeEvent.code === 'Escape')
+
+      if (nativeEvent && nativeEvent.code === 'Escape') {
+        var children = this.getState('children', []);
+        if (!children.length)
+          return;
+
+        preventEventDefault(event);
+        stopEventPropagation(event);
+        stopEventImmediatePropagation(event);
+
         this.closeAll();
+      }
     }
+    //###}###//
 
     provideContext() {
       return {
@@ -93,31 +131,31 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       if (!child)
         return;
 
-      var children = this.getState('children', []).slice(),
-          index = children.findIndex((thisChild) => (thisChild.props.id === child.props.id || thisChild === child));
-
-      if (index < 0)
-        children.push(child);
-      else
-        children[index] = child;
-
       requestAnimationFrame(() => {
+        var children = this.getState('children', []).slice(),
+            index = children.findIndex((thisChild) => (thisChild.props.id === child.props.id || thisChild === child));
+
+        if (index < 0)
+          children.push(child);
+        else
+          children[index] = child;
+
         this.setState({ children: this.requestChildrenClose(children, (childInstance) => (childInstance === child), 'add') });
       });
     }
 
     removeChild(child) {
-      var children = this.getState('children', []),
-          index = children.findIndex((thisChild) => (thisChild.props.id === child.props.id || thisChild === child));
+      requestAnimationFrame(() => {
+        var children = this.getState('children', []),
+            index = children.findIndex((thisChild) => (thisChild.props.id === child.props.id || thisChild === child));
 
-      if (index >= 0) {
-        children = children.slice();
-        children.splice(index, 1);
+        if (index >= 0) {
+          children = children.slice();
+          children.splice(index, 1);
 
-        requestAnimationFrame(() => {
           this.setState({ children });
-        });
-      }
+        }
+      });
     }
 
     _getChildFromStateObject(stateObject) {
@@ -252,7 +290,6 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
           className={this.getRootClassName(componentName)}
           style={this.style('container', this.props.style)}
           onPress={this.onPress}
-          onKeyDown={this.onKeyDown}
           tabIndex="-1"
         >
           {this.renderContent(children)}

@@ -13,7 +13,7 @@ export default createStyleSheet(function(theme, popupStyles) {
         userSelect: 'none'
       },
     },
-    innerContainer: {
+    internalContainer: {
       maxWidth: theme.TOOLTIP_MAX_WIDTH || 300,
       backgroundColor: BG_COLOR
     },

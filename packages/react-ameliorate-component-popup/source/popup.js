@@ -41,7 +41,7 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       ...Paper.propTypes,
       hasArrow: PropTypes.bool,
       arrowStyle: PropTypes.any,
-      innerContainerStyle: PropTypes.any
+      internalContainerStyle: PropTypes.any
     };
 
     static defaultProps = {
@@ -84,7 +84,7 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
     getDynamicArrowStyles(arrowStyle, styles) {
       var transform       = [{ translateX: 0 }, { translateY: 0 }],
           arrowSize       = arrowStyle.width,
-          containerStyle  = this.rawStyle('innerContainer', this.props.innerContainerStyle),
+          containerStyle  = this.rawStyle('internalContainer', this.props.internalContainerStyle),
           arrowStyle      = {};
 
       if (containerStyle.backgroundColor) {
@@ -164,11 +164,12 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
 
     render(children) {
       var { quadrantX, quadrantY, quadrantValues } = this.getState(),
-          arrowStyle = this.getArrowStyle();
+          hasArrow = this.props.hasArrow,
+          arrowStyle = (hasArrow) ? this.getArrowStyle() : null;
 
       return super.render(
         <Paper
-          {...this.passProps(this.props)}
+          {...this.passProps(/^(style)$/, this.props)}
           className={this.getRootClassName(componentName)}
           id={this.props.id || this.getComponentID()}
           onMounted={this.onMounted}
@@ -177,11 +178,11 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
         >
           <View
             className={this.getClassName(componentName, 'container')}
-            style={this.style('container', `container${quadrantX}`, `container${quadrantY}`, this.props.style)}
+            style={this.style('container', `container${quadrantX}`, `container${quadrantY}`, hasArrow && `containerWithArrow${quadrantX}`, hasArrow && `containerWithArrow${quadrantY}`, this.props.style)}
           >
             <View
-              className={this.getClassName(componentName, 'innerContainer')}
-              style={this.style('innerContainer', `innerContainer${quadrantX}`, `innerContainer${quadrantY}`, this.props.innerContainerStyle)}
+              className={this.getClassName(componentName, 'internalContainer')}
+              style={this.style('internalContainer', `internalContainer${quadrantX}`, `internalContainer${quadrantY}`, hasArrow && `internalContainerWithArrow${quadrantX}`, hasArrow && `internalContainerWithArrow${quadrantY}`, this.props.internalContainerStyle)}
             >
               {this.getChildren(children)}
             </View>

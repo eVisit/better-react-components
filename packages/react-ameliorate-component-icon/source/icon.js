@@ -130,7 +130,11 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
         return super.render(this._renderIcon(glyphInfo));
 
       return super.render(
-        <View className={this.getRootClassName(componentName, 'container')} style={this.style('container', this.props.containerStyle)}>
+        <View
+          className={this.getRootClassName(componentName, 'container')}
+          style={this.style('container', this.props.containerStyle)}
+          ref={this.captureReference('_rootView')}
+        >
           {this._renderIcon(glyphInfo)}
           {this.getChildren(_children)}
         </View>

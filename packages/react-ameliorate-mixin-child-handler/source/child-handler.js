@@ -18,6 +18,11 @@ export function ChildHandler({ Parent, componentName }) {
       });
     }
 
+    _getChild(id) {
+      var children = this.getState(this.getChildStateKey());
+      return children[id];
+    }
+
     getChildStateKey() {
       return 'children';
     }
@@ -78,7 +83,11 @@ export function ChildHandler({ Parent, componentName }) {
         if (state === 'left')
           return;
 
-        doneCallback = this._removeChild;
+        doneCallback = () => {
+          if (stateObject.state === 'left')
+            this._removeChild(stateObject);
+        };
+
         stateObject.state = 'left';
       }
 
@@ -151,16 +160,17 @@ export function ChildHandler({ Parent, componentName }) {
 
         if (currentMatchingChild) {
           if (newChild) {
-            // Same child
-            if (currentMatchingChild.element === newChild)
-              continue;
+            if (currentMatchingChild.element !== newChild) {
+              hasChange = true;
+              currentMatchingChild.element = newChild;
+            }
 
-            hasChange = true;
-            currentMatchingChild.element = newChild;
             state = currentMatchingChild.state;
 
-            if (state === 'entering' || state === 'entered')
+            if (state === 'leaving' || state === 'left') {
+              hasChange = true;
               this._onChildEntering(currentMatchingChild);
+            }
           } else {
             // Removal
             hasChange = true;

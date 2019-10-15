@@ -145,7 +145,7 @@ export const Application = componentFactory('Application', ({ Parent, componentN
 
     getTooltipPropsFromType(type) {
       return {
-        innerContainerStyle: this.style(this.generateStyleNames('tooltip', 'container', type)),
+        internalContainerStyle: this.style(this.generateStyleNames('tooltip', 'container', type)),
         captionStyle: this.style(this.generateStyleNames('tooltip', 'caption', type))
       };
     }
