@@ -27,10 +27,18 @@ class Image extends View {
       src = src.uri;
 
     style.backgroundImage = `url('${src}')`;
-    style.backgroundOrigin = 'border-box';
-    style.backgroundRepeat = 'no-repeat';
-    style.backgroundPosition = 'center';
-    style.backgroundClip = 'border-box';
+    if (!style.backgroundOrigin)
+      style.backgroundOrigin = 'border-box';
+
+    if (!style.backgroundRepeat)
+      style.backgroundRepeat = 'no-repeat';
+
+    if (!style.backgroundPosition)
+      style.backgroundPosition = 'center';
+
+    if (!style.backgroundClip)
+      style.backgroundClip = 'border-box';
+
     style.backgroundSize = (providedProps.resizeMode === 'stretch') ? ('100% 100%') : (providedProps.resizeMode || 'contain');
 
     return {
