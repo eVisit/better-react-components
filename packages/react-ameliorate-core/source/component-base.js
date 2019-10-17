@@ -1594,6 +1594,9 @@ export default class ComponentBase {
     };
 
     const throwTermNotFound = () => {
+      if (params.onlyCheckExists)
+        return false;
+
       throw new Error(`Requested language term '${(termIDs.length === 1) ? termIDs[0] : termIDs}', but no such term exists!`);
     };
 
@@ -1607,7 +1610,9 @@ export default class ComponentBase {
         term          = getLocaleTerm();
 
     if (noFallback !== true && !term && locale !== defaultLocale) {
-      console.warn(`Language pack ${locale} doesn't contain requested term '${(termIDs.length === 1) ? termIDs[0] : termIDs}'... falling back to ${defaultLocale}`);
+      if (params.onlyCheckExists !== true)
+        console.warn(`Language pack ${locale} doesn't contain requested term '${(termIDs.length === 1) ? termIDs[0] : termIDs}'... falling back to ${defaultLocale}`);
+
       terms = this.getLocaleLanguageTerms(defaultLocale, scope);
       term = getLocaleTerm();
 
@@ -1615,19 +1620,23 @@ export default class ComponentBase {
         term = this.getDefaultLangTerm(termIDs, params);
 
       if (!term)
-        throwTermNotFound();
+        return throwTermNotFound();
     }
 
     if (noFallback !== true && !term)
         term = this.getDefaultLangTerm(termIDs, params);
 
     if (noFallback !== true && !term)
-      throwTermNotFound();
+      return throwTermNotFound();
 
     if (!term)
-      return;
+      return (params.onlyCheckExists === true) ? false : undefined;
 
-    return this.compileLanguageTerm({ terms, term: term.term, termID: term.termID, params, locale });
+    return (params.onlyCheckExists === true) ? true : this.compileLanguageTerm({ terms, term: term.term, termID: term.termID, params, locale });
+  }
+
+  langTermExists(_termID, _params, _scope) {
+    return this.langTerm(_termID, Object.assign({}, _params || {}, { onlyCheckExists: true }), _scope);
   }
 
   _getLanguageTermFormatterFlagFormatters() {
