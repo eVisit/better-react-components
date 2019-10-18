@@ -52,6 +52,9 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       if (!nativeEvent || !rootElement)
         return;
 
+      if (nativeEvent.target.closest(`.${this.getClassName(componentName, 'ingnoreClick')}`))
+        return;
+
       if (isDescendantElement(rootElement, nativeEvent.target))
         return;
 
@@ -100,7 +103,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       this.setState({ children: this.requestChildrenClose(undefined, undefined, 'close') });
     }
 
-    requestChildrenClose(_children, isException, sourceAction) {
+    requestChildrenClose(_children, isException, sourceAction, extraProps) {
       var children = (_children) ? _children : this.getState('children', []);
 
       var remainingChildren = children.filter((thisChild) => {
@@ -115,7 +118,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
             return true;
 
           var onShouldClose = (thisChild.props && thisChild.props.onShouldClose);
-          if (typeof onShouldClose === 'function' && !onShouldClose.call(this, { child: thisChild, childProps: thisChild.props, action: sourceAction }))
+          if (typeof onShouldClose === 'function' && !onShouldClose.call(this, Object.assign({ child: thisChild, childProps: thisChild.props, action: sourceAction }, extraProps || {})))
             return true;
 
           return false;
@@ -140,7 +143,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
         else
           children[index] = child;
 
-        this.setState({ children: this.requestChildrenClose(children, (childInstance) => (childInstance === child), 'add') });
+        this.setState({ children: this.requestChildrenClose(children, (childInstance) => (childInstance === child), 'add', { actionChild: child }) });
       });
     }
 

@@ -72,8 +72,12 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
         return;
 
       this.registerDefaultEventAction('keydown', (event) => {
-        if (this.getCurrentlyFocussedField())
+        var nativeEvent = event && event.nativeEvent;
+        if (nativeEvent.defaultPrevented)
           return;
+
+        // if (this.getCurrentlyFocussedField())
+        //   return;
 
         var nativeEvent = event.nativeEvent,
             key = ('' + nativeEvent.key).toLowerCase();

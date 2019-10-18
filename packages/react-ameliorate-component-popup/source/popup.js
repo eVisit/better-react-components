@@ -41,16 +41,22 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       ...Paper.propTypes,
       hasArrow: PropTypes.bool,
       arrowStyle: PropTypes.any,
-      internalContainerStyle: PropTypes.any
+      internalContainerStyle: PropTypes.any,
+      popupGroup: PropTypes.string
     };
 
     static defaultProps = {
       _raMeasurable: true,
       hasArrow: true,
       autoClose: true,
-      onShouldClose: ({ childProps, action }) => {
-        if (action === 'add')
+      onShouldClose: ({ childProps, action, actionChild }) => {
+        if (action === 'add') {
+          var group = actionChild && actionChild.props && actionChild.props.popupGroup;
+          if (childProps.popupGroup && group === childProps.popupGroup)
+            return true;
+
           return false;
+        }
 
         if (action === 'close' && childProps.autoClose)
           return true;

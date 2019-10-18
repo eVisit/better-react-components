@@ -90,12 +90,8 @@ class TextInputShim extends React.Component {
   }
 
   doSubmit = (event, reverseTabOrder) => {
-    if (typeof this.props.onSubmitEditing === 'function') {
-      preventEventDefault(event);
-      stopEventImmediatePropagation(event);
-
+    if (typeof this.props.onSubmitEditing === 'function')
       this.props.onSubmitEditing.call(this, event, reverseTabOrder);
-    }
 
     if (this.props.blurOnSubmit && this._inputRef)
       this._inputRef.blur();
