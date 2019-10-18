@@ -264,21 +264,17 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       };
     }
 
-    onWindowResize() {
+    doUpdatePosition() {
       this.updateAnchorLayout();
       this.updateLayout();
     }
 
     componentMounted() {
-      //###if(!MOBILE){###//
-      window.addEventListener('resize', this.onWindowResize);
-      //###}###//
+      this._updateInterval = setInterval(this.doUpdatePosition, 20);
     }
 
     componentUnmounting() {
-      //###if(!MOBILE){###//
-      window.removeEventListener('resize', this.onWindowResize);
-      //###}###//
+      clearInterval(this._updateInterval);
 
       this.removeFromOverlay({ props: { id: this.props.id } });
       super.componentUnmounting();
