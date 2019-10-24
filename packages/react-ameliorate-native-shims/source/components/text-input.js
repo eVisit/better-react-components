@@ -5,9 +5,7 @@ import { utils as U }             from 'evisit-js-utils';
 import React                      from 'react';
 import { flattenStyle }           from '../shim-utils';
 import {
-  preventEventDefault,
   stopEventPropagation,
-  stopEventImmediatePropagation,
   assignRef
 }                                 from '@react-ameliorate/utils';
 import TextInputPropTypes         from '../prop-types/text-input';
@@ -84,7 +82,7 @@ class TextInputShim extends React.Component {
 
     var computed = window.getComputedStyle(textarea),
         minHeight = parseInt(computed.getPropertyValue('min-height'), 10),
-        height = Math.max(minHeight, textarea.scrollHeight - 10) - 2;
+        height = Math.max(minHeight, textarea.scrollHeight);
 
     textarea.style.height = height + 'px';
   }

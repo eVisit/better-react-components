@@ -45,7 +45,10 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       super(props, ...args);
     }
 
-    onPropUpdated_activeTab(value) {
+    onPropUpdated_activeTab(value, oldValue, initial) {
+      if (initial)
+        return;
+
       this.setState({ activeTab: value });
     }
 

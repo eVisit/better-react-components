@@ -16,23 +16,24 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
     static propTypes = {
       caption: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
       captionStyle: PropTypes.any,
-      onPressStart: PropTypes.func,
+      disabled: PropTypes.bool,
+      iconContainerStyle: PropTypes.any,
+      iconStyle: PropTypes.any,
+      internalContainerStyle: PropTypes.any,
+      leftIcon: PropTypes.string,
+      leftIconContainerStyle: PropTypes.any,
+      leftIconStyle: PropTypes.any,
+      onFocussedAction: PropTypes.func,
       onPress: PropTypes.func,
       onPressEnd: PropTypes.func,
-      disabled: PropTypes.bool,
-      internalContainerStyle: PropTypes.any,
+      onPressStart: PropTypes.func,
+      rightIcon: PropTypes.string,
+      rightIconContainerStyle: PropTypes.any,
+      rightIconStyle: PropTypes.any,
       theme: PropTypes.string,
       tooltip: PropTypes.string,
       tooltipSide: PropTypes.string,
-      tooltipType: PropTypes.string,
-      iconStyle: PropTypes.any,
-      iconContainerStyle: PropTypes.any,
-      leftIcon: PropTypes.string,
-      leftIconStyle: PropTypes.any,
-      leftIconContainerStyle: PropTypes.any,
-      rightIcon: PropTypes.string,
-      rightIconStyle: PropTypes.any,
-      rightIconContainerStyle: PropTypes.any
+      tooltipType: PropTypes.string
     };
 
     static defaultProps = {
@@ -76,8 +77,11 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
         if (nativeEvent.defaultPrevented)
           return;
 
-        // if (this.getCurrentlyFocussedField())
-        //   return;
+        if (this.hasProvidedCallback('onFocussedAction')) {
+          if (this.callProvidedCallback('onFocussedAction', [ event ]) === false)
+            return;
+        } else if (this.getCurrentlyFocussedField())
+          return;
 
         var nativeEvent = event.nativeEvent,
             key = ('' + nativeEvent.key).toLowerCase();
