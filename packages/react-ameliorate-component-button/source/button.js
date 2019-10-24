@@ -4,7 +4,9 @@ import { componentFactory, PropTypes }          from '@react-ameliorate/core';
 import { View, Text, TouchableOpacity }         from '@react-ameliorate/native-shims';
 import { Icon }                                 from '@react-ameliorate/component-icon';
 import {
+  preventEventDefault,
   stopEventPropagation,
+  stopEventImmediatePropagation,
   getLargestFlag
 }                                               from '@react-ameliorate/utils';
 import { Hoverable }                            from '@react-ameliorate/mixin-hoverable';
@@ -58,8 +60,9 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       return super.onPropsUpdated.apply(this, arguments);
     }
 
-    onPropUpdated_focussed(value) {
-      this.registerDefaultFocussedAction(value);
+    componentMounted() {
+      this.registerDefaultFocussedAction();
+      return super.componentMounted.apply(this, arguments);
     }
 
     componentUnmounting() {
@@ -67,12 +70,11 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       return super.componentUnmounting.apply(this, arguments);
     }
 
-    registerDefaultFocussedAction(focussed) {
-      this.unregisterDefaultEventActions();
-      if (!focussed)
-        return;
-
+    registerDefaultFocussedAction() {
       this.registerDefaultEventAction('keydown', (event) => {
+        if (!this.isFlagFocussed())
+          return;
+
         var nativeEvent = event && event.nativeEvent;
         if (nativeEvent.defaultPrevented)
           return;
@@ -83,15 +85,12 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
         } else if (this.getCurrentlyFocussedField())
           return;
 
-        var nativeEvent = event.nativeEvent,
-            key = ('' + nativeEvent.key).toLowerCase();
-
-        // Is this an event I am interested in?
-        if (key !== 'enter')
+        var keyCode = nativeEvent.code || nativeEvent.key;
+        if (!(('' + keyCode).match(/^(Enter)$/)))
           return;
 
-        nativeEvent.preventDefault();
-        nativeEvent.stopImmediatePropagation();
+        preventEventDefault(event);
+        stopEventImmediatePropagation(event);
 
         this.onPress(event);
       });
