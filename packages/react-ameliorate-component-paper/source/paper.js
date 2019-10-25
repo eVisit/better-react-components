@@ -270,7 +270,7 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
     }
 
     componentMounted() {
-      this._updateInterval = setInterval(this.doUpdatePosition, 20);
+      this._updateInterval = setInterval(this.doUpdatePosition, 50);
     }
 
     componentUnmounting() {
@@ -396,9 +396,11 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       if (!overlay)
         return;
 
-      // this.updateLayout();
-
       overlay.addChild(child);
+
+      this.delay(() => {
+        this.doUpdatePosition();
+      }, 5);
     }
 
     removeFromOverlay(child) {
