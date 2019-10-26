@@ -719,7 +719,7 @@ export default class ComponentBase {
       return components;
 
     if (asArray && !(components instanceof Array))
-      components = [components];
+      components = [ components ];
 
     return filterChildren(components);
   }

@@ -15,10 +15,14 @@ export const LayoutContainer = componentFactory('LayoutContainer', ({ Parent, co
     }
 
     render(_children) {
-      var direction = capitalize(this.props.direction || 'horizontal'),
-          spacing = this.props.spacing || 0,
-          children = this.getChildren(_children, true),
-          isVertical = (direction !== 'Horizontal');
+      const flattenChildren = (children) => {
+        return [].concat.apply([], children);
+      };
+
+      var direction   = capitalize(this.props.direction || 'horizontal'),
+          spacing     = this.props.spacing || 0,
+          children    = flattenChildren(this.getChildren(_children, true)),
+          isVertical  = (direction !== 'Horizontal');
 
       return super.render(
         <View className={this.getRootClassName(componentName)} style={this.style('container', this.props.style, `container${direction}`)}>

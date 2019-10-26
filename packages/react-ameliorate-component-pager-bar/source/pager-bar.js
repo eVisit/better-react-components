@@ -1,7 +1,6 @@
 import React                            from 'react';
 import { componentFactory, PropTypes }  from '@react-ameliorate/core';
-import { View, Text, TouchableOpacity } from '@react-ameliorate/native-shims';
-import { Icon }                         from '@react-ameliorate/component-icon';
+import { View }                         from '@react-ameliorate/native-shims';
 import { Button }                       from '@react-ameliorate/component-button';
 import styleSheet                       from './pager-bar-styles';
 
