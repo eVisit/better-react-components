@@ -1,3 +1,4 @@
+import { utils as U }                   from 'evisit-js-utils';
 import React                            from 'react';
 import { componentFactory, PropTypes }  from '@react-ameliorate/core';
 import { selectFirst }                  from '@react-ameliorate/utils';
@@ -37,6 +38,36 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
       showCaptions: false
     };
 
+    onPropUpdated_buttons(_buttons) {
+      const toggledGroupButtonIndex = (group) => {
+        // See if "toggled" is set to true on any buttons in the group
+        var index = buttons.findIndex((button) => (button.group === group && button.toggled === true));
+        if (index >= 0)
+          return index;
+
+        // If not, just return the first button in the group
+        return buttons.findIndex((button) => (button.group === group));
+      };
+
+      var buttons             = _buttons || [],
+          alreadyHandledGroup = {};
+
+      for (var i = 0, il = buttons.length; i < il; i++) {
+        var button = buttons[i];
+
+        if (button.group && !alreadyHandledGroup[button.group]) {
+          alreadyHandledGroup[button.group] = true;
+
+          var index = toggledGroupButtonIndex(button.group);
+          if (index >= 0)
+            this.toggleButton({ button: buttons[index], buttonIndex: index });
+        } else if (button.toggleable && button.toggled) {
+          this.toggleButton({ button, buttonIndex: i });
+        }
+      }
+    }
+
+
     resolveProps() {
       var props = super.resolveProps.apply(this, arguments),
           buttons  = props.buttons;
@@ -51,8 +82,60 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
       return {
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
+          toggledStates: {}
         })
       };
+    }
+
+    getButtonToggleScope({ button, buttonIndex }) {
+      var scope = (button.group) ? `group.${button.group}.toggledIndex` : `nogroup.${buttonIndex}.toggledIndex`;
+      return scope;
+    }
+
+    isButtonToggled({ button, buttonIndex }) {
+      var scope = this.getButtonToggleScope({ button, buttonIndex }),
+          toggledStates = Object.assign({}, this.getState('toggledStates', {}));
+
+      return (U.get(toggledStates, scope) === buttonIndex);
+    }
+
+    toggleButton({ button, buttonIndex }) {
+      const getFirstToggledButtonIndexInGroup = (group) => {
+        if (!group)
+          return;
+
+        var buttons = (this.opts.buttons || []),
+            toggledButton;
+
+        for (var i = 0, il = buttons.length; i < il; i++) {
+          var thisButton = buttons[i];
+          if (thisButton.group === group) {
+            if (thisButton.toggled)
+              toggledButton = i;
+            else if (toggledButton == null)
+              toggledButton = i;
+          }
+        }
+
+        return toggledButton;
+      };
+
+      var scope                     = this.getButtonToggleScope({ button, buttonIndex }),
+          toggledStates             = Object.assign({}, this.getState('toggledStates', {})),
+          currentToggledIndex       = U.get(toggledStates, scope),
+          currentToggledButtonIndex = getFirstToggledButtonIndexInGroup(),
+          toggledIndex              = buttonIndex;
+
+      if (button.group && !button.toggleable) {
+        if (currentToggledIndex == null)
+          toggledIndex = (currentToggledButtonIndex == null) ? toggledIndex : currentToggledButtonIndex;
+      } else if (button.toggleable) {
+        if (currentToggledIndex == buttonIndex)
+          toggledIndex = null;
+      }
+
+      U.set(toggledStates, scope, toggledIndex);
+      this.setState({ toggledStates });
     }
 
     async onButtonPress(button, buttonIndex, event) {
@@ -62,6 +145,9 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
 
       if ((await this.callProvidedCallback('onButtonPress', { event, button, buttonIndex })) === false)
         return false;
+
+      if (button.toggleable || button.group)
+        this.toggleButton(Object.assign({}, { button, buttonIndex }));
     }
 
     getDirection() {
@@ -148,7 +234,7 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
     }
 
     _renderButton({ button, buttonIndex, buttons, containerStyle }) {
-      var toggled                    = false,
+      var toggled                   = this.isButtonToggled({ button, buttonIndex }),
           direction                 = this.getDirection(),
           flags                     = { toggled },
           buttonNames               = this.generateStyleNames(direction, 'button', flags),

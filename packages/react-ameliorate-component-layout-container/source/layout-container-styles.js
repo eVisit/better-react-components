@@ -4,8 +4,7 @@ export default createStyleSheet(function(theme) {
   return {
     container: {
       flex: 0,
-      justifyContent: 'flex-start',
-      flexBasis: '0%'
+      justifyContent: 'flex-start'
     },
     containerHorizontal: {
       flexDirection: 'row'

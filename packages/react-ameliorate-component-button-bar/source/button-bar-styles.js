@@ -9,7 +9,6 @@ export default createStyleSheet(function(theme) {
     DEFAULT_CONTAINER_BORDER_RADIUS,
     container: {
       flex: 0,
-      flexBasis: '0%',
       flexDirection: 'row',
       alignItems: 'stretch',
       justifyContent: 'flex-start',
@@ -58,6 +57,9 @@ export default createStyleSheet(function(theme) {
       fontSize: theme.FONT_SIZE_SMALL,
       color: theme.contrastColor(theme.MAIN_TEXT_COLOR)
     },
+    buttonIconToggled: {
+      color: theme.textColor(theme.MAIN_COLOR)
+    },
     buttonCaptionContainer: {
       flex: 0,
       alignItems: 'center',
@@ -71,7 +73,10 @@ export default createStyleSheet(function(theme) {
     },
     buttonCaption: {
       fontSize: theme.FONT_SIZE_SMALL,
-      color: theme.contrastColor(theme.MAIN_TEXT_COLOR)
+      color: theme.textColor(theme.contrastColor(theme.MAIN_COLOR), 6)
+    },
+    buttonCaptionToggled: {
+      color: theme.textColor(theme.MAIN_COLOR)
     },
     spacer: {
       backgroundColor: theme.MAIN_COLOR
