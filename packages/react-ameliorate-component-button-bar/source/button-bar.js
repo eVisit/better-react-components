@@ -157,13 +157,13 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
     getFirstButtonRadiusStyle({ direction, containerStyle }) {
       if (direction === 'horizontal') {
         return {
-          borderTopLeftRadius: selectFirst(containerStyle.borderTopLeftRadius, containerStyle.borderRadius, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS')),
-          borderBottomLeftRadius: selectFirst(containerStyle.borderBottomLeftRadius, containerStyle.borderRadius, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS'))
+          borderTopLeftRadius: selectFirst(containerStyle.borderTopLeftRadius, containerStyle.borderRadius - 1, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS')),
+          borderBottomLeftRadius: selectFirst(containerStyle.borderBottomLeftRadius, containerStyle.borderRadius -1, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS'))
         };
       } else {
         return {
-          borderTopLeftRadius: selectFirst(containerStyle.borderTopLeftRadius, containerStyle.borderRadius, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS')),
-          borderTopRightRadius: selectFirst(containerStyle.borderTopRightRadius, containerStyle.borderRadius, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS'))
+          borderTopLeftRadius: selectFirst(containerStyle.borderTopLeftRadius, containerStyle.borderRadius - 1, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS')),
+          borderTopRightRadius: selectFirst(containerStyle.borderTopRightRadius, containerStyle.borderRadius - 1, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS'))
         };
       }
     }
@@ -171,13 +171,13 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
     getLastButtonRadiusStyle({ direction, containerStyle }) {
       if (direction === 'horizontal') {
         return {
-          borderTopRightRadius: selectFirst(containerStyle.borderTopRightRadius, containerStyle.borderRadius, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS')),
-          borderBottomRightRadius: selectFirst(containerStyle.borderBottomRightRadius, containerStyle.borderRadius, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS'))
+          borderTopRightRadius: selectFirst(containerStyle.borderTopRightRadius, containerStyle.borderRadius - 1, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS')),
+          borderBottomRightRadius: selectFirst(containerStyle.borderBottomRightRadius, containerStyle.borderRadius - 1, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS'))
         };
       } else {
         return {
-          borderBottomLeftRadius: selectFirst(containerStyle.borderBottomLeftRadius, containerStyle.borderRadius, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS')),
-          borderBottomRightRadius: selectFirst(containerStyle.borderBottomRightRadius, containerStyle.borderRadius, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS'))
+          borderBottomLeftRadius: selectFirst(containerStyle.borderBottomLeftRadius, containerStyle.borderRadius - 1, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS')),
+          borderBottomRightRadius: selectFirst(containerStyle.borderBottomRightRadius, containerStyle.borderRadius - 1, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS'))
         };
       }
     }
