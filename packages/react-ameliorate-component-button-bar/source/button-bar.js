@@ -155,7 +155,7 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
     }
 
     adjustBorderRadius(radius) {
-      return (!radius || typeof radius !== 'number' || !isFinite(radius) || radius < 0) ? 0 : radius - 1;
+      return (!radius || typeof radius !== 'number' || !isFinite(radius) || radius - 1 < 0) ? 0 : radius - 1;
     }
 
     getFirstButtonRadiusStyle({ direction, containerStyle }) {
