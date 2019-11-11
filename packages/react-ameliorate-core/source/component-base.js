@@ -25,7 +25,8 @@ import {
   toNumber,
   findDOMNode,
   calculateObjectDifferences,
-  getLargestFlag
+  getLargestFlag,
+  nextTick
 }                                 from '@react-ameliorate/utils';
 
 var logCache = {};
@@ -167,6 +168,12 @@ export default class ComponentBase {
         value: 0
       },
       '_raQueueStateUpdatesSemaphore': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: 0
+      },
+      '_raIsRenderingSemaphore': {
         writable: true,
         enumerable: false,
         configurable: true,
@@ -436,6 +443,17 @@ export default class ComponentBase {
     debugRenderGroup = this.context._raDebugRendersGroup || '';
 
     return { shouldDebugRender, debugRenderGroup, componentName };
+  }
+
+  _isRendering(rendering) {
+    if (rendering) {
+      this._raIsRenderingSemaphore++;
+    } else if (this._raIsRenderingSemaphore > 0) {
+      this._raIsRenderingSemaphore--;
+
+      if (this._raIsRenderingSemaphore <= 0)
+        this.delay(() => this.flushStateUpdates(true), 0, '_raRenderingStateQueue');
+    }
   }
 
   _doComponentRender(propUpdateCounter, stateUpdateCounter) {
@@ -923,7 +941,7 @@ export default class ComponentBase {
     if (!newState)
       return newState;
 
-    if (this._raQueueStateUpdatesSemaphore > 0) {
+    if (this._raQueueStateUpdatesSemaphore > 0 || this._raIsRenderingSemaphore > 0) {
       this._raQueuedStateUpdates.push(newState);
       return newState;
     }
@@ -955,12 +973,12 @@ export default class ComponentBase {
   setState(_newState, doneCallback) {
     var newState = this.setStatePassive(_newState);
 
-    if (this.mounted() && !this.areUpdatesFrozen()) {
+    if (this.mounted() && !this.areUpdatesFrozen() && this._raIsRenderingSemaphore <= 0) {
       this._setReactComponentState(newState, doneCallback);
     } else if (__DEV__) {
       var { shouldDebugRender, debugRenderGroup, componentName } = this._shouldDebugRender(this.props, this.getState());
       if (shouldDebugRender)
-        console.log(`----> ${componentName}${debugRenderGroup}: NOT rendering because component state updates are currently frozen or component is not mounted`, { mounted: this.mounted(), frozen: this.areUpdatesFrozen() });
+        console.log(`----> ${componentName}${debugRenderGroup}: NOT rendering because component state updates are currently frozen or component is not mounted`, { mounted: this.mounted(), frozen: this.areUpdatesFrozen(), rendering: (this._raIsRenderingSemaphore > 0) });
     }
 
     return newState;
@@ -1047,15 +1065,17 @@ export default class ComponentBase {
         clearPendingTimeout();
         this._componentDelayTimers[id] = null;
 
-        if (typeof pendingTimer.func === 'function') {
-          var ret = pendingTimer.func.call(this);
-          if (ret instanceof Promise || (ret && typeof ret.then === 'function'))
-            ret.then((value) => resolve(value));
-          else
-            resolve(ret);
-        } else {
-          resolve();
-        }
+        nextTick(() => {
+          if (typeof pendingTimer.func === 'function') {
+            var ret = pendingTimer.func.call(this);
+            if (ret instanceof Promise || (ret && typeof ret.then === 'function'))
+              ret.then((value) => resolve(value));
+            else
+              resolve(ret);
+          } else {
+            resolve();
+          }
+        });
       };
 
       promise.cancel = () => {
@@ -1071,9 +1091,14 @@ export default class ComponentBase {
       promise._id = id;
     }
 
-    pendingTimer.timeout = setTimeout(() => {
+    if (time === 0) {
+      pendingTimer.timeout = null;
       promise.resolve();
-    }, (time == null) ? 250 : time);
+    } else {
+      pendingTimer.timeout = setTimeout(() => {
+        promise.resolve();
+      }, (time == null) ? 250 : time);
+    }
 
     return promise;
   }

@@ -2,7 +2,8 @@ import {
   areObjectsEqualShallow,
   copyPrototypeFuncs,
   RAContext,
-  calculateObjectDifferences
+  calculateObjectDifferences,
+  nextTick
 }                                     from '@react-ameliorate/utils';
 
 import React                          from 'react';
@@ -19,16 +20,24 @@ function getContextObject(context) {
 }
 
 function doRender() {
-  var elements = this._componentInstance._doComponentRender(this._propUpdateCounter, this._stateUpdateCounter);
+  try {
+    this._componentInstance._isRendering(true);
 
-  if (typeof this._componentInstance.provideContext === 'function') {
-    return (
-      <RAContext.Provider value={this._getComponentContext()}>
-        {elements}
-      </RAContext.Provider>
-    );
-  } else {
-    return elements;
+    var elements = this._componentInstance._doComponentRender(this._propUpdateCounter, this._stateUpdateCounter);
+
+    if (typeof this._componentInstance.provideContext === 'function') {
+      return (
+        <RAContext.Provider value={this._getComponentContext()}>
+          {elements}
+        </RAContext.Provider>
+      );
+    } else {
+      return elements;
+    }
+  } catch (e) {
+    throw e;
+  } finally {
+    this._componentInstance._isRendering(false);
   }
 }
 
