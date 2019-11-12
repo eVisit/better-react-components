@@ -446,14 +446,10 @@ export default class ComponentBase {
   }
 
   _isRendering(rendering) {
-    if (rendering) {
+    if (rendering)
       this._raIsRenderingSemaphore++;
-    } else if (this._raIsRenderingSemaphore > 0) {
+    else if (this._raIsRenderingSemaphore > 0)
       this._raIsRenderingSemaphore--;
-
-      if (this._raIsRenderingSemaphore <= 0)
-        this.delay(() => this.flushStateUpdates(true), 0, '_raRenderingStateQueue');
-    }
   }
 
   _doComponentRender(propUpdateCounter, stateUpdateCounter) {

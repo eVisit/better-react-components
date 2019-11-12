@@ -150,7 +150,29 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       };
     }
 
+    getTooltipAnchorPositionFromSide(side) {
+      if (ANCHOR_POSITION_MAP.hasOwnProperty(side))
+        return ANCHOR_POSITION_MAP[side];
+
+      var position, sidePart, offsetPart;
+      side.trim().replace(/(\w+)([+-].+)?/g, (m, p1, p2) => {
+        sidePart = p1.toLowerCase();
+        if (p2)
+          offsetPart = p2;
+      });
+
+      if (sidePart) {
+        position = ANCHOR_POSITION_MAP[sidePart];
+        if (position)
+          return Object.assign({}, position, { [sidePart]: `${position[sidePart]}${(offsetPart) ? offsetPart : ''}` });
+      }
+
+      return ANCHOR_POSITION_MAP['bottom'];
+    }
+
     registerTooltipMouseOverHandler() {
+
+
       const tooltipHandlerFactory = (eventType) => {
         return (event) => {
           var nativeEvent = event.nativeEvent,
@@ -192,7 +214,7 @@ export const Application = componentFactory('Application', ({ Parent, componentN
             var tooltipSide = tooltipElement.getAttribute('data-tooltip-side'),
                 tooltipType = tooltipElement.getAttribute('data-tooltip-type') || 'default',
                 tooltipStyleProps = this.getTooltipPropsFromType(tooltipType),
-                anchorPosition = ANCHOR_POSITION_MAP[tooltipSide];
+                anchorPosition = this.getTooltipAnchorPositionFromSide(tooltipSide);
 
             if (!anchorPosition)
               anchorPosition = ANCHOR_POSITION_MAP['bottom'];

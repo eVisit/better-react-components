@@ -16,11 +16,13 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
       buttonContainerStyle: PropTypes.any,
       buttonIconContainerStyle: PropTypes.any,
       buttonIconStyle: PropTypes.any,
-      buttons: PropTypes.oneOfType([PropTypes.array, PropTypes.func]).isRequired,
+      buttons: PropTypes.oneOfType([ PropTypes.array, PropTypes.func ]).isRequired,
       buttonStyle: PropTypes.any,
+      calculateButtonRadiusStyle: PropTypes.func,
       direction: PropTypes.string,
       disabled: PropTypes.bool,
       onButtonPress: PropTypes.func,
+      renderButton: PropTypes.func,
       showCaptions: PropTypes.bool,
       showIcons: PropTypes.bool,
       spacerStyle: PropTypes.any,
@@ -159,6 +161,9 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
     }
 
     getFirstButtonRadiusStyle({ direction, containerStyle }) {
+      if (typeof this.props.calculateButtonRadiusStyle === 'function')
+        return this.props.calculateButtonRadiusStyle.call(this, { direction, containerStyle, first: true }, this);
+
       if (direction === 'horizontal') {
         return {
           borderTopLeftRadius: this.adjustBorderRadius(selectFirst(containerStyle.borderTopLeftRadius, containerStyle.borderRadius, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS'))),
@@ -173,6 +178,9 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
     }
 
     getLastButtonRadiusStyle({ direction, containerStyle }) {
+      if (typeof this.props.calculateButtonRadiusStyle === 'function')
+        return this.props.calculateButtonRadiusStyle.call(this, { direction, containerStyle, first: false }, this);
+
       if (direction === 'horizontal') {
         return {
           borderTopRightRadius: this.adjustBorderRadius(selectFirst(containerStyle.borderTopRightRadius, containerStyle.borderRadius, this.styleProp('DEFAULT_CONTAINER_BORDER_RADIUS'))),
@@ -204,18 +212,22 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
         toggled,
       } = args;
 
+      var colorStyle = null;
+      if (button.color)
+        colorStyle = { color: button.color };
+
       return (
         <Button
           className={this.getRootClassName(componentName, buttonNames)}
           key={('' + buttonIndex)}
           onPress={this.onButtonPress.bind(this, button, buttonIndex)}
-          style={this.style(this.generateStyleNames(direction, 'buttonContainer', flags))}
-          internalContainerStyle={this.style(buttonNames, this.props.buttonStyle, toggled && this.props.toggledButtonStyle, isFirst && firstButtonRadiusStyle, isLast && lastButtonRadiusStyle)}
+          style={this.style(this.generateStyleNames(direction, 'buttonContainer', flags), this.props.buttonStyle)}
+          internalContainerStyle={this.style(buttonNames, this.props.buttonContainerStyle, toggled && this.props.toggledButtonStyle, isFirst && firstButtonRadiusStyle, isLast && lastButtonRadiusStyle)}
           leftIcon={(!!button.icon && this.props.showIcons !== false) ? button.icon : null}
-          leftIconStyle={this.style(buttonIconNames, this.props.buttonIconStyle, toggled && this.props.toggledButtonIconStyle)}
+          leftIconStyle={this.style(buttonIconNames, this.props.buttonIconStyle, colorStyle, toggled && this.props.toggledButtonIconStyle)}
           iconContainerStyle={this.style(buttonIconContainerNames, this.props.buttonIconContainerStyle)}
           caption={(!!button.caption && this.props.showCaptions !== false) ? button.caption : null}
-          captionStyle={this.style(buttonCaptionNames, this.props.buttonCaptionStyle, toggled && this.props.toggledButtonCaptionStyle)}
+          captionStyle={this.style(buttonCaptionNames, this.props.buttonCaptionStyle, colorStyle, toggled && this.props.toggledButtonCaptionStyle)}
           tooltip={button.tooltip}
           tooltipSide={button.tooltipSide}
           tooltipType={button.tooltipType || 'default'}
@@ -248,23 +260,27 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
           isFirst                   = (buttonIndex === 0),
           isLast                    = (buttonIndex === (buttons.length - 1)),
           firstButtonRadiusStyle    = (isFirst) ? this.getFirstButtonRadiusStyle({ direction, containerStyle }) : null,
-          lastButtonRadiusStyle     = (isLast) ? this.getLastButtonRadiusStyle({ direction, containerStyle }) : null;
+          lastButtonRadiusStyle     = (isLast) ? this.getLastButtonRadiusStyle({ direction, containerStyle }) : null,
+          args = {
+            button,
+            buttonCaptionNames,
+            buttonIconContainerNames,
+            buttonIconNames,
+            buttonIndex,
+            buttonNames,
+            direction,
+            firstButtonRadiusStyle,
+            flags,
+            isFirst,
+            isLast,
+            lastButtonRadiusStyle,
+            toggled,
+          };
 
-      return this.renderButton({
-        button,
-        buttonCaptionNames,
-        buttonIconContainerNames,
-        buttonIconNames,
-        buttonIndex,
-        buttonNames,
-        direction,
-        firstButtonRadiusStyle,
-        flags,
-        isFirst,
-        isLast,
-        lastButtonRadiusStyle,
-        toggled,
-      });
+      if (typeof this.props.renderButton === 'function')
+        return this.props.renderButton.call(this, args, this);
+
+      return this.renderButton(args);
     }
 
     getContainerStyle(raw, ...args) {

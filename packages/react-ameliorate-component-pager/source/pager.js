@@ -92,6 +92,7 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       return (
         <PagerBar
           {...this.passProps(this.props)}
+          activeTab={this.getState('activeTab')}
           className={this.getClassName(componentName, 'tabs', this.props.className)}
           style={this.props.tabBarStyle}
           direction={direction}

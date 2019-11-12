@@ -31,7 +31,10 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       tabStyle: PropTypes.any
     };
 
-    onPropUpdated_activeTab(value) {
+    onPropUpdated_activeTab(value, oldValue, initial) {
+      if (initial)
+        return;
+
       this.setState({ activeTab: value });
     }
 
