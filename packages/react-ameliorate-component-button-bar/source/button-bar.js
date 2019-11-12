@@ -33,6 +33,8 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
       toggledButtonIconContainerStyle: PropTypes.any,
       toggledButtonIconStyle: PropTypes.any,
       toggledButtonStyle: PropTypes.any,
+      tooltipSide: PropTypes.string,
+      tooltipType: PropTypes.string
     };
 
     static defaultProps = {
@@ -229,8 +231,8 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
           caption={(!!button.caption && this.props.showCaptions !== false) ? button.caption : null}
           captionStyle={this.style(buttonCaptionNames, this.props.buttonCaptionStyle, colorStyle, toggled && this.props.toggledButtonCaptionStyle)}
           tooltip={button.tooltip}
-          tooltipSide={button.tooltipSide}
-          tooltipType={button.tooltipType || 'default'}
+          tooltipSide={button.tooltipSide || this.props.tooltipSide}
+          tooltipType={button.tooltipType || this.props.tooltipType || 'default'}
           theme={button.theme || 'white'}
           disabled={button.disabled || this.props.disabled}
         >
