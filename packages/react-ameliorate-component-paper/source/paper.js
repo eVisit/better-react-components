@@ -144,6 +144,13 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
     else if (targetSide === 'center')
       position -= (targetRect.width * 0.5);
 
+    var positionEnd = position + targetRect.width;
+
+    if (position < 0)
+      position += targetRect.width;
+    else if (positionEnd > window.innerWidth)
+      position -= targetRect.width;
+
     return {
       position: Math.round(position),
       offset: targetInfo.x.offset,
@@ -156,10 +163,17 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
         targetSide = targetInfo.y.side,
         position = (anchorSide === 'center') ? (anchorRect.top + (anchorRect.height * 0.5)) : anchorRect[anchorSide];
 
-      if (targetSide === 'bottom')
-        position -= targetRect.height;
-      else if (targetSide === 'center')
-        position -= (targetRect.height * 0.5);
+    if (targetSide === 'bottom')
+      position -= targetRect.height;
+    else if (targetSide === 'center')
+      position -= (targetRect.height * 0.5);
+
+    var positionEnd = position + targetRect.height;
+
+    if (position < 0)
+      position += targetRect.height;
+    else if (positionEnd > window.innerHeight)
+      position -= targetRect.height;
 
     return {
       position: Math.round(position),
