@@ -18,6 +18,9 @@
     "url": "https://github.com/eVisit/react-ameliorate/issues"
   },
   "homepage": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-tools-formatter-engine#readme",
+  "dependencies": {
+    "fast-diff": "^1.2.0"
+  },
   "devDependencies": {
     "@babel/cli": "^7.0.0-beta.54",
     "@babel/core": "^7.0.0",
