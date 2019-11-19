@@ -1144,6 +1144,35 @@ export default class ComponentBase {
     return this.memoizeWithCacheID(id, cb, args);
   }
 
+  stateKeysToValueArray(keys) {
+    if (!keys)
+      return [];
+
+    var state   = this.getState(),
+        values  = [];
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i];
+      values.push(U.get(state, key));
+    }
+
+    return values;
+  }
+
+  valuesArrayToObject(keys, values) {
+    if (!keys)
+      return {};
+
+    var obj = {};
+
+    for (var i = 0, il = keys.length; i < il; i++) {
+      var key = keys[i];
+      U.set(obj, key, values[i]);
+    }
+
+    return obj;
+  }
+
   invalidateMemoizeCache(cacheID) {
     delete this._raMemoizeCache[cacheID];
   }

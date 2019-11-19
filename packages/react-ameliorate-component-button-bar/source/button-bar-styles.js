@@ -15,7 +15,8 @@ export default createStyleSheet(function(theme) {
       borderWidth: 1,
       borderColor: theme.MAIN_COLOR,
       borderStyle: 'solid',
-      borderRadius: DEFAULT_CONTAINER_BORDER_RADIUS
+      borderRadius: DEFAULT_CONTAINER_BORDER_RADIUS,
+      overflow: 'hidden'
     },
     horizontalContainer: {
     },

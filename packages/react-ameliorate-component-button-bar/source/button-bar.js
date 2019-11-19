@@ -21,6 +21,18 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
       calculateButtonRadiusStyle: PropTypes.func,
       direction: PropTypes.string,
       disabled: PropTypes.bool,
+      firstButtonCaptionContainerStyle: PropTypes.any,
+      firstButtonCaptionStyle: PropTypes.any,
+      firstButtonContainerStyle: PropTypes.any,
+      firstButtonIconContainerStyle: PropTypes.any,
+      firstButtonIconStyle: PropTypes.any,
+      firstButtonStyle: PropTypes.any,
+      lastButtonCaptionContainerStyle: PropTypes.any,
+      lastButtonCaptionStyle: PropTypes.any,
+      lastButtonContainerStyle: PropTypes.any,
+      lastButtonIconContainerStyle: PropTypes.any,
+      lastButtonIconStyle: PropTypes.any,
+      lastButtonStyle: PropTypes.any,
       onButtonPress: PropTypes.func,
       renderButton: PropTypes.func,
       showCaptions: PropTypes.bool,
@@ -33,6 +45,7 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
       toggledButtonIconContainerStyle: PropTypes.any,
       toggledButtonIconStyle: PropTypes.any,
       toggledButtonStyle: PropTypes.any,
+      toggledButtonContainerStyle: PropTypes.any,
       tooltipSide: PropTypes.string,
       tooltipType: PropTypes.string
     };
@@ -64,9 +77,9 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
 
           var index = toggledGroupButtonIndex(button.group);
           if (index >= 0)
-            this.toggleButton({ button: buttons[index], buttonIndex: index });
-        } else if (button.toggleable && button.toggled) {
-          this.toggleButton({ button, buttonIndex: i });
+            this.toggleButton({ button: buttons[index], buttonIndex: index }, true);
+        } else if (button.toggleable) {
+          this.toggleButton({ button, buttonIndex: i }, true);
         }
       }
     }
@@ -98,12 +111,12 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
 
     isButtonToggled({ button, buttonIndex }) {
       var scope = this.getButtonToggleScope({ button, buttonIndex }),
-          toggledStates = Object.assign({}, this.getState('toggledStates', {}));
+          toggledStates = this.getState('toggledStates', {});
 
       return (U.get(toggledStates, scope) === buttonIndex);
     }
 
-    toggleButton({ button, buttonIndex }) {
+    toggleButton({ button, buttonIndex }, set) {
       const getFirstToggledButtonIndexInGroup = (group) => {
         if (!group)
           return;
@@ -134,11 +147,14 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
         if (currentToggledIndex == null)
           toggledIndex = (currentToggledButtonIndex == null) ? toggledIndex : currentToggledButtonIndex;
       } else if (button.toggleable) {
-        if (currentToggledIndex == buttonIndex)
+        if (!set && currentToggledIndex == buttonIndex)
           toggledIndex = null;
+        else if (set && typeof button.toggled === 'boolean')
+          toggledIndex = (button.toggled) ? buttonIndex : null;
       }
 
       U.set(toggledStates, scope, toggledIndex);
+
       this.setState({ toggledStates });
     }
 
@@ -150,7 +166,7 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
       if ((await this.callProvidedCallback('onButtonPress', { event, button, buttonIndex })) === false)
         return false;
 
-      if (button.toggleable || button.group)
+      if ((button.toggleable || button.group) && button.toggled == null)
         this.toggleButton(Object.assign({}, { button, buttonIndex }));
     }
 
@@ -218,18 +234,21 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
       if (button.color)
         colorStyle = { color: button.color };
 
+      if (toggled)
+        console.log(' >>>> ', buttonIndex);
+
       return (
         <Button
-          className={this.getRootClassName(componentName, buttonNames)}
+          className={`${this.getRootClassName(componentName, buttonNames)}${(button.className) ? ` ${button.className}` : ''}`}
           key={('' + buttonIndex)}
           onPress={this.onButtonPress.bind(this, button, buttonIndex)}
-          style={this.style(this.generateStyleNames(direction, 'buttonContainer', flags), this.props.buttonStyle)}
-          internalContainerStyle={this.style(buttonNames, this.props.buttonContainerStyle, toggled && this.props.toggledButtonStyle, isFirst && firstButtonRadiusStyle, isLast && lastButtonRadiusStyle)}
+          style={this.style(this.generateStyleNames(direction, 'buttonContainer', flags), this.props.buttonStyle, (isFirst) ? this.props.firstButtonStyle : null, (isLast) ? this.props.lastButtonStyle : null, toggled && this.props.toggledButtonStyle, toggled && button.toggledButtonStyle)}
+          internalContainerStyle={this.style(buttonNames, this.props.buttonContainerStyle, isFirst && this.props.firstButtonContainerStyle, isLast && this.props.lastButtonContainerStyle, toggled && this.props.toggledButtonContainerStyle, toggled && button.toggledButtonContainerStyle, isFirst && firstButtonRadiusStyle, isLast && lastButtonRadiusStyle)}
           leftIcon={(!!button.icon && this.props.showIcons !== false) ? button.icon : null}
-          leftIconStyle={this.style(buttonIconNames, this.props.buttonIconStyle, colorStyle, toggled && this.props.toggledButtonIconStyle)}
-          iconContainerStyle={this.style(buttonIconContainerNames, this.props.buttonIconContainerStyle)}
+          leftIconStyle={this.style(buttonIconNames, this.props.buttonIconStyle, isFirst && this.props.firstButtonIconStyle, isLast && this.props.lastButtonIconStyle, colorStyle, toggled && this.props.toggledButtonIconStyle, toggled && button.toggledButtonIconStyle)}
+          iconContainerStyle={this.style(buttonIconContainerNames, this.props.buttonIconContainerStyle, isFirst && this.props.firstButtonIconContainerStyle, isLast && this.props.lastButtonIconContainerStyle, toggled && this.props.toggledButtonIconContainerStyle, toggled && button.toggledButtonIconContainerStyle)}
           caption={(!!button.caption && this.props.showCaptions !== false) ? button.caption : null}
-          captionStyle={this.style(buttonCaptionNames, this.props.buttonCaptionStyle, colorStyle, toggled && this.props.toggledButtonCaptionStyle)}
+          captionStyle={this.style(buttonCaptionNames, this.props.buttonCaptionStyle, isFirst && this.props.firstButtonCaptionStyle, isLast && this.props.lastButtonCaptionStyle, colorStyle, toggled && this.props.toggledButtonCaptionStyle, toggled && button.toggledButtonCaptionStyle)}
           tooltip={button.tooltip}
           tooltipSide={button.tooltipSide || this.props.tooltipSide}
           tooltipType={button.tooltipType || this.props.tooltipType || 'default'}
