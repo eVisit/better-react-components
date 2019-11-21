@@ -62,8 +62,10 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
     componentUnmounting() {
       this.unregisterDefaultEventActions();
 
-      this._closing = true;
-      this.callProvidedCallback('onClose', { event: null, result: -2 });
+      if (this._closing !== true) {
+        this._closing = true;
+        this.callProvidedCallback('onClose', { event: null, result: -2 });
+      }
 
       return super.componentUnmounting.apply(this, arguments);
     }
