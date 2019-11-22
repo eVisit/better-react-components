@@ -1,7 +1,7 @@
 import { createStyleSheet } from '@react-ameliorate/styles';
 
 export default createStyleSheet(function(theme) {
-  const MODAL_BUTTON_HORIZONTAL_SPACING  = Math.round(theme.DEFAULT_PADDING * 0.5),
+  const MODAL_BUTTON_HORIZONTAL_SPACING  = (theme.IS_MOBILE) ?  1 : Math.round(theme.DEFAULT_PADDING * 0.5),
         MINIMUM_MODAL_WIDTH   = (theme.IS_MOBILE) ? (theme.SCREEN_WIDTH * 0.5) : (theme.SCREEN_WIDTH * 0.2),
         MINIMUM_MODAL_HEIGHT  = (theme.IS_MOBILE) ? (theme.SCREEN_HEIGHT * 0.05) : (theme.SCREEN_HEIGHT * 0.05);
 
