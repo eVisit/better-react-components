@@ -17,30 +17,34 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
   return class GenericModal extends Parent {
     static styleSheet = styleSheet;
     static propTypes = {
-      title: PropTypes.oneOfType([ PropTypes.string, PropTypes.object ]),
-      icon: PropTypes.string,
-      iconStyle: PropTypes.any,
-      iconContainerStyle: PropTypes.any,
-      buttons: PropTypes.array,
       allowScrolling: PropTypes.bool,
-      scrollViewProps: PropTypes.object,
-      contentContainerStyle: PropTypes.any,
-      buttonContainerSpacing: PropTypes.number,
       buttonContainerProps: PropTypes.object,
-      buttonContainerStyle: PropTypes.any,
       buttonContainerSpacerStyle: PropTypes.any,
-      buttonProps: PropTypes.object,
-      buttonStyle: PropTypes.any,
+      buttonContainerStyle: PropTypes.any,
+      buttonGroupContainerProps: PropTypes.object,
+      buttonGroupContainerSpacerStyle: PropTypes.any,
+      buttonGroupContainerStyle: PropTypes.any,
+      buttonHorizontalSpacing: PropTypes.number,
       buttonInternalContainerStyle: PropTypes.any,
+      buttonProps: PropTypes.object,
+      buttons: PropTypes.oneOfType([ PropTypes.array, PropTypes.func ]),
+      buttonStyle: PropTypes.any,
+      buttonVerticalSpacing: PropTypes.number,
       closeButton: PropTypes.bool,
+      closeButtonContainerStyle: PropTypes.any,
       closeButtonEventName: PropTypes.string,
+      closeButtonIconStyle: PropTypes.any,
       closeButtonProps: PropTypes.object,
       closeButtonStyle: PropTypes.any,
-      closeButtonIconStyle: PropTypes.any,
-      closeButtonContainerStyle: PropTypes.any,
+      contentContainerStyle: PropTypes.any,
+      icon: PropTypes.string,
+      iconContainerStyle: PropTypes.any,
+      iconStyle: PropTypes.any,
+      scrollViewProps: PropTypes.object,
+      title: PropTypes.oneOfType([ PropTypes.string, PropTypes.object ])
     };
 
-    static resolvableProps = ['buttons', 'title', 'message'];
+    static resolvableProps = [ 'title', 'message', 'buttonVerticalSpacing', 'buttonHorizontalSpacing' ];
 
     constructor(...args) {
       super(...args);
@@ -53,6 +57,21 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
           value: false
         }
       });
+    }
+
+    resolveProps() {
+      var props = super.resolveProps.apply(this, arguments);
+
+      if (typeof props.buttons === 'function') {
+        props.buttons = props.buttons.call(this, this.getButtons(), this);
+        if (!props.buttons)
+          props.buttons = [];
+      }
+
+      return {
+        ...props,
+        contentContainerStyle: this.style('formContainer')
+      };
     }
 
     formatPropValue(name, _value) {
@@ -254,69 +273,140 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       return this.renderContent(args);
     }
 
-    renderButtons() {
-      var modalButtons = this.getButtons();
-      if (!modalButtons || !modalButtons.length)
+    _renderButton(args) {
+      return this.renderButton(args);
+    }
+
+    renderButton({ button, buttonIndex, buttonStyle, buttonInternalContainerStyle }) {
+      if (this.isValidElement(button))
+        return button;
+
+      if (typeof button.onShouldShow === 'function' && !button.onShouldShow.call(this, { button, buttonIndex }))
         return null;
+
+      var closing = false;
+
+      return (
+        <Button
+          theme={button.theme || 'white'}
+          {...(this.props.buttonProps || {})}
+          {...button}
+          testID={button.testID}
+          key={button.key || (('' + buttonIndex) + button.caption)}
+          caption={button.caption}
+          style={this.style('button', this.props.buttonStyle, buttonStyle, button.style)}
+          internalContainerStyle={this.style('buttonInternalContainer', this.props.buttonInternalContainerStyle, buttonInternalContainerStyle)}
+          onPress={async (_args) => {
+            if (closing)
+              return;
+
+            closing = true;
+
+            var args = Object.assign({}, _args || {}, { button, buttonIndex });
+
+            if (typeof button.onPress === 'function') {
+              var result = await button.onPress.call(this, { ...args, modal: this });
+              if (result === false) {
+                closing = false;
+                return;
+              }
+            }
+
+            this.close(args);
+          }}
+        />
+      );
+    }
+
+    _renderButtons(args = {}) {
+      var buttons = this._getButtons();
+      return this.renderButtons(Object.assign({}, args, { buttons }));
+    }
+
+    renderButtons(args) {
+      var {
+            buttonContainerProps,
+            buttonContainerSpacerStyle,
+            buttonContainerStyle,
+            buttonGroupContainerProps,
+            buttonGroupContainerSpacerStyle,
+            buttonGroupContainerStyle,
+            buttonHorizontalSpacing,
+            buttons,
+            buttonVerticalSpacing
+          } = args;
+
+      var buttonGroupKeys = Object.keys(buttons || {});
 
       return (
         <LayoutContainer
-          className={this.getClassName(componentName, 'buttonContainer')}
-          spacing={selectFirst(this.props.buttonContainerSpacing, this.styleProp('MODAL_BUTTON_SPACING'))}
-          {...(this.props.buttonContainerProps || {})}
-          key="generic-modal-button-container"
-          style={this.style('buttonContainer', this.props.buttonContainerStyle)}
-          spacerStyle={this.style('buttonContainerSpacer', this.props.buttonContainerSpacerStyle)}
+          className={this.getClassName(componentName, 'buttonGroupContainer')}
+          spacing={selectFirst(buttonVerticalSpacing, this.props.buttonVerticalSpacing, this.styleProp('MODAL_BUTTON_VERTICAL_SPACING'))}
+          {...(this.props.buttonGroupContainerProps || {})}
+          direction="vertical"
+          key="generic-modal-button-group-container"
+          style={this.style('buttonGroupContainer', this.props.buttonGroupContainerStyle, buttonGroupContainerStyle)}
+          spacerStyle={this.style('buttonGroupContainerSpacer', this.props.buttonGroupContainerSpacerStyle, buttonGroupContainerSpacerStyle)}
+          {...(buttonGroupContainerProps || {})}
         >
-          {modalButtons.map((button, index) => {
-            if (this.isValidElement(button))
-              return button;
-
-            if (typeof button.onShouldShow === 'function' && !button.onShouldShow.call(this, { button, index }))
-              return null;
-
-            var closing = false;
+          {buttonGroupKeys.map((key, groupIndex) => {
+            var groupButtons = buttons[key];
 
             return (
-              <Button
-                theme={button.theme || 'white'}
-                {...(this.props.buttonProps || {})}
-                {...button}
-                testID={button.testID}
-                key={button.key || (('' + index) + button.caption)}
-                caption={button.caption}
-                style={this.style('button', this.props.buttonStyle, button.style)}
-                internalContainerStyle={this.style('buttonInternalContainer', this.props.buttonInternalContainerStyle)}
-                onPress={async (_args) => {
-                  if (closing)
-                    return;
-
-                  closing = true;
-
-                  var args = Object.assign({}, _args || {}, { button, index });
-
-                  if (typeof button.onPress === 'function') {
-                    var result = await button.onPress.call(this, { ...args, modal: this });
-                    if (result === false) {
-                      closing = false;
-                      return;
-                    }
-                  }
-
-                  this.close(args);
-                }}
-              />
+              <LayoutContainer
+                className={this.getClassName(componentName, 'buttonContainer')}
+                spacing={selectFirst(buttonHorizontalSpacing, this.props.buttonHorizontalSpacing, this.styleProp('MODAL_BUTTON_HORIZONTAL_SPACING'))}
+                {...(this.props.buttonContainerProps || {})}
+                direction="horizontal"
+                key={`generic-modal-button-container-${key}`}
+                style={this.style('buttonContainer', this.props.buttonContainerStyle, buttonContainerStyle)}
+                spacerStyle={this.style('buttonContainerSpacer', this.props.buttonContainerSpacerStyle, buttonContainerSpacerStyle)}
+                {...(buttonContainerProps || {})}
+              >
+                {(groupButtons || []).map((button, buttonIndex) => {
+                  return this._renderButton({ ...args, button, buttonIndex });
+                })}
+              </LayoutContainer>
             );
           })}
         </LayoutContainer>
       );
     }
 
-    _renderButtons(args = {}) {
-      return this.renderButtons(args);
+    _buttonsArrayToButtonMap(buttons) {
+      var buttonMap = {};
+
+      for (var i = 0, il = buttons.length; i < il; i++) {
+        var button = buttons[i],
+            buttonGroup = button.group || '0',
+            group = buttonMap[buttonGroup];
+
+        if (!group)
+          group = buttonMap[buttonGroup] = [];
+
+        group.push(button);
+      }
+
+      return buttonMap;
+    }
+
+    _getButtons() {
+      if (this.props.buttons)
+        return this.props.buttons;
+
+      return this.memoize(() => {
+        return this._buttonsArrayToButtonMap((this.getButtons() || []).filter(Boolean));
+      });
+    }
+
+    getButtons() {
+      return [];
     }
 
     getTitle({ title }) {
+      if (!title)
+        return null;
+
       if (!this.isValidElement(title)) {
         return (
           <Text
@@ -339,10 +429,6 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
         return children.call(this, { ...(args || {}), ref: this, refProps: this.props });
 
       return children;
-    }
-
-    getButtons() {
-      return this.props.buttons || [];
     }
 
     render(_children) {

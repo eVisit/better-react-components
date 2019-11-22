@@ -69,22 +69,21 @@ export const PromptModal = componentFactory('PromptModal', ({ Parent, componentN
       return super.resolve(eventName, result, { ...args, data }, true);
     }
 
-    getButtons() {
-      if (this.props.buttons)
-        return this.props.buttons;
-
+    getButtons(...args) {
       return [
         {
           caption: this.props.denyButtonCaption || this.langTerm('@ra/cancel'),
           testID: 'promptModalDeny',
           focussed: (this.props.defaultAction === 'no'),
-          onPress: this.resolve.bind(this, 'onDeny', 0)
+          onPress: this.resolve.bind(this, 'onDeny', 0),
+          ...(args[0] || {})
         },
         {
           caption: this.props.confirmButtonCaption || this.langTerm('@ra/okay'),
           testID: 'promptModalConfirm',
           focussed: (this.props.defaultAction === 'yes'),
-          onPress: this.resolve.bind(this, 'onConfirm', 1)
+          onPress: this.resolve.bind(this, 'onConfirm', 1),
+          ...(args[1] || {})
         }
       ];
     }

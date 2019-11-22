@@ -62,9 +62,15 @@ export default createStyleSheet(function(theme) {
       fontSize: theme.DEFAULT_BUTTON_ICON_SIZE,
       color: theme.inverseContrastColor(theme.MAIN_COLOR)
     },
-    buttonContainer: {
+    buttonGroupContainer: {
       flex: 0,
       padding: BUTTON_PADDING,
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'flex-start'
+    },
+    buttonContainer: {
+      flex: 0,
       alignItems: 'center',
       justifyContent: 'center'
     },

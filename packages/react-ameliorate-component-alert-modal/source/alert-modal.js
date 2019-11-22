@@ -9,7 +9,7 @@ export const AlertModal = componentFactory('AlertModal', ({ Parent, componentNam
     static styleSheet = styleSheet;
 
     static propTypes = {
-      message: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+      message: PropTypes.oneOfType([ PropTypes.string, PropTypes.object ]),
       contextTextStyle: PropTypes.any,
       denyButtonCaption: PropTypes.oneOfType([PropTypes.string, PropTypes.shape({ term: PropTypes.string })]),
       defaultAction: PropTypes.bool
@@ -31,24 +31,26 @@ export const AlertModal = componentFactory('AlertModal', ({ Parent, componentNam
       return value;
     }
 
-    getButtons() {
-      if (this.props.buttons)
-        return this.props.buttons;
-
+    getButtons(...args) {
       return [
         {
           caption: this.props.denyButtonCaption || this.langTerm('@ra/okay'),
           testID: 'alertModalConfirm',
           onPress: this.resolve.bind(this, null, 0),
-          focussed: this.props.defaultAction
+          focussed: this.props.defaultAction,
+          ...(args[0] || {})
         }
       ];
     }
 
     renderMessage(args = {}) {
+      var message = args.message || this.props.message;
+      if (!message)
+        return null;
+
       return (
         <Text key="alert-modal-content-text" style={this.style('contentText', this.props.contextTextStyle)}>
-          {formatClientText(args.message || this.props.message || '')}
+          {formatClientText(message)}
         </Text>
       );
     }

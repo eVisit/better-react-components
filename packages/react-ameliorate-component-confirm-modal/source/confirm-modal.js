@@ -9,7 +9,7 @@ export const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componen
     static styleSheet = styleSheet;
 
     static propTypes = {
-      message: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+      message: PropTypes.oneOfType([ PropTypes.string, PropTypes.object ]),
       contextTextStyle: PropTypes.any,
       defaultAction: PropTypes.oneOf([ 'yes', 'no' ]),
       onDeny: PropTypes.func,
@@ -35,30 +35,33 @@ export const ConfirmModal = componentFactory('ConfirmModal', ({ Parent, componen
       return value;
     }
 
-    getButtons() {
-      if (this.props.buttons)
-        return this.props.buttons;
-
+    getButtons(...args) {
       return [
         {
           caption: this.props.denyButtonCaption || this.langTerm('@ra/no'),
           testID: 'confirmModalDeny',
           focussed: (this.props.defaultAction === 'no'),
-          onPress: this.resolve.bind(this, 'onDeny', 0)
+          onPress: this.resolve.bind(this, 'onDeny', 0),
+          ...(args[0] || {})
         },
         {
           caption: this.props.confirmButtonCaption || this.langTerm('@ra/yes'),
           testID: 'confirmModalConfirm',
           focussed: (this.props.defaultAction === 'yes'),
-          onPress: this.resolve.bind(this, 'onConfirm', 1)
+          onPress: this.resolve.bind(this, 'onConfirm', 1),
+          ...(args[1] || {})
         }
       ];
     }
 
     renderMessage(args = {}) {
+      var message = args.message || this.props.message;
+      if (!message)
+        return null;
+
       return (
         <Text key="confirm-modal-content-text" style={this.style('contentText', this.props.contextTextStyle)}>
-          {formatClientText(args.message || this.props.message || '')}
+          {formatClientText(message)}
         </Text>
       );
     }
