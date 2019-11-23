@@ -40,12 +40,12 @@ export function Focussable({ Parent, componentName }) {
         if (keyCode === 'Tab') {
           var form = this.getParentForm();
 
-          if (form) {
+          if (form && typeof form.focusNext === 'function') {
             preventEventDefault(event);
             stopEventImmediatePropagation(event);
             form.focusNext(this, nativeEvent.shiftKey)
           }
-        } else if (keyCode.match(/(Space|Enter)$/g)) {
+        } else if (keyCode.match(/(Space|Enter)$/g) && typeof this.onPress === 'function') {
           preventEventDefault(event);
           stopEventImmediatePropagation(event);
 
