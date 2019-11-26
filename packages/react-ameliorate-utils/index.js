@@ -1,4 +1,5 @@
 export * from './source/utils';
+export * from './source/tokenizer';
 
 /*
  * The Facebook team thinks they can be the God's of the universe and tell everyone

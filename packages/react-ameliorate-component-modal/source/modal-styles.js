@@ -15,15 +15,19 @@ export default createStyleSheet(function(theme) {
       alignItems: 'stretch',
       justifyContent: 'flex-start',
       backgroundColor: theme.contrastColor(theme.MAIN_COLOR),
-      minWidth: MINIMUM_MODAL_WIDTH,
-      minHeight: MINIMUM_MODAL_HEIGHT,
-      maxWidth: theme.SCREEN_WIDTH,
-      maxHeight: theme.SCREEN_HEIGHT,
+      zIndex: 1
+    },
+    containerBorder: {
       borderRadius: theme.DEFAULT_BORDER_RADIUS,
       borderWidth: 1,
       borderStyle: 'solid',
       borderColor: theme.blendColors(theme.contrastColor(theme.MAIN_COLOR), theme.transparentColor(theme.GREY02_COLOR)),
-      zIndex: 1
+    },
+    defaultConstraints: {
+      minWidth: MINIMUM_MODAL_WIDTH,
+      minHeight: MINIMUM_MODAL_HEIGHT,
+      maxWidth: theme.SCREEN_WIDTH,
+      maxHeight: theme.SCREEN_HEIGHT,
     }
   };
 });

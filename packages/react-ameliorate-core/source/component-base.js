@@ -26,7 +26,8 @@ import {
   findDOMNode,
   calculateObjectDifferences,
   getLargestFlag,
-  nextTick
+  nextTick,
+  tokenize
 }                                 from '@react-ameliorate/utils';
 
 var logCache = {};

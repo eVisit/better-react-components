@@ -337,6 +337,8 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
           } = args;
 
       var buttonGroupKeys = Object.keys(buttons || {});
+      if (!buttonGroupKeys.length)
+        return null;
 
       return (
         <LayoutContainer

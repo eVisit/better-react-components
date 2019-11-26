@@ -9,9 +9,11 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
     static styleSheet = styleSheet;
     static propTypes = [Paper.propTypes, {
       autoClose: PropTypes.bool,
+      calculateParentContainerStyle: PropTypes.func,
+      defaultSizeConstraints: PropTypes.bool,
       disallowReposition: PropTypes.bool,
-      inline: PropTypes.bool,
-      calculateParentContainerStyle: PropTypes.func
+      hasBorder: PropTypes.bool,
+      inline: PropTypes.bool
     }];
 
     static defaultProps = {
@@ -117,7 +119,12 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
       return (
         <View
           className={this.getRootClassName(componentName)}
-          style={this.style('container', this.props.style, (!this.props.disallowReposition) ? this.getState('modalPositionStyle') : null)}
+          style={this.style(
+            'container',
+            (this.props.defaultSizeConstraints !== false) ? 'defaultConstraints' : null,
+            (this.props.hasBorder !== false) ? 'containerBorder' : null,
+            this.props.style, (!this.props.disallowReposition) ? this.getState('modalPositionStyle') : null
+          )}
           pointerEvents="auto"
         >
           {this.getChildren(children)}
