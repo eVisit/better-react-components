@@ -20,7 +20,7 @@ function convertMatchers(matchers) {
 
   if (matchers instanceof Array) {
     for (var i = 0, il = matchers.length; i < il; i++)
-      verifyMatcher(matchers[i]);
+      verifyMatcher(i, matchers[i]);
 
     return matchers;
   } else {
@@ -32,11 +32,11 @@ function convertMatchers(matchers) {
           thisMatcher = matchers[key];
 
       if (typeof thisMatcher !== 'function' && !(thisMatcher instanceof RegExp)) {
-        verifyMatcher(key, thisMatcher);
+        var newMatcher = Object.assign({ type: key }, thisMatcher);
 
-        convertedMatchers.push(Object.assign({
-          type: key
-        }, thisMatcher));
+        verifyMatcher(key, newMatcher);
+
+        convertedMatchers.push(newMatcher);
       } else {
         convertedMatchers.push({
           type: key,
@@ -49,62 +49,69 @@ function convertMatchers(matchers) {
   }
 }
 
-export function tokenize(_config, _input) {
-  const parseNext = (config, input, offset) => {
-    if (offset >= input.length)
-      return null;
+function parseNext(config, input, offset) {
+  if (offset >= input.length)
+    return null;
 
-    var matchers = config.matchers;
-    for (var i = 0, il = matchers.length; i < il; i++) {
-      var parserToken = matchers[i],
-          value;
+  var matchers = config.matchers;
+  for (var i = 0, il = matchers.length; i < il; i++) {
+    var parserToken = matchers[i],
+        value;
 
-      if (parserToken.matcher instanceof RegExp) {
-        parserToken.matcher.lastIndex = offset;
-        value = parserToken.matcher.exec(input);
+    if (parserToken.matcher instanceof RegExp) {
+      parserToken.matcher.lastIndex = offset;
+      value = parserToken.matcher.exec(input);
 
-        if (!value || value.index !== offset)
-          continue;
-      } else if (typeof parserToken.matcher === 'function') {
-        value = parserToken.matcher.call(this, input, offset, config);
-      }
-
-      if (value) {
-        var tokens;
-
-        if (typeof parserToken.onMatch === 'function')
-          tokens = parserToken.onMatch.apply(this, value.concat(offset, input, config));
-        else
-          tokens = [{}];
-
-        if (tokens) {
-          if (!(tokens instanceof Array))
-            tokens = [ tokens ];
-
-          return tokens.filter(Boolean).map((token) => Object.assign({}, {
-            type: parserToken.type,
-            source: input.substring(offset, offset + value[0].length),
-            position: {
-              start: offset,
-              end: offset + value[0].length
-            }
-          }, token));
-        }
-      }
+      if (!value || value.index !== offset)
+        continue;
+    } else if (typeof parserToken.matcher === 'function') {
+      value = parserToken.matcher.call(this, input, offset, config);
     }
 
-    throw new Error(`Tokenizer: input parse error: unexpected token at offset: ${offset}`);
-  };
+    if (value) {
+      var token;
 
-  var config = Object.assign({}, _config, { matchers: convertMatchers(_config.matchers) }),
-      input  = _input,
-      tokens = [];
+      if (typeof parserToken.onMatch === 'function')
+        token = parserToken.onMatch.apply(this, value.concat(offset, input, config));
+      else
+        token = {};
 
-  for (var token = parseNext(context, input, 0); token != null; token = parseNext(config, input, token.position.end))
-    tokens = tokens.concat(token);
+      if (token) {
+        return Object.assign({}, {
+          type: parserToken.type,
+          source: input.substring(offset, offset + value[0].length),
+          position: {
+            start: offset,
+            end: offset + value[0].length
+          }
+        }, token);
+      }
+    }
+  }
 
-  return {
-    input,
-    tokens
+  throw new Error(`Tokenizer: input parse error: unexpected token at offset: ${offset}`);
+}
+
+export function createTokenizer(_config) {
+  var config = Object.assign({}, _config, { matchers: convertMatchers(_config.matchers) });
+
+  return function(_input) {
+    var input = _input,
+        tokens = [];
+
+    if (!input) {
+      return {
+        input,
+        tokens
+      };
+    }
+
+    for (var token = parseNext.call(this, config, input, 0); token != null; token = parseNext.call(this, config, input, token.position.end))
+      tokens.push(token);
+
+    return {
+      input,
+      tokens
+    };
   };
 }

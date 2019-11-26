@@ -27,7 +27,7 @@ export default class Touchable extends View {
   }
 
   onClick = (event) => {
-    if (this.props.disabled)
+    if (this.props.disabled || (event && event.isDefaultPrevented()))
       return;
 
     var target = U.get(event, 'nativeEvent.target'),
@@ -41,7 +41,7 @@ export default class Touchable extends View {
   }
 
   onMouseDown = (event) => {
-    if (this.props.disabled)
+    if (this.props.disabled || (event && event.isDefaultPrevented()))
       return;
 
     var target = U.get(event, 'nativeEvent.target'),
@@ -55,7 +55,7 @@ export default class Touchable extends View {
   }
 
   onMouseUp = (event) => {
-    if (this.props.disabled)
+    if (this.props.disabled || (event && event.isDefaultPrevented()))
       return;
 
     var target = U.get(event, 'nativeEvent.target'),

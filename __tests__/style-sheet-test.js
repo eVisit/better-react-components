@@ -1,5 +1,5 @@
-const { Theme } = require('../../source/styles/theme');
-const { createStyleSheet } = require('../../source/styles/style-sheet');
+import { Theme } from '../../source/styles/theme';
+import { createStyleSheet } from '../../source/styles/style-sheet';
 
 describe("StyleSheet", function() {
   it("should be able to build a style-sheet from a factory", function() {

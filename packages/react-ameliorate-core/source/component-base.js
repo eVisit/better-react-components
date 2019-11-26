@@ -27,7 +27,7 @@ import {
   calculateObjectDifferences,
   getLargestFlag,
   nextTick,
-  tokenize
+  createTokenizer
 }                                 from '@react-ameliorate/utils';
 
 var logCache = {};
@@ -45,15 +45,6 @@ const COMPONENT_FLAGS = {
 var globalEventActionHooks = {};
 
 const NOOP = () => {};
-
-const MEASURABLE_VIEW_STYLE = {
-  position: 'absolute',
-  top: 0,
-  left: 0,
-  right: 0,
-  bottom: 0,
-  opacity: 0
-};
 
 export default class ComponentBase {
   static getClassNamePrefix() {
@@ -204,12 +195,6 @@ export default class ComponentBase {
         configurable: true,
         value: null
       },
-      '_raLanguageTermFormatterFlagFormatterCache': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: null
-      },
       '_raRefs': {
         writable: true,
         enumerable: false,
@@ -241,6 +226,12 @@ export default class ComponentBase {
         get: () => this._fetchContext(),
         set: NOOP
       },
+      '_raLangTermTokenizer': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: this._createLangTermTokenizer()
+      }
     });
 
     if (props.raConstruct !== false)
@@ -1128,7 +1119,7 @@ export default class ComponentBase {
       return true;
     };
 
-    var args = _args.concat(this.memoizeDefaultArguments(cacheID, cb, args) || []),
+    var args = (_args || []).concat(this.memoizeDefaultArguments(cacheID, cb, args) || []),
         cache = this._raMemoizeCache[cacheID];
 
     if (isCacheValid(cache))
@@ -1583,6 +1574,74 @@ export default class ComponentBase {
     // TODO: complete to filter by component propTypes
   }
 
+  _createLangTermTokenizer() {
+    return createTokenizer({
+      matchers: [
+        {
+          type: 'param',
+          matcher: function(input, offset) {
+            if (input.charAt(offset) !== '{')
+              return;
+
+            var lastChar = input.charAt(offset - 1);
+            if (lastChar === '\\')
+              return;
+
+            var match = [ '{' ],
+                name  = [],
+                flags = [];
+
+            for (var i = offset + 1, il = input.length; i < il; i++) {
+              var c = input.charAt(i),
+                  code = (name.length === 0) ? input.charCodeAt(i) : 0;
+
+              if (c === '}' && lastChar !== '\\') {
+                match.push(c);
+                break;
+              }
+
+              lastChar = c;
+
+              match.push(c);
+
+              // If not alphanumeric, add as a flag
+              if (code && !(code > 47 && code < 58) && !(code > 64 && code < 91) && !(code > 96 && code < 123))
+                flags.push(c);
+              else
+                name.push(c);
+            }
+
+            if (i >= input.length)
+              return;
+
+            return [ match.join(''), name.join(''), flags.join('') ];
+          },
+          onMatch: function(m, name, flags) {
+            return { name, flags };
+          }
+        },
+        {
+          type: 'raw',
+          matcher: function(input, offset) {
+            var lastChar = input.charAt(offset - 1),
+                match    = [];
+
+            for (var i = offset, il = input.length; i < il; i++) {
+              var c = input.charAt(i);
+              if (c === '{' && lastChar !== '\\')
+                break;
+
+              lastChar = c;
+              match.push(c);
+            }
+
+            return [ match.join('') ];
+          }
+        }
+      ]
+    });
+  }
+
   getCurrentLocale() {
     var locale = this.locale || this.context.locale;
     return (!locale) ? this.getDefaultLocale() : locale;
@@ -1691,11 +1750,9 @@ export default class ComponentBase {
   }
 
   _getLanguageTermFormatterFlagFormatters() {
-    var cache = this._raLanguageTermFormatterFlagFormatterCache;
-    if (!cache)
-      cache = this._raLanguageTermFormatterFlagFormatterCache = this.getLanguageTermFormatterFlagFormatters();
-
-    return cache;
+    return this.memoizeWithCacheID('getLanguageTermFormatterFlagFormatters', () => {
+      return this.getLanguageTermFormatterFlagFormatters();
+    });
   }
 
   getLanguageTermFormatterFlagFormatters() {
@@ -1752,16 +1809,31 @@ export default class ComponentBase {
   }
 
   formatLanguageTerm(term, format, args) {
+    const flagMatches = (flags, formatterFlag, offset) => {
+      if (!flags || !formatterFlag || offset >= flags.length)
+        return false;
+
+      for (var i = 0, il = formatterFlag.length; i < il; i++) {
+        var c1 = flags.charAt(i + offset),
+            c2 = formatterFlag.charAt(i);
+
+        if (c1 !== c2)
+          return false;
+      }
+
+      return true;
+    };
+
     const findMatchingFormatFlag = (flags, offset) => {
+      if (offset > flags.length)
+        return;
+
       for (var i = 0, il = flagFormatters.length; i < il; i++) {
         var formatter = flagFormatters[i],
-            formatterFlag = formatter.flag,
-            thisFlag  = flags.substring(offset, offset + formatterFlag.length);
+            formatterFlag = formatter.flag;
 
-        if (thisFlag !== formatterFlag)
-          continue;
-
-        return formatter;
+        if (flagMatches(flags, formatterFlag, offset))
+          return formatter;
       }
     };
 
@@ -1774,41 +1846,150 @@ export default class ComponentBase {
       return { value: formatter.call(this, value), offset: offset + flag.length };
     };
 
-    var { params, termID } = args,
-        flagFormatters = this._getLanguageTermFormatterFlagFormatters();
+    const applyFlagFormatters = (_value, flags) => {
+      if (!flags || !flags.length)
+        return _value;
 
-    return format.replace(/(^|[^\\])\{([^}]+)\}/g, (m, start, capture) => {
-      var flags,
-          key;
+      var value   = _value,
+          offset  = 0;
 
-      capture.replace(/^([^a-zA-Z0-9]*)(.*)$/g, (m, _flags, _key) => {
-        flags = _flags || '';
-        key = _key;
-      });
+      while (offset < flags.length) {
+        var result = formatValueWithFlag(value, flags, offset);
 
-      var termValue;
-      if (key === termID)
-        termValue = termID;
-      else if (key === 'term')
-        termValue = term;
-      else
-        termValue = params[key];
+        if (result.offset === offset)
+          break;
 
-      if (typeof termValue === 'function')
-        termValue = termValue.call(this, { ...args, term });
-
-      if (termValue == null || (typeof termValue === 'number' && !isFinite(termValue)))
-        return (start || '');
-
-      for (var i = 0, il = flags.length; i < il;) {
-        var { value, offset } = formatValueWithFlag(termValue, flags, i);
-
-        termValue = value;
-        i = offset;
+        value = result.value;
+        offset = result.offset;
       }
 
-      return `${(start || '')}${termValue}`;
+      return value;
+    };
+
+    var flagFormatters      = this._getLanguageTermFormatterFlagFormatters(),
+        parsedResult        = this._raLangTermTokenizer.call(this, format),
+        tokens              = parsedResult.tokens;
+
+    return this.buildFinalTermFromFormatTokens({
+      ...args,
+      term,
+      format,
+      tokens,
+      flagFormatters,
+      findMatchingFormatFlag,
+      formatValueWithFlag,
+      applyFlagFormatters
     });
+
+    // return format.replace(/(^|[^\\])\{([^}]+)\}/g, (m, start, capture) => {
+    //   var flags,
+    //       key;
+
+    //   capture.replace(/^([^a-zA-Z0-9]*)(.*)$/g, (m, _flags, _key) => {
+    //     flags = _flags || '';
+    //     key = _key;
+    //   });
+
+    //   var termValue;
+    //   if (key === termID)
+    //     termValue = termID;
+    //   else if (key === 'term')
+    //     termValue = term;
+    //   else
+    //     termValue = params[key];
+
+    //   if (typeof termValue === 'function')
+    //     termValue = termValue.call(this, { ...args, term });
+
+    //   if (termValue == null || (typeof termValue === 'number' && !isFinite(termValue)))
+    //     return (start || '');
+
+    //   for (var i = 0, il = flags.length; i < il;) {
+    //     var { value, offset } = formatValueWithFlag(termValue, flags, i);
+
+    //     termValue = value;
+    //     i = offset;
+    //   }
+
+    //   return `${(start || '')}${termValue}`;
+    // });
+  }
+
+  buildFinalTermFromFormatTokens(args) {
+    // This formats all parts (which can be mixed strings and objects)
+    // such that [ 'string1', 'string2', 'string3', object1, 'string4', 'string5', object2 ]
+    // will become [ 'string1string2string3', object1, 'string4string5', object2 ]
+    // If the final result is an array of length 1 and the only element is a string
+    // it will just return the resulting string instead
+
+    const sanitizeOutput = (output) => {
+      var stringOutput  = [],
+          finalOutput   = [];
+
+      for (var i = 0, il = output.length; i < il; i++) {
+        var part = output[i];
+        if (typeof part === 'string') {
+          stringOutput.push(part);
+          continue;
+        }
+
+        if (stringOutput.length) {
+          finalOutput.push(stringOutput.join(''));
+          stringOutput = [];
+        }
+
+        finalOutput.push(part);
+      }
+
+      if (stringOutput.length)
+        finalOutput.push(stringOutput.join(''));
+
+      if (finalOutput.length === 1 && typeof finalOutput[0] === 'string')
+        return finalOutput[0];
+
+      return finalOutput;
+    };
+
+    var output = [],
+        {
+          term,
+          tokens,
+          applyFlagFormatters,
+          params,
+          termID
+        } = args;
+
+    for (var i = 0, il = tokens.length; i < il; i++) {
+      var token = tokens[i];
+
+      if (token.type === 'raw') {
+        output.push(token.source);
+        continue;
+      }
+
+      var { name, flags } = token,
+          termValue;
+
+      if (name === termID)
+        termValue = termID;
+      else if (name === 'term')
+        termValue = term;
+      else
+        termValue = params[name];
+
+      if (typeof termValue === 'function')
+        termValue = termValue.call(this, args);
+
+      if (termValue == null || (typeof termValue === 'number' && !isFinite(termValue)))
+        continue;
+
+      if (U.instanceOf(termValue, 'string', 'number', 'boolean'))
+        termValue = applyFlagFormatters(('' + termValue), flags);
+
+      output.push(termValue);
+    }
+
+    return sanitizeOutput(output);
   }
 
   compileLanguageTerm(args) {
