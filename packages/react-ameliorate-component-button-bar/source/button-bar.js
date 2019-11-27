@@ -234,9 +234,6 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
       if (button.color)
         colorStyle = { color: button.color };
 
-      if (toggled)
-        console.log(' >>>> ', buttonIndex);
-
       return (
         <Button
           className={`${this.getRootClassName(componentName, buttonNames)}${(button.className) ? ` ${button.className}` : ''}`}
