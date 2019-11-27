@@ -113,18 +113,21 @@ export const TransitionGroup = componentFactory('TransitionGroup', ({ Parent, co
     }
 
     defaultRenderChild({ child }) {
-      var childElement = child.element,
-          childProps = (childElement && childElement.props);
+      var childElement    = child.element,
+          childProps      = (childElement && childElement.props),
+          animationStyle  = this.getAnimationStyle(child),
+          pointerEvents   = (this.props.childProps || {}).pointerEvents || (childProps || {}).pointerEvents || 'auto';
 
       return (
         <Animated.View
-          pointerEvents="auto"
           {...(this.props.childProps || {})}
           {...(childProps || {})}
+          pointerEvents={(child.state === 'entering' || child.state === 'entered') ? pointerEvents : 'none'}
           className={this.getClassName(componentName, 'childContainer')}
           key={child.id}
-          style={this.style('childContainer', this.props.containerStyle, this.getAnimationStyle(child))}
+          style={this.style('childContainer', this.props.containerStyle, animationStyle)}
           ref={this._onChildMounted.bind(this, child)}
+          data-transition-state={child.state}
         >
           {childElement}
         </Animated.View>

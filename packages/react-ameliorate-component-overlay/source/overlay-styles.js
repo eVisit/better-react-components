@@ -44,9 +44,16 @@ export default createStyleSheet(function(theme) {
     },
     childContainer: {
       position: 'absolute',
-      zIndex: 1,
+      zIndex: 1
+    },
+    childContainerEntering: {
       browser: {
         pointerEvents: 'auto'
+      }
+    },
+    childContainerLeaving: {
+      browser: {
+        pointerEvents: 'none'
       }
     },
     defaultPaperStyle: {

@@ -120,9 +120,9 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
         <View
           className={this.getRootClassName(componentName)}
           style={this.style(
-            'container',
             (this.props.defaultSizeConstraints !== false) ? 'defaultConstraints' : null,
             (this.props.hasBorder !== false) ? 'containerBorder' : null,
+            'container',
             this.props.style, (!this.props.disallowReposition) ? this.getState('modalPositionStyle') : null
           )}
           pointerEvents="auto"

@@ -238,7 +238,9 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
           }) : null,
           childStyle = this.style(
             'childContainer',
+            (stateObject.state === 'entering' || stateObject.state === 'entered') ? 'childContainerEntering' : 'childContainerLeaving',
             {
+              pointerEvents: 'none',
               opacity: stateObject.animation.interpolate({
                 inputRange: [0, 1],
                 outputRange: [0, 1]

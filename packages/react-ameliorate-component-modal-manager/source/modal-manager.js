@@ -115,12 +115,12 @@ export const ModalManager = componentFactory('ModalManager', ({ Parent, componen
           style={this.style('fullSize', 'overlay', this.props.style)}
           requiresLayout={false}
           onShouldClose={this.onShouldClose}
+          pointerEvents="box-none"
         >
           <TouchableWithoutFeedback
             className={this.getRootClassName(componentName)}
             style={this.style('fullSize')}
             onPress={this.onCloseActiveModal}
-            onKeyDown={this.onKeyDown}
             tabIndex="-1"
           >
             <ContextProvider context={this.getContext} style={this.style('fullSize')}>
