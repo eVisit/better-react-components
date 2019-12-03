@@ -23,7 +23,7 @@ export function Focussable({ Parent, componentName }) {
         if (nativeEvent.defaultPrevented)
           return;
 
-        var keyCode = nativeEvent.code || nativeEvent.key;
+        var keyCode = ('' + (nativeEvent.code || nativeEvent.key));
 
         if (keyCode === 'Enter' && this.props.actionable) {
           preventEventDefault(event);
