@@ -781,6 +781,9 @@ export function calculateObjectDifferences(_obj1, _obj2, filter, maxDepth, _curr
 }
 
 export function formatClientText(text, raw) {
+  if (!U.instanceOf(text, 'string', 'number', 'boolean'))
+    return text;
+
   //###if(MOBILE) {###//
   return text.replace(/\r/g, ' ');
   //###} else {###//

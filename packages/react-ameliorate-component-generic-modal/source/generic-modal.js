@@ -18,6 +18,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
     static styleSheet = styleSheet;
     static propTypes = {
       allowScrolling: PropTypes.bool,
+      buttonCaptionStyle: PropTypes.any,
       buttonContainerProps: PropTypes.object,
       buttonContainerSpacerStyle: PropTypes.any,
       buttonContainerStyle: PropTypes.any,
@@ -277,7 +278,7 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       return this.renderButton(args);
     }
 
-    renderButton({ button, buttonIndex, buttonStyle, buttonInternalContainerStyle }) {
+    renderButton({ button, buttonIndex, buttonStyle, buttonInternalContainerStyle, buttonCaptionStyle }) {
       if (this.isValidElement(button))
         return button;
 
@@ -294,8 +295,9 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
           testID={button.testID}
           key={button.key || (('' + buttonIndex) + button.caption)}
           caption={button.caption}
+          captionStyle={this.style('buttonCaption', this.props.buttonCaptionStyle, buttonCaptionStyle, button.captionStyle)}
           style={this.style('button', this.props.buttonStyle, buttonStyle, button.style)}
-          internalContainerStyle={this.style('buttonInternalContainer', this.props.buttonInternalContainerStyle, buttonInternalContainerStyle)}
+          internalContainerStyle={this.style('buttonInternalContainer', this.props.buttonInternalContainerStyle, buttonInternalContainerStyle, button.internalContainerStyle)}
           onPress={async (_args) => {
             if (closing)
               return;
@@ -393,12 +395,9 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
     }
 
     _getButtons() {
-      if (this.props.buttons)
-        return this.props.buttons;
-
-      return this.memoize(() => {
-        return this._buttonsArrayToButtonMap((this.getButtons() || []).filter(Boolean));
-      });
+      return this.memoize((buttons) => {
+        return this._buttonsArrayToButtonMap((buttons || []).filter(Boolean));
+      }, (this.props.buttons) ? this.props.buttons : this.getButtons());
     }
 
     getButtons() {
