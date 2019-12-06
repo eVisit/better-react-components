@@ -553,8 +553,8 @@ export function nextTick(callback) {
   if (typeof process !== 'undefined' && process.nextTick) {
     return new Promise((resolve) => {
       process.nextTick(() => {
-        callback();
-        resolve();
+        var ret = callback();
+        resolve(ret);
       });
     });
   } else {
