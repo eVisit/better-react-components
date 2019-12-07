@@ -1,0 +1,24 @@
+{
+  "name": "@react-ameliorate/pre-processor",
+  "version": "0.12.0-rc",
+  "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
+  "main": "index.js",
+  "repository": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-pre-processor",
+  "keywords": [
+    "react",
+    "jsx",
+    "react-native"
+  ],
+  "author": "eVisit, Wyatt Greenway, Alexander Telegin",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eVisit/react-ameliorate/issues"
+  },
+  "homepage": "https://github.com/eVisit/react-ameliorate/tree/master/packages/react-ameliorate-pre-processor#readme",
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-plugin-analyze": "^1.1.2",
+    "eslint-plugin-extra-syntax": "^1.0.0"
+  },
+  "scope": "@react-ameliorate"
+}
