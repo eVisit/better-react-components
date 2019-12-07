@@ -1,6 +1,6 @@
 {
   "name": "@react-ameliorate/component-icon",
-  "version": "0.11.0",
+  "version": "0.12.0-rc",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "./source/icon.js",
   "scripts": {
@@ -53,10 +53,10 @@
   "peerDependencies": {
     "react": "^16.7.0",
     "babel-preset-react-ameliorate": ">=0.57.0",
-    "@react-ameliorate/core": "^0.11.0",
-    "@react-ameliorate/styles": "^0.11.0",
-    "@react-ameliorate/utils": "^0.11.0",
-    "@react-ameliorate/native-shims": "^0.11.0"
+    "@react-ameliorate/core": "^0.12.0-rc",
+    "@react-ameliorate/styles": "^0.12.0-rc",
+    "@react-ameliorate/utils": "^0.12.0-rc",
+    "@react-ameliorate/native-shims": "^0.12.0-rc"
   },
   "scope": "@react-ameliorate"
 }

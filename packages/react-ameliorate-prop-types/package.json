@@ -1,6 +1,6 @@
 {
   "name": "@react-ameliorate/prop-types",
-  "version": "0.11.0",
+  "version": "0.12.0-rc",
   "description": "Improved React experience: components with inheritance, improved state machine, better style sheets, resolving props, etc...",
   "main": "index.js",
   "scripts": {
