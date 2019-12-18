@@ -24,7 +24,7 @@ class Text extends React.Component {
     }
 
     return (
-      <span className="RAText" {...filterToNativeElementProps(this.props)} style={flattenStyle([ this.props.style, extraStyle ])}>{this.props.children}</span>
+      <span className="RAText" {...filterToNativeElementProps(this.props)} style={flattenStyle([ this.props.style, extraStyle ])} onClick={this.props.onPress}>{this.props.children}</span>
     );
   }
 }

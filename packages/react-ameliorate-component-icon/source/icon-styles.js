@@ -16,7 +16,9 @@ export default createStyleSheet(function(theme) {
       browser: {
         WebkitFontSmoothing: 'antialiased',
         MozOsxFontSmoothing: 'grayscale',
-        WebkitUserSelect: 'none'
+        WebkitUserSelect: 'none',
+        overflow: 'hidden',
+        textOverflow: 'clip'
       }
     }
   };
