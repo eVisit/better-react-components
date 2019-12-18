@@ -18,7 +18,8 @@ export default createStyleSheet(function(theme) {
         MozOsxFontSmoothing: 'grayscale',
         WebkitUserSelect: 'none',
         overflow: 'hidden',
-        textOverflow: 'clip'
+        textOverflow: 'clip',
+        display: 'inline-flex'
       }
     }
   };
