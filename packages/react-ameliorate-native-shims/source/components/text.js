@@ -9,22 +9,37 @@ import TextPropTypes                  from '../prop-types/text';
 class Text extends React.Component {
   static propTypes = TextPropTypes;
 
-  render() {
-    var extraStyle = {};
+  getClassName(...args) {
+    return args.filter(Boolean).join(' ');
+  }
 
-    if (this.props.numberOfLines === 1) {
-      extraStyle.whiteSpace = 'nowrap';
+  getProps(providedProps) {
+    var style = flattenStyle(providedProps.style);
 
-      if (this.props.ellipsizeMode) {
-        extraStyle.overflow = 'hidden';
-        extraStyle.textOverflow = (('' + this.props.ellipsizeMode).toLowerCase() === 'clip') ? 'clip' : 'ellipsis';
+    if (providedProps.numberOfLines === 1) {
+      style.whiteSpace = 'nowrap';
+
+      if (providedProps.ellipsizeMode) {
+        style.overflow = 'hidden';
+        style.textOverflow = (('' + providedProps.ellipsizeMode).toLowerCase() === 'clip') ? 'clip' : 'ellipsis';
       } else {
-        extraStyle.textOverflow = 'clip';
+        style.textOverflow = 'clip';
       }
     }
 
+    return {
+      ...providedProps,
+      className: this.getClassName('RAText', providedProps.className),
+      style,
+      'data-test-id' : providedProps.testID
+    }
+  }
+
+  render() {
+    var props = this.getProps(this.props);
+
     return (
-      <span className="RAText" {...filterToNativeElementProps(this.props)} style={flattenStyle([ this.props.style, extraStyle ])}>{this.props.children}</span>
+      <span { ...filterToNativeElementProps(props) }>{this.props.children}</span>
     );
   }
 }

@@ -54,7 +54,8 @@ class View extends React.Component {
       style,
       onMouseEnter: (this.props.onMouseEnter) ? this.onMouseEnter : undefined,
       onMouseLeave: (this.props.onMouseLeave) ? this.onMouseLeave : undefined,
-      ref: this.viewRef
+      ref: this.viewRef,
+      'data-test-id' : providedProps.testID
     };
   }
 

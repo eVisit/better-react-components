@@ -195,6 +195,7 @@ class TextInputShim extends React.Component {
           ref: this.inputRef,
           maxLength: providedProps.maxLength,
           className: providedProps.className,
+          'data-test-id': providedProps.testID,
           readOnly: providedProps.readOnly,
           max: providedProps.max
         },
