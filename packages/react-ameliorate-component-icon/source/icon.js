@@ -114,12 +114,7 @@ export const Icon = componentFactory('Icon', ({ Parent, componentName }) => {
         glyphStyle = rawGlyphStyle;
 
       return (
-        <Text
-          className={this.getRootClassName(componentName, 'icon')}
-          style={glyphStyle}
-        >
-          {glyphInfo.glyph}
-        </Text>
+        <Text className={this.getRootClassName(componentName, 'icon')} style={glyphStyle}>{glyphInfo.glyph}</Text>
       );
     }
 

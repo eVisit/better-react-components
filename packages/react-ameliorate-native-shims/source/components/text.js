@@ -31,7 +31,8 @@ class Text extends React.Component {
       ...providedProps,
       className: this.getClassName('RAText', providedProps.className),
       style,
-      'data-test-id' : providedProps.testID
+      onClick: providedProps.onPress,
+      'data-test-id' : providedProps.testID,
     }
   }
 
