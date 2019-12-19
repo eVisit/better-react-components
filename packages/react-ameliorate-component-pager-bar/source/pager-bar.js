@@ -104,6 +104,7 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
           tooltipType={tab.tooltipType || 'default'}
           theme={tab.theme || 'white'}
           disabled={tab.disabled || this.props.disabled}
+          testID={tab.testID}
         >
           {(buttonArgs, button) => {
             return (
