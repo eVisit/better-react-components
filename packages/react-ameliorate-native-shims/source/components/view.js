@@ -50,7 +50,7 @@ class View extends React.Component {
 
     return {
       ...providedProps,
-      className: this.getClassName('raView', this.props.className),
+      className: this.getClassName('RAView', this.props.className),
       style,
       onMouseEnter: (this.props.onMouseEnter) ? this.onMouseEnter : undefined,
       onMouseLeave: (this.props.onMouseLeave) ? this.onMouseLeave : undefined,
