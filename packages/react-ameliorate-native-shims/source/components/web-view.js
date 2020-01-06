@@ -1,5 +1,7 @@
 "use strict";
 
+import { utils as U }                   from 'evisit-js-utils';
+
 //###if(MOBILE) {###//
 import { WebView }      from 'react-native';
 //###} else {###//
@@ -29,9 +31,20 @@ class WebView extends View {
     };
   }
 
-  componentDidUpdate() {
+  componentDidMount() {
+    super.componentDidMount.apply(this, arguments);
+
+    this.runScripts();
+  }
+
+  componentDidUpdate(prevProps) {
     super.componentDidUpdate.apply(this, arguments);
 
+    if (U.get(prevProps, 'source.html') !== U.get(this, 'props.source.html'))
+      this.runScripts();
+  }
+
+  runScripts() {
     if (this.rootElement) {
       // Run scripts (scripts are not run when injected via innerHTML)
       var scriptElements = Array.prototype.slice.apply(this.rootElement.getElementsByTagName('SCRIPT'));
