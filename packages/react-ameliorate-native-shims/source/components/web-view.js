@@ -44,6 +44,11 @@ class WebView extends View {
       this.runScripts();
   }
 
+  onReady() {
+    if (this.props.onReady instanceof Function)
+      this.props.onReady();
+  }
+
   runScripts() {
     if (this.rootElement) {
       // Run scripts (scripts are not run when injected via innerHTML)
@@ -58,6 +63,8 @@ class WebView extends View {
         newScript.appendChild(textNode);
         parentNode.appendChild(newScript);
       }
+
+     this.onReady();
     }
   }
 }

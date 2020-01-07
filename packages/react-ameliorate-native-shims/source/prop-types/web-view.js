@@ -34,6 +34,7 @@ const WebViewPropTypes = {
     viewManager: PropTypes.object,
   }),
   testID: PropTypes.string,
+  onReady: PropTypes.func,
 
   // iOS
   source: PropTypes.oneOfType([
