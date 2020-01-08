@@ -44,9 +44,9 @@ class WebView extends View {
       this.runScripts();
   }
 
-  onReady() {
-    if (this.props.onReady instanceof Function)
-      this.props.onReady();
+  onScriptsRan() {
+    if (typeof this.props.onScriptsRan === 'function')
+      this.props.onScriptsRan.call(this);
   }
 
   runScripts() {
@@ -64,7 +64,7 @@ class WebView extends View {
         parentNode.appendChild(newScript);
       }
 
-     this.onReady();
+     this.onScriptsRan();
     }
   }
 }
