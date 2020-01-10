@@ -131,6 +131,9 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
           tabIconContainerNames     = this.generateStyleNames(direction, 'tabIconContainer', flags),
           tabCaptionNames           = this.generateStyleNames(direction, 'tabCaption', flags);
 
+      if (tab.hidden)
+        return null;
+
       return this.renderTabButton({
         activeTab,
         tab,
