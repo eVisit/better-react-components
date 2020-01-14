@@ -67,8 +67,8 @@ export function Focussable({ Parent, componentName }) {
     }
 
     defaultOnFocus(event, blurLastField) {
-      const field = this.getFieldReference(),
-        value = this.value();
+      var field = this.getFieldReference(),
+          value = this.value();
 
       this._focussedFieldValue = value;
       this.triggerAnalyticsEvent({ action: 'focussed', 'actionTarget': this.props.field, targetType: 'field' });
@@ -88,8 +88,8 @@ export function Focussable({ Parent, componentName }) {
     }
 
     defaultOnBlur(event) {
-      const field = this.getFieldReference(),
-        value = this.value();
+      var field = this.getFieldReference(),
+          value = this.value();
 
       if (value !== this._focussedFieldValue) {
         this._focussedFieldValue = value;
@@ -111,7 +111,8 @@ export function Focussable({ Parent, componentName }) {
 
     focus(reverse) {
       this.setCurrentlyFocussedField(this, true);
-      const field = this.getFieldReference();
+      var field = this.getFieldReference();
+
       if (this.callProvidedCallback('onRequestFocus', [field, this]) === false)
         return false;
 
@@ -122,7 +123,11 @@ export function Focussable({ Parent, componentName }) {
     }
 
     blur() {
-      const field = this.getFieldReference();
+      var field = this.getFieldReference();
+
+      if (this.getCurrentlyFocussedField() !== field)
+        return;
+
       if (this.callProvidedCallback('onRequestBlur', [field, this]) === false)
         return false;
 
