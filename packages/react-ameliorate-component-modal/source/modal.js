@@ -143,7 +143,7 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
         <Paper
           {...this.passProps(this.props)}
           id={this.props.id}
-          className={this.getRootClassName(componentName)}
+          className={this.getClassName(componentName, 'overlay')}
           requiresLayout={false}
         >
           {this.renderModal(children)}

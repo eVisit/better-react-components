@@ -450,7 +450,7 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
         <View
           {...this.passProps(this.props)}
           key={this.props.id}
-          className={this.getRootClassName(componentName)}
+          className={this.getClassName(componentName)}
           ref={this.captureReference('_rootView')}
           onLayout={this.updateLayout}
           style={[ { flex: 0, alignSelf: 'flex-start' }, this.props.style ]}
