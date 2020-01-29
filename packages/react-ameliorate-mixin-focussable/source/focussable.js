@@ -23,21 +23,13 @@ export function Focussable({ Parent, componentName }) {
         if (nativeEvent.defaultPrevented)
           return;
 
-        var keyCode = ('' + (nativeEvent.code || nativeEvent.key));
-
-        if (keyCode === 'Enter' && this.props.actionable) {
-          preventEventDefault(event);
-          stopEventImmediatePropagation(event);
-
-          this.onPress(event);
-
-          return;
-        }
-
-        if (this.getCurrentlyFocussedField() !== this)
-          return;
+        var keyCode       = ('' + (nativeEvent.code || nativeEvent.key)),
+            focussedField = this.getCurrentlyFocussedField();
 
         if (keyCode === 'Tab') {
+          if (!focussedField || focussedField !== this)
+            return;
+
           var form = this.getParentForm();
 
           if (form && typeof form.focusNext === 'function') {
@@ -45,11 +37,18 @@ export function Focussable({ Parent, componentName }) {
             stopEventImmediatePropagation(event);
             form.focusNext(this, nativeEvent.shiftKey)
           }
-        } else if (keyCode.match(/(Space|Enter)$/g) && typeof this.onPress === 'function') {
-          preventEventDefault(event);
-          stopEventImmediatePropagation(event);
+        } else if (keyCode === 'Enter') {
+          if (!this.props.actionable)
+            return;
 
-          this.onPress(event);
+          if (focussedField && typeof focussedField.onSubmitEditing === 'function')
+            return;
+
+          if (typeof this.onPress === 'function') {
+            preventEventDefault(event);
+            stopEventImmediatePropagation(event);
+            this.onPress(event);
+          }
         }
       });
     }
