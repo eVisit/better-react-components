@@ -402,8 +402,9 @@ function buildPalette(opts = {}, _colorHelperFactory) {
 
   const getColorNameFromStrings = colorHelperFactory(function getColorNameFromStrings(...args) {
     var finalNumber = (args.length) ? args.reduce((sum, item) => {
-          return (!item) ? 0 : ('' + item).charCodeAt(0);
-        }) : 0;
+          var val = (!item) ? 0 : ('' + item).charCodeAt(0);
+          return sum + val;
+        }, 0) : 0;
 
     var num = (`000${(finalNumber % paletteKeys.length)}`).slice(-1);
     return `${paletteKeys[num]}_COLOR`;
