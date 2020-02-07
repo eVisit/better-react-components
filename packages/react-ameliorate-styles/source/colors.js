@@ -402,7 +402,7 @@ function buildPalette(opts = {}, _colorHelperFactory) {
 
   const getColorNameFromStrings = colorHelperFactory(function getColorNameFromStrings(...args) {
     var finalNumber = (args.length) ? args.reduce((sum, item) => {
-          var val = (!item) ? 0 : ('' + item).charCodeAt(0);
+          var val = (!item) ? 0 : ('' + item).toLowerCase().charCodeAt(0);
           return sum + val;
         }, 0) : 0;
 
