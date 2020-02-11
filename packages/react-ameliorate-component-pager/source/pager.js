@@ -36,8 +36,6 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       onPageChange: PropTypes.func,
       pagerBarPlacement: PropTypes.oneOf(['north', 'south', 'west', 'east']),
       renderPage: PropTypes.func,
-      renderBackground: PropTypes.func,
-      renderTabsBackground: PropTypes.func,
       tabBarStyle: PropTypes.any
     };
 
@@ -117,7 +115,6 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
           style={this.props.tabBarStyle}
           direction={direction}
           onTabPress={this.onTabPress}
-          renderBackground={this.props.renderTabsBackground}
         />
       );
     }
@@ -143,8 +140,8 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       );
     }
 
-    renderBackground(args) {
-      return this.callProvidedCallback('renderBackground', args);
+    renderBackground() {
+      return null;
     }
 
     render(_children) {

@@ -28,8 +28,7 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       tabIconContainerStyle: PropTypes.any,
       tabIconStyle: PropTypes.any,
       tabs: PropTypes.oneOfType([PropTypes.array, PropTypes.func]).isRequired,
-      tabStyle: PropTypes.any,
-      renderBackground: PropTypes.func
+      tabStyle: PropTypes.any
     };
 
     onPropUpdated_activeTab(value, oldValue, initial) {
@@ -154,8 +153,8 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       return this.style('container', this.generateStyleNames(direction, 'container'), ...args, this.props.style);
     }
 
-    renderBackground(args) {
-      return this.callProvidedCallback('renderBackground', args);
+    renderBackground() {
+      return null;
     }
 
     render(_children) {
