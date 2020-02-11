@@ -22,6 +22,7 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       onTabPress: PropTypes.func,
       showCaptions: PropTypes.bool,
       showIcons: PropTypes.bool,
+      collapsed: PropTypes.bool,
       tabCaptionContainerStyle: PropTypes.any,
       tabCaptionStyle: PropTypes.any,
       tabContainerStyle: PropTypes.any,
@@ -35,11 +36,14 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       onPageChange: PropTypes.func,
       pagerBarPlacement: PropTypes.oneOf(['north', 'south', 'west', 'east']),
       renderPage: PropTypes.func,
+      renderBackground: PropTypes.func,
+      renderTabsBackground: PropTypes.func,
       tabBarStyle: PropTypes.any
     };
 
     static defaultProps = {
-      pagerBarPlacement: 'north'
+      pagerBarPlacement: 'north',
+      collapsed: false
     };
 
     constructor(props, ...args) {
@@ -113,6 +117,7 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
           style={this.props.tabBarStyle}
           direction={direction}
           onTabPress={this.onTabPress}
+          renderBackground={this.props.renderTabsBackground}
         />
       );
     }
@@ -138,6 +143,10 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       );
     }
 
+    renderBackground(args) {
+      return this.callProvidedCallback('renderBackground', args);
+    }
+
     render(_children) {
       var pagerBarPlacement = this.getTabBarPlacement(),
           children = this.getChildren(_children, true),
@@ -145,7 +154,10 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
           renderPagerBarFirst = !!pagerBarPlacement.match(/west|north/i);
 
       return super.render(
-        <View className={this.getRootClassName(componentName, containerNames)} style={this.style(containerNames, this.props.style)}>
+        <View className={this.getRootClassName(componentName, containerNames, this.props.collapsed && 'collapsed')} style={this.style(containerNames, this.props.style)}>
+
+          {this.renderBackground()}
+
           {(renderPagerBarFirst) && this._renderPagerBar({ pagerBarPlacement })}
 
           {this._renderPage({ children, pagerBarPlacement })}

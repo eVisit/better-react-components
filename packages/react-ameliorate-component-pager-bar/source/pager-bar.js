@@ -28,7 +28,8 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       tabIconContainerStyle: PropTypes.any,
       tabIconStyle: PropTypes.any,
       tabs: PropTypes.oneOfType([PropTypes.array, PropTypes.func]).isRequired,
-      tabStyle: PropTypes.any
+      tabStyle: PropTypes.any,
+      renderBackground: PropTypes.func
     };
 
     onPropUpdated_activeTab(value, oldValue, initial) {
@@ -153,12 +154,17 @@ export const PagerBar = componentFactory('PagerBar', ({ Parent, componentName })
       return this.style('container', this.generateStyleNames(direction, 'container'), ...args, this.props.style);
     }
 
+    renderBackground(args) {
+      return this.callProvidedCallback('renderBackground', args);
+    }
+
     render(_children) {
       var direction = this.getDirection(),
           tabs = this.props.tabs || [];
 
       return super.render(
         <View className={this.getRootClassName(componentName, this.generateStyleNames(direction, 'container'))} style={this.getContainerStyle()}>
+          {this.renderBackground()}
           {tabs.map((tab, tabIndex) => this._renderTabButton({ tab, tabIndex }))}
           {this.getChildren(_children)}
         </View>
