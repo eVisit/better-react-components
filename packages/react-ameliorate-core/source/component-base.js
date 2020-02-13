@@ -1110,9 +1110,12 @@ export default class ComponentBase {
   }
 
   memoizeWithCacheID(cacheID, cb, _args) {
-    const isCacheValid = (cache) => {
+    const isCacheValid = (cache, args) => {
       if (!cache)
         return false;
+
+      if (!args)
+        return true;
 
       var cacheArgs = cache.args;
       if (cacheArgs.length !== args.length)
@@ -1126,10 +1129,10 @@ export default class ComponentBase {
       return true;
     };
 
-    var args = (_args || []).concat(this.memoizeDefaultArguments(cacheID, cb, args) || []),
+    var args = (_args) ? _args.concat(this.memoizeDefaultArguments(cacheID, cb, args) || []) : null,
         cache = this._raMemoizeCache[cacheID];
 
-    if (isCacheValid(cache))
+    if (isCacheValid(cache, args))
       return cache.value;
 
     var value = cb.apply(this, args);
