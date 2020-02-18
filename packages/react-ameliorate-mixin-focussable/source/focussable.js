@@ -1,4 +1,7 @@
-import { preventEventDefault, stopEventImmediatePropagation } from '@react-ameliorate/utils';
+import {
+  preventEventDefault,
+  stopEventImmediatePropagation,
+} from '@react-ameliorate/utils';
 
 export function Focussable({ Parent, componentName }) {
   return class Focussable extends Parent {
@@ -35,19 +38,30 @@ export function Focussable({ Parent, componentName }) {
           if (form && typeof form.focusNext === 'function') {
             preventEventDefault(event);
             stopEventImmediatePropagation(event);
-            form.focusNext(this, nativeEvent.shiftKey)
+            form.focusNext(this, nativeEvent.shiftKey);
           }
         } else if (keyCode === 'Enter') {
           if (!this.props.actionable)
             return;
 
-          if (focussedField && typeof focussedField.onSubmitEditing === 'function')
+          if (focussedField) {
+            if (typeof focussedField.onHandleFocussedAction === 'function' && focussedField.onHandleFocussedAction.call(this, { event, keyCode, focussedField, ref: this }) === false)
+              return false;
+
             return;
+          }
+
+          // if (focussedField && typeof focussedField.onSubmitEditing === 'function')
+          //   return;
 
           if (typeof this.onPress === 'function') {
             preventEventDefault(event);
             stopEventImmediatePropagation(event);
-            this.onPress(event);
+
+            if (typeof this.onAction === 'function')
+              this.onAction(event);
+            else if (typeof this.onPress === 'function')
+              this.onPress(event);
           }
         }
       });
