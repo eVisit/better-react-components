@@ -149,7 +149,7 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
     if (position < 0)
       position += targetRect.width;
     else if (positionEnd > window.innerWidth)
-      position -= targetRect.width;
+      position -= (targetRect.width + anchorRect.width);
 
     return {
       position: Math.round(position),
@@ -173,7 +173,7 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
     if (position < 0)
       position += targetRect.height;
     else if (positionEnd > window.innerHeight)
-      position -= targetRect.height;
+      position -= (targetRect.height + anchorRect.height);
 
     return {
       position: Math.round(position),
@@ -259,6 +259,7 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       pointerEvents: PropTypes.string,
       position: PropTypes.func,
       visible: PropTypes.bool,
+      contentRef: PropTypes.func
     };
 
     provideContext() {
@@ -451,7 +452,12 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
           {...this.passProps(this.props)}
           key={this.props.id}
           className={this.getClassName(componentName)}
-          ref={this.captureReference('_rootView')}
+          ref={this.captureReference('_rootView', (ref) => {
+            if (typeof this.props.contentRef === 'function')
+              this.props.contentRef(ref);
+
+            return ref;
+          })}
           onLayout={this.updateLayout}
           style={[ { flex: 0, alignSelf: 'flex-start' }, this.props.style ]}
           ra-layout={layout}

@@ -5,29 +5,30 @@ import { Platform }               from '@react-ameliorate/native-shims';
 import React                      from 'react';
 import {
   CONTEXT_PROVIDER_KEY,
+  addComponentReference,
   areObjectsEqualShallow,
+  calculateObjectDifferences,
   capitalize,
   cloneComponents,
+  createTokenizer,
   filterObjectKeys,
-  getComponentReferenceMap,
-  addComponentReference,
-  removeComponentReference,
-  getComponentReference,
+  findAllComponentReferences,
   findComponentReference,
-  removeDuplicateStrings,
-  postRenderProcessChildProps,
+  findDOMNode,
+  getComponentReference,
+  getComponentReferenceMap,
+  getLargestFlag,
+  getUniqueComponentID,
+  isValidComponent,
+  nextTick,
   postRenderProcessChild,
+  postRenderProcessChildProps,
   postRenderShouldProcessChildren,
   processElements,
   processRenderedElements,
-  getUniqueComponentID,
-  isValidComponent,
-  toNumber,
-  findDOMNode,
-  calculateObjectDifferences,
-  getLargestFlag,
-  nextTick,
-  createTokenizer
+  removeComponentReference,
+  removeDuplicateStrings,
+  toNumber
 }                                 from '@react-ameliorate/utils';
 
 var logCache = {};
@@ -1015,7 +1016,7 @@ export default class ComponentBase {
     if (!diff)
       return;
 
-    console.trace(`STATE UPDATE [${this.getComponentName()}]: `, diff, [newState, oldState]);
+    console.trace(`STATE UPDATE [${this.getComponentName()}]: `, diff, [ newState, oldState ]);
   }
 
   delay(func, time, _id) {
@@ -1269,8 +1270,11 @@ export default class ComponentBase {
   }
 
   getRootClassName(_componentName, ...args) {
+    var base = (_componentName) ? _componentName : this.getComponentName();
+    // if (base !== this.getComponentName())
+    //   return this.getClassName.apply(this, arguments);
+
     var prefix = this.getClassNamePrefix(),
-        base = (_componentName) ? _componentName : this.getComponentName(),
         classNames = this.generateNames({ prefix, base }, '', ...args);
 
     var specifiedClassName = this.props.className;
@@ -1288,26 +1292,31 @@ export default class ComponentBase {
     return this.styleSheet.flattenInternalStyleSheet(this.style(...args));
   }
 
-  getCurrentlyFocussedField() {
+  getCurrentlyFocussedComponent() {
     var app = this.getApp();
     if (!app)
       return null;
 
-    return app._currentlyFocussedField;
+    return app._currentlyFocussedComponent;
   }
 
-  setCurrentlyFocussedField(field, blurLastField) {
+  setCurrentlyFocussedComponent(component, blurPrevious) {
     var app = this.getApp();
     if (!app)
       return null;
 
-    if (field === app._currentlyFocussedField)
+    var currentlyFocussedComponent = app._currentlyFocussedComponent;
+    if (component === currentlyFocussedComponent)
       return;
 
-    if (blurLastField && app._currentlyFocussedField && typeof app._currentlyFocussedField.blur === 'function')
-      app._currentlyFocussedField.blur();
+    app._currentlyFocussedComponent = component;
 
-    app._currentlyFocussedField = field;
+    if (blurPrevious !== false && currentlyFocussedComponent) {
+      if (typeof currentlyFocussedComponent.blur === 'function')
+        currentlyFocussedComponent.blur();
+      else if (typeof currentlyFocussedComponent.defaultOnBlurHandler === 'function')
+        currentlyFocussedComponent.defaultOnBlurHandler();
+    }
   }
 
   styleProp(...args) {
@@ -2134,8 +2143,12 @@ export default class ComponentBase {
     return getComponentReference(componentID);
   }
 
-  _findComponentReference(value) {
-    return findComponentReference(value);
+  _findComponentReference(...args) {
+    return findComponentReference(...args);
+  }
+
+  _findAllComponentReferences(...args) {
+    return findAllComponentReferences(...args);
   }
 
   static getGlobalEventActionHooks() {

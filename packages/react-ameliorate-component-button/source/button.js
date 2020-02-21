@@ -3,12 +3,7 @@ import React                                    from 'react';
 import { componentFactory, PropTypes }          from '@react-ameliorate/core';
 import { View, Text, TouchableOpacity }         from '@react-ameliorate/native-shims';
 import { Icon }                                 from '@react-ameliorate/component-icon';
-import {
-  preventEventDefault,
-  stopEventPropagation,
-  stopEventImmediatePropagation,
-  getLargestFlag
-}                                               from '@react-ameliorate/utils';
+import { stopEventPropagation, getLargestFlag } from '@react-ameliorate/utils';
 import { Hoverable }                            from '@react-ameliorate/mixin-hoverable';
 import styleSheet                               from './button-styles';
 
@@ -16,7 +11,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
   return class Button extends Parent {
     static styleSheet = styleSheet;
     static propTypes = {
-      caption: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+      caption: PropTypes.oneOfType([ PropTypes.string, PropTypes.object ]),
       captionStyle: PropTypes.any,
       disabled: PropTypes.bool,
       iconContainerStyle: PropTypes.any,
@@ -25,13 +20,13 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       leftIcon: PropTypes.string,
       leftIconContainerStyle: PropTypes.any,
       leftIconStyle: PropTypes.any,
-      onFocussedAction: PropTypes.func,
       onPress: PropTypes.func,
       onPressEnd: PropTypes.func,
       onPressStart: PropTypes.func,
       rightIcon: PropTypes.string,
       rightIconContainerStyle: PropTypes.any,
       rightIconStyle: PropTypes.any,
+      tabIndex: PropTypes.number,
       theme: PropTypes.string,
       tooltip: PropTypes.string,
       tooltipSide: PropTypes.string,
@@ -60,42 +55,6 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       return super.onPropsUpdated.apply(this, arguments);
     }
 
-    componentMounted() {
-      this.registerDefaultFocussedAction();
-      return super.componentMounted.apply(this, arguments);
-    }
-
-    componentUnmounting() {
-      this.unregisterDefaultEventActions();
-      return super.componentUnmounting.apply(this, arguments);
-    }
-
-    registerDefaultFocussedAction() {
-      this.registerDefaultEventAction('keydown', (event) => {
-        if (!this.isFlagFocussed())
-          return;
-
-        var nativeEvent = event && event.nativeEvent;
-        if (nativeEvent.defaultPrevented)
-          return;
-
-        if (this.hasProvidedCallback('onFocussedAction')) {
-          if (this.callProvidedCallback('onFocussedAction', [ event ]) === false)
-            return;
-        } else if (this.getCurrentlyFocussedField())
-          return;
-
-        var keyCode = nativeEvent.code || nativeEvent.key;
-        if (!(('' + keyCode).match(/^(Enter)$/)))
-          return;
-
-        preventEventDefault(event);
-        stopEventImmediatePropagation(event);
-
-        this.onPress(event);
-      });
-    }
-
     resolveState() {
       return {
         ...super.resolveState.apply(this, arguments),
@@ -111,6 +70,11 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
 
     onMouseLeave(event) {
       return super.onMouseLeave(event, { extraState: { pressed: false } });
+    }
+
+    // Used by global keyboard navigation (on "Enter")
+    onAction({ event }) {
+      return this.onPress(event);
     }
 
     async onPress(event) {
@@ -324,6 +288,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           data-tooltip={this.props.tooltip}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
           data-tooltip-type={this.props.tooltipType || 'default'}
+          data-tabindex={this.props.tabIndex}
           {...this.getHoverableProps()}
           ref={this.captureReference('_rootView')}
         >
