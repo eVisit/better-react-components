@@ -1016,7 +1016,7 @@ export default class ComponentBase {
     if (!diff)
       return;
 
-    console.trace(`STATE UPDATE [${this.getComponentName()}]: `, diff, [newState, oldState]);
+    console.trace(`STATE UPDATE [${this.getComponentName()}]: `, diff, [ newState, oldState ]);
   }
 
   delay(func, time, _id) {
@@ -1300,16 +1300,16 @@ export default class ComponentBase {
     return app._currentlyFocussedComponent;
   }
 
-  setCurrentlyFocussedComponent(field, blurPrevious) {
+  setCurrentlyFocussedComponent(component, blurPrevious) {
     var app = this.getApp();
     if (!app)
       return null;
 
     var currentlyFocussedComponent = app._currentlyFocussedComponent;
-    if (field === currentlyFocussedComponent)
+    if (component === currentlyFocussedComponent)
       return;
 
-    app._currentlyFocussedComponent = field;
+    app._currentlyFocussedComponent = component;
 
     if (blurPrevious !== false && currentlyFocussedComponent) {
       if (typeof currentlyFocussedComponent.blur === 'function')

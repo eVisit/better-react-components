@@ -262,8 +262,6 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       var focusableComponents = this._sortComponentsForFocus(findAllComponentReferences('canReceiveFocus', true, _subset), reverseOrder),
           currentFocusedIndex = focusableComponents.findIndex((component) => (component === focussedComponent));
 
-      console.log('FOCUSABLE COMPONENTS: ', focusableComponents);
-
       if (currentFocusedIndex < 0)
         return focusableComponents[(reverseOrder) ? focusableComponents.length - 1 : 0];
 
@@ -286,8 +284,6 @@ export const Application = componentFactory('Application', ({ Parent, componentN
         focussedComponent.blur.call(focussedComponent);
 
       var nextFocusComponent = this._findNextFocusableComponent(focussedComponent, reverseOrder, focusableContext);
-      console.log('FOCUSABLE NEXT: ', nextFocusComponent);
-
       if (nextFocusComponent) {
         preventEventDefault(event);
         stopEventImmediatePropagation(event);
