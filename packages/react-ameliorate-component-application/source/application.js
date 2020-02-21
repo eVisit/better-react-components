@@ -5,11 +5,15 @@ import { Overlay }                            from '@react-ameliorate/component-
 import { Tooltip }                            from '@react-ameliorate/component-tooltip';
 import styleSheet                             from './application-styles';
 import {
-  findClosestComponentFromDOMElement,
-  specializeEvent,
-  removeDuplicateStrings,
   addDocumentEventListener,
-  removeDocumentEventListener
+  findClosestComponentFromDOMElement,
+  findAllComponentReferences,
+  preventEventDefault,
+  removeDocumentEventListener,
+  removeDuplicateStrings,
+  specializeEvent,
+  stopEventImmediatePropagation,
+  prefixPad
 }                                             from '@react-ameliorate/utils';
 import { ModalStackHandler }                  from '@react-ameliorate/mixin-modal-stack-handler';
 import { TooltipStackHandler }                from '@react-ameliorate/mixin-tooltip-stack-handler';
@@ -63,7 +67,7 @@ export const Application = componentFactory('Application', ({ Parent, componentN
           configurable: true,
           value: this
         },
-        '_currentlyFocussedField': {
+        '_currentlyFocussedComponent': {
           writable: true,
           enumerable: false,
           configurable: true,
@@ -171,8 +175,6 @@ export const Application = componentFactory('Application', ({ Parent, componentN
     }
 
     registerTooltipMouseOverHandler() {
-
-
       const tooltipHandlerFactory = (eventType) => {
         return (event) => {
           var nativeEvent = event.nativeEvent,
@@ -238,12 +240,115 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       this.registerDefaultEventAction('mousedown', tooltipHandlerFactory('mouseout'));
     }
 
+    _sortComponentsForFocus(_components) {
+      var components = _components.filter(Boolean);
+
+      components = components.sort((a, b) => {
+        var xo = (a.props && a.props['data-tabindex']) || 0,
+            yo = (b.props && b.props['data-tabindex']) || 0,
+            x = `${prefixPad(('' + xo), 4)}:${a.getComponentID()}`,
+            y = `${prefixPad(('' + yo), 4)}:${b.getComponentID()}`;
+
+        if (x === y)
+          return 0;
+
+        return (x < y) ? -1 : 1;
+      });
+
+      return components;
+    }
+
+    _findNextFocusableComponent(focussedComponent, reverseOrder, _subset) {
+      var focusableComponents = this._sortComponentsForFocus(findAllComponentReferences('canReceiveFocus', true, _subset), reverseOrder),
+          currentFocusedIndex = focusableComponents.findIndex((component) => (component === focussedComponent));
+
+      console.log('FOCUSABLE COMPONENTS: ', focusableComponents);
+
+      if (currentFocusedIndex < 0)
+        return focusableComponents[(reverseOrder) ? focusableComponents.length - 1 : 0];
+
+      currentFocusedIndex += (reverseOrder) ? -1 : 1;
+      if (currentFocusedIndex < 0)
+        currentFocusedIndex = focusableComponents.length - 1;
+      else if (currentFocusedIndex >= focusableComponents.length)
+        currentFocusedIndex = 0;
+
+      return focusableComponents[currentFocusedIndex];
+
+    }
+
+    focusNextComponent({ event, reverseOrder, focussedComponent, components }) {
+      var focusableContext = components;
+      if (!focusableContext && focussedComponent && typeof focussedComponent.getFocusableContext === 'function')
+        focusableContext = focussedComponent.getFocusableContext.call(focussedComponent, { event, reverseOrder, focussedComponent });
+
+      if (focussedComponent && typeof focussedComponent.blur === 'function')
+        focussedComponent.blur.call(focussedComponent);
+
+      var nextFocusComponent = this._findNextFocusableComponent(focussedComponent, reverseOrder, focusableContext);
+      console.log('FOCUSABLE NEXT: ', nextFocusComponent);
+
+      if (nextFocusComponent) {
+        preventEventDefault(event);
+        stopEventImmediatePropagation(event);
+
+        if (typeof nextFocusComponent.focus === 'function')
+          nextFocusComponent.focus.call(nextFocusComponent, reverseOrder);
+      }
+    }
+
+    registerKeyboardNavigationHandler() {
+      this.registerDefaultEventAction('keydown', (event) => {
+        var nativeEvent = event && event.nativeEvent;
+        if (nativeEvent.defaultPrevented)
+          return;
+
+        var keyCode           = ('' + (nativeEvent.code || nativeEvent.key));
+        if (keyCode !== 'Tab' && keyCode !== 'Enter' && keyCode !== 'Space')
+          return;
+
+        var reverseOrder      = nativeEvent.shiftKey,
+            focussedComponent = this.getCurrentlyFocussedComponent(),
+            callArgs          = {
+              event,
+              reverseOrder,
+              focussedComponent,
+              keyCode,
+              ref: this
+            };
+
+        if (focussedComponent) {
+          if (typeof focussedComponent.onKeyboardNavigation === 'function' && focussedComponent.onKeyboardNavigation.call(focussedComponent, callArgs) === false)
+            return false;
+        } else {
+          if (this.onKeyboardNavigation.call(this, callArgs) === false)
+            return false;
+        }
+
+        if (keyCode === 'Tab') {
+          this.focusNextComponent(callArgs);
+        } else if (keyCode === 'Enter' || keyCode === 'Space') {
+          if (focussedComponent && typeof focussedComponent.onAction === 'function') {
+            preventEventDefault(event);
+            stopEventImmediatePropagation(event);
+
+            focussedComponent.onAction.call(focussedComponent, { event, ref: this });
+          }
+        }
+      });
+    }
+
+    onKeyboardNavigation() {
+
+    }
+
     componentMounting() {
       super.componentMounting.apply(this, arguments);
 
       if (typeof document !== 'undefined') {
         addDocumentEventListener('*', this.globalEventActionListener);
         this.registerTooltipMouseOverHandler();
+        this.registerKeyboardNavigationHandler();
       }
     }
 

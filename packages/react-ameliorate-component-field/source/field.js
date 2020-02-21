@@ -192,7 +192,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
     }
 
     onFocus({ event }) {
-      this.setCurrentlyFocussedField(this);
+      this.setCurrentlyFocussedComponent(this);
       this.setComponentFlagsFromObject({ focussed: true });
 
       // Run formatters
@@ -202,8 +202,8 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
     }
 
     onBlur({ event }) {
-      if (this.getCurrentlyFocussedField() === this)
-        this.setCurrentlyFocussedField(null);
+      if (this.getCurrentlyFocussedComponent() === this)
+        this.setCurrentlyFocussedComponent(null);
 
       this.setComponentFlagsFromObject({ focussed: false });
 

@@ -96,28 +96,61 @@ export function getComponentReference(componentID) {
   return componentReferenceMap[componentID];
 }
 
-export function findComponentReference(_searchString) {
-  var searchString = ('' + _searchString),
-      index = searchString.indexOf(':');
+export function findComponentReference(_searchString, _value, _componentList) {
+  var searchString  = ('' + _searchString),
+      index         = searchString.indexOf(':');
 
-  if (index < 0)
+  if (index < 0 && _value === undefined)
     return getComponentReference(searchString);
 
-  var prop  = searchString.substring(0, index),
-      value = searchString.substring(index + 1),
-      keys  = Object.keys(componentReferenceMap);
+  var componentList = _componentList || componentReferenceMap,
+      name          = (index < 0) ? searchString : searchString.substring(0, index),
+      value         = (_value === undefined) ? searchString.substring(index + 1) : _value,
+      keys          = Object.keys(componentList);
 
   for (var i = 0, il = keys.length; i < il; i++) {
-    var key = keys[i],
-        instance = componentReferenceMap[key],
+    var key           = keys[i],
+        instance      = componentList[key],
         instanceProps = (instance && instance.props);
 
-    if (!instanceProps)
+    if (!instance || !instanceProps)
       continue;
 
-    if (instanceProps[prop] === value)
+    var val = (typeof instance[name] === 'function') ? instance[name].call(this) : instanceProps[name],
+        matches = (typeof value === 'function') ? value(val) : (value === val);
+
+    if (matches)
       return instance;
   }
+}
+
+export function findAllComponentReferences(_searchString, _value, _componentList) {
+  var searchString  = ('' + _searchString),
+      index         = searchString.indexOf(':'),
+      components    = [],
+      componentList = _componentList || componentReferenceMap,
+      name          = (index < 0) ? searchString : searchString.substring(0, index),
+      value         = (_value === undefined) ? searchString.substring(index + 1) : _value,
+      keys          = Object.keys(componentList);
+
+  for (var i = 0, il = keys.length; i < il; i++) {
+    var key           = keys[i],
+        instance      = componentList[key],
+        instanceProps = (instance && instance.props);
+
+    if (!instance || !instanceProps)
+      continue;
+
+    var val = (typeof instance[name] === 'function') ? instance[name].call(this) : instanceProps[name],
+        matches = (typeof value === 'function') ? value(val) : (value === val);
+
+    if (matches) {
+      components.push(instance);
+      continue;
+    }
+  }
+
+  return components;
 }
 
 function iteratePrototype(klass, func) {

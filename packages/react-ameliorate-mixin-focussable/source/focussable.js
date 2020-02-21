@@ -1,179 +1,90 @@
-import {
-  preventEventDefault,
-  stopEventImmediatePropagation,
-} from '@react-ameliorate/utils';
-
 export function Focussable({ Parent, componentName }) {
   return class Focussable extends Parent {
-    getParentField() {
-      return this.context.parentField;
-    }
-
     getParentForm() {
       return this.context.parentForm;
     }
 
-    provideContext() {
-      return {
-        parentField: this
-      };
+    getFocusableContext() {
     }
 
-    registerDefaultFocussedAction() {
-      this.registerDefaultEventAction('keydown', (event) => {
-
-        var nativeEvent = event && event.nativeEvent;
-        if (nativeEvent.defaultPrevented)
-          return;
-
-        var keyCode       = ('' + (nativeEvent.code || nativeEvent.key)),
-            focussedField = this.getCurrentlyFocussedField();
-
-        if (keyCode === 'Tab') {
-          if (!focussedField || focussedField !== this)
-            return;
-
-          var form = this.getParentForm();
-
-          if (form && typeof form.focusNext === 'function') {
-            preventEventDefault(event);
-            stopEventImmediatePropagation(event);
-            form.focusNext(this, nativeEvent.shiftKey);
-          }
-        } else if (keyCode === 'Enter') {
-          if (!this.props.actionable)
-            return;
-
-          if (focussedField) {
-            if (typeof focussedField.onHandleFocussedAction === 'function' && focussedField.onHandleFocussedAction.call(this, { event, keyCode, focussedField, ref: this }) === false)
-              return false;
-
-            return;
-          }
-
-          // if (focussedField && typeof focussedField.onSubmitEditing === 'function')
-          //   return;
-
-          if (typeof this.onPress === 'function') {
-            preventEventDefault(event);
-            stopEventImmediatePropagation(event);
-
-            if (typeof this.onAction === 'function')
-              this.onAction(event);
-            else if (typeof this.onPress === 'function')
-              this.onPress(event);
-          }
-        }
-      });
+    getFocusableReference() {
     }
 
-    getFieldUUID() {
-      return this.getComponentID();
+    canReceiveFocus() {
+      return true;
     }
 
-    compare(field) {
-      return (field && typeof field.getFieldUUID === 'function' && field.getFieldUUID() === this.getFieldUUID());
-    }
-
-    getFieldReference() {
-      return this.getReference('_fieldInstance');
-    }
-
-    defaultOnFocus(event, blurLastField) {
-      var field = this.getFieldReference(),
-          value = this.value();
-
-      this._focussedFieldValue = value;
-      this.triggerAnalyticsEvent({ action: 'focussed', 'actionTarget': this.props.field, targetType: 'field' });
-
-      if (this.callProvidedCallback('onFocus', [event, value, field, this]) === false)
+    defaultOnFocusHandler(event, blurPrevious, callbackArgs) {
+      if (this.callProvidedCallback('onFocus', (callbackArgs) ? callbackArgs : [ event, this ]) === false)
         return false;
 
-      if (!this.props.skipFormRegistration) {
-        var currentlyFocussedField = this.getCurrentlyFocussedField();
-        if (currentlyFocussedField && !this.compare(currentlyFocussedField))
-          currentlyFocussedField.blur();
-
-        this.setCurrentlyFocussedField(this, blurLastField);
-      }
-
+      this.setCurrentlyFocussedComponent(this, blurPrevious);
       this.setComponentFlagsFromObject({ focussed: true });
     }
 
-    defaultOnBlur(event) {
-      var field = this.getFieldReference(),
-          value = this.value();
-
-      if (value !== this._focussedFieldValue) {
-        this._focussedFieldValue = value;
-        this.triggerAnalyticsEvent({ action: 'changed', 'actionTarget': this.props.field, targetType: 'field' });
-      }
-
-      this.triggerAnalyticsEvent({ action: 'blurred', 'actionTarget': this.props.field, targetType: 'field' });
-
-      if (this.callProvidedCallback('onBlur', [event, value, field, this]) === false)
+    defaultOnBlurHandler(event, callbackArgs, blurDelay) {
+      if (this.callProvidedCallback('onBlur', (callbackArgs) ? callbackArgs : [ event, this ]) === false)
         return false;
 
-      if (this.compare(this.getCurrentlyFocussedField()))
-        this.setCurrentlyFocussedField(null);
+      if (this.getCurrentlyFocussedComponent() === this)
+        this.setCurrentlyFocussedComponent(null);
 
-      this.setComponentFlagsFromObject({ focussed: false });
+      if (!blurDelay) {
+        this.setComponentFlagsFromObject({ focussed: false });
+      } else {
+        // Here we have a small delay before we set the blur state
+        // so we don't have funky results with fields that blur
+        // but still need to capture events related to focus state
 
-      this.value(this.value(undefined, { format: 'format' }));
+        var promise = this.delay(() => {
+          this._raBlurDelay = null;
+          this.setComponentFlagsFromObject({ focussed: false });
+        }, blurDelay);
+
+        Object.defineProperty(this, '_raBlurDelay', {
+          writable: true,
+          enumerable: false,
+          configurable: false,
+          value: promise
+        });
+      }
     }
 
     focus(reverse) {
-      this.setCurrentlyFocussedField(this, true);
-      var field = this.getFieldReference();
+      if (this.isFlagFocussed())
+        return;
 
-      if (this.callProvidedCallback('onRequestFocus', [field, this]) === false)
+      var focusable = this.getFocusableReference();
+
+      if (this.callProvidedCallback('onRequestFocus', [ focusable, this, reverse ]) === false)
         return false;
 
-      this.setComponentFlagsFromObject({ focussed: true });
+      if (this._raBlurDelay) {
+        this._raBlurDelay.cancel();
+        this._raBlurDelay = null;
+      }
 
-      if (field && typeof field.focus === 'function')
-        field.focus();
+      this.setCurrentlyFocussedComponent(this, true);
+
+      if (focusable && typeof focusable.focus === 'function')
+        focusable.focus();
+      else
+        this.defaultOnFocusHandler();
     }
 
     blur() {
-      var field = this.getFieldReference();
-
-      if (this.getCurrentlyFocussedField() !== field)
+      if (!this.isFlagFocussed())
         return;
 
-      if (this.callProvidedCallback('onRequestBlur', [field, this]) === false)
+      var focusable = this.getFocusableReference();
+
+      if (this.callProvidedCallback('onRequestBlur', [ focusable, this ]) === false)
         return false;
 
-      this.setComponentFlagsFromObject({ focussed: false });
-
-      if (field && typeof field.blur === 'function')
-        field.blur();
-    }
-
-    getFieldName() {
-      return this.props.field;
-    }
-
-    componentMounting() {
-      this.registerDefaultFocussedAction();
-      super.componentMounting.apply(this, arguments);
-
-      if (this.props.skipFormRegistration)
-        return;
-
-      var parentForm = this.getParentForm();
-
-      if (parentForm && typeof parentForm.registerFormField === 'function')
-        parentForm.registerFormField(this);
-    }
-
-    componentUnmounting() {
-      this.unregisterDefaultEventActions();
-      super.componentUnmounting.apply(this, arguments);
-
-      var parentForm = this.getParentForm();
-      if (parentForm && typeof parentForm.unregisterFormField === 'function')
-        parentForm.unregisterFormField(this);
+      if (focusable && typeof focusable.blur === 'function')
+        focusable.blur();
+      else
+        this.defaultOnBlurHandler();
     }
   };
 }
