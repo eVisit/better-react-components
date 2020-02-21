@@ -1,5 +1,5 @@
-export function Focussable({ Parent, componentName }) {
-  return class Focussable extends Parent {
+export function Focusable({ Parent, componentName }) {
+  return class Focusable extends Parent {
     getParentForm() {
       return this.context.parentForm;
     }
