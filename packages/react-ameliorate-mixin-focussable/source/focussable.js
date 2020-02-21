@@ -7,7 +7,7 @@ export function Focussable({ Parent, componentName }) {
     getFocusableContext() {
     }
 
-    getFocusableReference() {
+    getFocusableReference(_opts) {
     }
 
     canReceiveFocus() {
@@ -54,7 +54,7 @@ export function Focussable({ Parent, componentName }) {
       if (this.isFlagFocussed())
         return;
 
-      var focusable = this.getFocusableReference();
+      var focusable = this.getFocusableReference({ reverse, blur: false, focus: true });
 
       if (this.callProvidedCallback('onRequestFocus', [ focusable, this, reverse ]) === false)
         return false;
@@ -76,7 +76,7 @@ export function Focussable({ Parent, componentName }) {
       if (!this.isFlagFocussed())
         return;
 
-      var focusable = this.getFocusableReference();
+      var focusable = this.getFocusableReference({ reverse: false, blur: true, focus: false });
 
       if (this.callProvidedCallback('onRequestBlur', [ focusable, this ]) === false)
         return false;

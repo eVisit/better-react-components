@@ -1270,8 +1270,11 @@ export default class ComponentBase {
   }
 
   getRootClassName(_componentName, ...args) {
+    var base = (_componentName) ? _componentName : this.getComponentName();
+    // if (base !== this.getComponentName())
+    //   return this.getClassName.apply(this, arguments);
+
     var prefix = this.getClassNamePrefix(),
-        base = (_componentName) ? _componentName : this.getComponentName(),
         classNames = this.generateNames({ prefix, base }, '', ...args);
 
     var specifiedClassName = this.props.className;

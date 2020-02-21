@@ -11,7 +11,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
   return class Button extends Parent {
     static styleSheet = styleSheet;
     static propTypes = {
-      caption: PropTypes.oneOfType([PropTypes.string, PropTypes.object]),
+      caption: PropTypes.oneOfType([ PropTypes.string, PropTypes.object ]),
       captionStyle: PropTypes.any,
       disabled: PropTypes.bool,
       iconContainerStyle: PropTypes.any,
@@ -26,6 +26,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       rightIcon: PropTypes.string,
       rightIconContainerStyle: PropTypes.any,
       rightIconStyle: PropTypes.any,
+      tabIndex: PropTypes.number,
       theme: PropTypes.string,
       tooltip: PropTypes.string,
       tooltipSide: PropTypes.string,
@@ -287,6 +288,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
           data-tooltip={this.props.tooltip}
           data-tooltip-side={this.props.tooltipSide || 'bottom'}
           data-tooltip-type={this.props.tooltipType || 'default'}
+          data-tabindex={this.props.tabIndex}
           {...this.getHoverableProps()}
           ref={this.captureReference('_rootView')}
         >
