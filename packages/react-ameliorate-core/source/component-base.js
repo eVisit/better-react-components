@@ -1147,6 +1147,16 @@ export default class ComponentBase {
     return this.memoizeWithCacheID(id, cb, args);
   }
 
+  memoizeState(cb, stateKeys) {
+    var id   = ('' + cb),
+        args = this.stateKeysToValueArray(stateKeys);
+
+    return this.memoizeWithCacheID(id, (...values) => {
+      var valuesObj = this.valuesArrayToObject(stateKeys, values);
+      return cb.call(this, valuesObj);
+    }, args);
+  }
+
   stateKeysToValueArray(keys) {
     if (!keys)
       return [];

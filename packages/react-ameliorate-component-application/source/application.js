@@ -98,7 +98,7 @@ export const Application = componentFactory('Application', ({ Parent, componentN
       //console.log('Handling global event', eventName, componentIDs);
       for (var i = 0, il = componentIDs.length; i < il; i++) {
         if (nativeEvent.propagationStopped) {
-          if (__DEV__ && !devMessageHappened) {
+          if (__DEV__ && global.raDebug && !devMessageHappened) {
             devMessageHappened = true;
             console.log(`Event ${eventName} handled/captured by ${componentID}`, document.querySelector('.eVisitApp' + componentID));
           }
@@ -121,7 +121,7 @@ export const Application = componentFactory('Application', ({ Parent, componentN
           action.callback(newEvent);
 
           if (nativeEvent.immediatePropagationStopped) {
-            if (__DEV__ && !devMessageHappened) {
+            if (__DEV__ && global.raDebug && !devMessageHappened) {
               devMessageHappened = true;
               console.log(`Event ${eventName} handled/captured by ${componentID}`, document.querySelector('.eVisitApp' + componentID));
             }
