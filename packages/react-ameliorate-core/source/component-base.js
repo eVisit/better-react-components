@@ -1147,9 +1147,16 @@ export default class ComponentBase {
     return this.memoizeWithCacheID(id, cb, args);
   }
 
-  memoizeState(cb, stateKeys) {
-    var id   = ('' + cb),
-        args = this.stateKeysToValueArray(stateKeys);
+  memoizeState(cb, _stateKeys, extraProps) {
+    var id        = ('' + cb),
+        stateKeys = _stateKeys.slice(),
+        args      = this.objectToValuesArray(this.getState(), stateKeys);
+
+    if (extraProps) {
+      var extraStateKeys = Object.keys(extraProps);
+      args = args.concat(this.objectToValuesArray(extraProps, extraStateKeys));
+      stateKeys = stateKeys.concat(extraStateKeys);
+    }
 
     return this.memoizeWithCacheID(id, (...values) => {
       var valuesObj = this.valuesArrayToObject(stateKeys, values);
@@ -1157,16 +1164,16 @@ export default class ComponentBase {
     }, args);
   }
 
-  stateKeysToValueArray(keys) {
-    if (!keys)
+  objectToValuesArray(obj, _keys) {
+    if (!obj)
       return [];
 
-    var state   = this.getState(),
+    var keys    = (_keys) ? _keys : Object.keys(obj),
         values  = [];
 
     for (var i = 0, il = keys.length; i < il; i++) {
       var key = keys[i];
-      values.push(U.get(state, key));
+      values.push(U.get(obj, key));
     }
 
     return values;
