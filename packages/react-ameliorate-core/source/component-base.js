@@ -1149,7 +1149,7 @@ export default class ComponentBase {
 
   memoizeState(cb, _stateKeys, extraProps) {
     var id        = ('' + cb),
-        stateKeys = _stateKeys.slice(),
+        stateKeys = (_stateKeys) ? _stateKeys.slice() : [],
         args      = this.objectToValuesArray(this.getState(), stateKeys);
 
     if (extraProps) {
