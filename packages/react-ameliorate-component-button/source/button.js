@@ -77,6 +77,10 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       return this.onPress(event);
     }
 
+    async onPressHandler(event) {
+      return await this.callProvidedCallback('onPress', { event });
+    }
+
     async onPress(event) {
       stopEventPropagation(event);
 
@@ -85,7 +89,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
 
       try {
         this.setState({ awaitingClick: true });
-        return await this.callProvidedCallback('onPress', { event });
+        return this.onPressHandler(event);
       } finally {
         this.setState({ awaitingClick: false });
       }
