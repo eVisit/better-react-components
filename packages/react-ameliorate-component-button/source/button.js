@@ -77,8 +77,8 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       return this.onPress(event);
     }
 
-    async onPressHandler(event) {
-      return await this.callProvidedCallback('onPress', { event });
+    async onPressHandler(event, args) {
+      return await this.callProvidedCallback('onPress', { event, ...(args || {}) });
     }
 
     async onPress(event) {
