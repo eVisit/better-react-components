@@ -24,7 +24,6 @@ export {
   ThemeProperties
 }                                 from '@react-ameliorate/styles';
 
-
 function mixinClasses(_Parent, componentName, componentInternalName, mixins) {
   var Parent = _Parent;
 
@@ -49,6 +48,26 @@ function propCallbackNameToMethodMap(methodNames) {
       methodName: name
     };
   });
+}
+
+export function mixinFactory(_name, definer, _options) {
+  var name          = _name,
+      options       = _options || {},
+      parentMixins = (typeof options === 'function' || (options instanceof Array)) ? options : options.mixins;
+
+  if (!(parentMixins instanceof Array))
+    parentMixins = [ parentMixins ].filter(Boolean);
+
+  return function(args) {
+    var Parent = args.Parent;
+
+    for (var i = 0, il = parentMixins.length; i < il; i++) {
+      var mixin = parentMixins[i];
+      Parent = mixin.call(this, Object.assign({}, args, { Parent }));
+    }
+
+    return definer.call(this, Object.assign({}, args, { Parent, mixinName: name }));
+  };
 }
 
 export function componentFactory(_name, definer, _options) {
