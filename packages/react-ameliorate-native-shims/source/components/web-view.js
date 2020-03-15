@@ -64,7 +64,9 @@ class WebView extends View {
         parentNode.appendChild(newScript);
       }
 
-     this.onScriptsRan();
+      setTimeout(() => {
+        this.onScriptsRan();
+      }, 15);
     }
   }
 }
