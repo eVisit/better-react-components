@@ -426,7 +426,7 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       overlay.removeChild(child);
     }
 
-    onPropsUpdated(oldProps, newProps, initial) {
+    onPropsUpdated(newProps, oldProps, initial) {
       if (initial || oldProps.anchor !== newProps.anchor)
         this.updateAnchorLayout();
 

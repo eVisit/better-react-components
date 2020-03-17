@@ -50,7 +50,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       return value;
     }
 
-    onPropsUpdated(oldProps, newProps, initial) {
+    onPropsUpdated(newProps, oldProps, initial) {
       this.updateComponentFlagsFromProps(oldProps, newProps, initial);
       return super.onPropsUpdated.apply(this, arguments);
     }

@@ -568,7 +568,7 @@ export default class ComponentBase {
 
     if (initial || props !== this._raResolvedPropsCache) {
       this.props = this._raResolvedPropsCache = props;
-      this._invokePropUpdates(initial, props, oldProps, ...args);
+      this._invokeStateOrPropKeyUpdates(false, initial, props, oldProps);
       return true;
     }
 
@@ -576,6 +576,10 @@ export default class ComponentBase {
   }
 
   _invokeStateOrPropKeyUpdates(stateUpdate, initial, obj, oldObj) {
+    var masterUpdateNotifier = (stateUpdate) ? this.onStateUpdated : this.onPropsUpdated;
+    if (typeof masterUpdateNotifier === 'function')
+      masterUpdateNotifier.call(this, obj, oldObj, initial);
+
     var onUpdateKeys = (stateUpdate) ? this.constructor._raOnStateUpdateKeys : this.constructor._raOnPropUpdateKeys;
     if (!onUpdateKeys)
       return;
@@ -593,17 +597,6 @@ export default class ComponentBase {
           updateFunc.call(this, value1, value2, initial);
       }
     }
-  }
-
-  _invokePropUpdates(initial, _props, _oldProps) {
-    var props = _props || {},
-        oldProps = _oldProps || {},
-        onPropsUpdated = this.onPropsUpdated;
-
-    if (typeof onPropsUpdated === 'function')
-      onPropsUpdated.call(this, oldProps, props, initial);
-
-    this._invokeStateOrPropKeyUpdates(false, initial, props, oldProps);
   }
 
   onPropsUpdated() {
