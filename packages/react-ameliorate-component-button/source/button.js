@@ -89,7 +89,7 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
 
       try {
         this.setState({ awaitingClick: true });
-        return this.onPressHandler(event);
+        return await this.onPressHandler(event);
       } finally {
         this.setState({ awaitingClick: false });
       }
