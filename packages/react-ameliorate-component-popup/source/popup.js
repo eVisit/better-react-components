@@ -6,31 +6,33 @@ import { Paper }                        from '@react-ameliorate/component-paper'
 import { capitalize }                   from '@react-ameliorate/utils';
 import styleSheet                       from './popup-styles';
 
-const ARROW_SHIFT_AMOUNT_RATIO = 0.5;
+const ARROW_SHIFT_AMOUNT_RATIO_H = 0.6,
+      ARROW_SHIFT_AMOUNT_RATIO_V = 0.5;
+
 const ARROW_SHIFT_TABLE = {
   arrowHCenter: {
     axis: 'x',
-    value: -ARROW_SHIFT_AMOUNT_RATIO
+    value: -ARROW_SHIFT_AMOUNT_RATIO_H
   },
   arrowVCenter: {
     axis: 'y',
-    value: -ARROW_SHIFT_AMOUNT_RATIO
+    value: -ARROW_SHIFT_AMOUNT_RATIO_V
   },
   arrowDown: {
     axis: 'y',
-    value: ARROW_SHIFT_AMOUNT_RATIO
+    value: ARROW_SHIFT_AMOUNT_RATIO_V
   },
   arrowUp: {
     axis: 'y',
-    value: -ARROW_SHIFT_AMOUNT_RATIO
+    value: -ARROW_SHIFT_AMOUNT_RATIO_V
   },
   arrowLeft: {
     axis: 'x',
-    value: -ARROW_SHIFT_AMOUNT_RATIO
+    value: -ARROW_SHIFT_AMOUNT_RATIO_H
   },
   arrowRight: {
     axis: 'x',
-    value: ARROW_SHIFT_AMOUNT_RATIO
+    value: ARROW_SHIFT_AMOUNT_RATIO_H
   }
 };
 
