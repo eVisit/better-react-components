@@ -13,7 +13,8 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
       defaultSizeConstraints: PropTypes.bool,
       disallowReposition: PropTypes.bool,
       hasBorder: PropTypes.bool,
-      inline: PropTypes.bool
+      inline: PropTypes.bool,
+      modalStyle: PropTypes.any
     }];
 
     static defaultProps = {
@@ -123,7 +124,8 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
             (this.props.defaultSizeConstraints !== false) ? 'defaultConstraints' : null,
             (this.props.hasBorder !== false) ? 'containerBorder' : null,
             'container',
-            this.props.style, (!this.props.disallowReposition) ? this.getState('modalPositionStyle') : null
+            this.props.style, (!this.props.disallowReposition) ? this.getState('modalPositionStyle') : null,
+            this.props.modalStyle
           )}
           pointerEvents="auto"
         >
