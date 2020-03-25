@@ -22,6 +22,7 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
       onTabPress: PropTypes.func,
       showCaptions: PropTypes.bool,
       showIcons: PropTypes.bool,
+      showTabs: PropTypes.bool,
       collapsed: PropTypes.bool,
       tabCaptionContainerStyle: PropTypes.any,
       tabCaptionStyle: PropTypes.any,
@@ -41,7 +42,8 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
 
     static defaultProps = {
       pagerBarPlacement: 'north',
-      collapsed: false
+      collapsed: false,
+      showTabs: true
     };
 
     constructor(props, ...args) {
@@ -155,11 +157,11 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
 
           {this.renderBackground()}
 
-          {(renderPagerBarFirst) && this._renderPagerBar({ pagerBarPlacement })}
+          {(this.props.showTabs && renderPagerBarFirst) && this._renderPagerBar({ pagerBarPlacement })}
 
           {this._renderPage({ children, pagerBarPlacement })}
 
-          {(!renderPagerBarFirst) && this._renderPagerBar({ pagerBarPlacement })}
+          {(this.props.showTabs && !renderPagerBarFirst) && this._renderPagerBar({ pagerBarPlacement })}
         </View>
       );
     }
