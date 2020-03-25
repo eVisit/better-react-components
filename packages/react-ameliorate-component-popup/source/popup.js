@@ -44,7 +44,8 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       hasArrow: PropTypes.bool,
       arrowStyle: PropTypes.any,
       internalContainerStyle: PropTypes.any,
-      popupGroup: PropTypes.string
+      popupGroup: PropTypes.string,
+      inline: PropTypes.bool
     };
 
     static defaultProps = {
@@ -170,10 +171,57 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
       return this.style('arrow', directionStyles, styles, this.getDynamicArrowStyles(arrowStyle, directionStyles.concat(styles)), styles.map((style) => `${style}ColorMask`), this.props.arrowStyle);
     }
 
-    render(children) {
-      var { quadrantX, quadrantY, quadrantValues } = this.getState(),
-          hasArrow = this.props.hasArrow,
-          arrowStyle = (hasArrow) ? this.getArrowStyle() : null;
+    _renderContent(args) {
+      var {
+            quadrantX,
+            quadrantY,
+            quadrantValues
+          }                 = this.getState(),
+          hasArrow          = this.props.hasArrow,
+          arrowStyle        = (hasArrow) ? this.getArrowStyle() : null;
+
+      return this.renderContent({
+        quadrantX,
+        quadrantY,
+        quadrantValues,
+        hasArrow,
+        arrowStyle,
+        ...(args || {})
+      });
+    }
+
+    renderContent(args) {
+      var {
+            quadrantX,
+            quadrantY,
+            hasArrow,
+            arrowStyle,
+            children
+          } = (args || {});
+
+      return (
+        <View
+          className={this.getClassName(componentName, 'container')}
+          style={this.style('container', `container${quadrantX}`, `container${quadrantY}`, hasArrow && `containerWithArrow${quadrantX}`, hasArrow && `containerWithArrow${quadrantY}`, this.props.style)}
+        >
+          <View
+            className={this.getClassName(componentName, 'internalContainer')}
+            style={this.style('internalContainer', `internalContainer${quadrantX}`, `internalContainer${quadrantY}`, hasArrow && `internalContainerWithArrow${quadrantX}`, hasArrow && `internalContainerWithArrow${quadrantY}`, this.props.internalContainerStyle)}
+          >
+            {children}
+          </View>
+
+          {(!!arrowStyle) && <View style={this.style('arrow', arrowStyle)}/>}
+        </View>
+      );
+    }
+
+    render(_children) {
+      var children        = this.getChildren(_children),
+          quadrantValues  = this.getState('quadrantValues');
+
+      if (this.props.inline)
+        return super.render(this._renderContent({ children }));
 
       return super.render(
         <Paper
@@ -184,19 +232,7 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
           onPositionUpdated={this.onPositionUpdated}
           visible={!!quadrantValues}
         >
-          <View
-            className={this.getClassName(componentName, 'container')}
-            style={this.style('container', `container${quadrantX}`, `container${quadrantY}`, hasArrow && `containerWithArrow${quadrantX}`, hasArrow && `containerWithArrow${quadrantY}`, this.props.style)}
-          >
-            <View
-              className={this.getClassName(componentName, 'internalContainer')}
-              style={this.style('internalContainer', `internalContainer${quadrantX}`, `internalContainer${quadrantY}`, hasArrow && `internalContainerWithArrow${quadrantX}`, hasArrow && `internalContainerWithArrow${quadrantY}`, this.props.internalContainerStyle)}
-            >
-              {this.getChildren(children)}
-            </View>
-
-            {(!!arrowStyle) && <View style={this.style('arrow', arrowStyle)}/>}
-          </View>
+          {this._renderContent({ children })}
         </Paper>
       );
     }

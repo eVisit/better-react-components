@@ -925,7 +925,7 @@ export default class ComponentBase {
     return true;
   }
 
-  setStatePassive(_newState, initial, invokeUpdates) {
+  setStatePassive(_newState, initial, invokeUpdates, debug) {
     var newState = _newState;
     if (!newState)
       return newState;
@@ -942,8 +942,14 @@ export default class ComponentBase {
     if (!newState)
       return newState;
 
+    if (debug)
+      debugger;
+
     var oldState = this._raInternalState,
         currentState = this._raInternalState = Object.assign({}, oldState, newState);
+
+    if (debug)
+      debugger;
 
     if (!areObjectsEqualShallow(oldState, currentState))
       this._raStateUpdateCounter++;
@@ -959,8 +965,8 @@ export default class ComponentBase {
     return newState;
   }
 
-  setState(_newState, doneCallback) {
-    var newState = this.setStatePassive(_newState);
+  setState(_newState, doneCallback, debug) {
+    var newState = this.setStatePassive(_newState, undefined, undefined, debug);
 
     if (this.mounted() && !this.areUpdatesFrozen() && this._raIsRenderingSemaphore <= 0) {
       this._setReactComponentState(newState, doneCallback);
