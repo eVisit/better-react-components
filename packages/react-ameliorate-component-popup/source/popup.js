@@ -6,7 +6,7 @@ import { Paper }                        from '@react-ameliorate/component-paper'
 import { capitalize }                   from '@react-ameliorate/utils';
 import styleSheet                       from './popup-styles';
 
-const ARROW_SHIFT_AMOUNT_RATIO_H = 0.6,
+const ARROW_SHIFT_AMOUNT_RATIO_H = 0.5,
       ARROW_SHIFT_AMOUNT_RATIO_V = 0.5;
 
 const ARROW_SHIFT_TABLE = {
@@ -82,12 +82,19 @@ export const Popup = componentFactory('Popup', ({ Parent, componentName }) => {
         return false;
     }
 
-    onPositionUpdated({ position }) {
+    onPositionUpdated(args) {
+      if (this.hasProvidedCallback('onPositionUpdated'))
+        this.callProvidedCallback('onPositionUpdated', args);
+
+      var { position } = args;
+
       this.setState({
         quadrantX       : capitalize(U.get(position, 'quadrant.x', '')),
         quadrantY       : capitalize(U.get(position, 'quadrant.y', '')),
         quadrantValues  : U.get(position, 'quadrant.values', null),
       });
+
+      return position;
     }
 
     getDynamicArrowStyles(arrowStyle, styles) {

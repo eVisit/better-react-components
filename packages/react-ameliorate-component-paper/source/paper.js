@@ -144,7 +144,18 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
     else if (targetSide === 'center')
       position -= (targetRect.width * 0.5);
 
-    var positionEnd = position + targetRect.width;
+    var ca = this.props.constrainToArea,
+        positionEnd = position + targetRect.width;
+
+    if (ca) {
+      if (ca.left != null && position < ca.left)
+        position = ca.left;
+
+      if (ca.right != null && positionEnd > ca.right) {
+        position = ca.right - targetRect.width;
+        positionEnd = position + targetRect.width;
+      }
+    }
 
     if (position < 0)
       position += targetRect.width;
@@ -168,7 +179,18 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
     else if (targetSide === 'center')
       position -= (targetRect.height * 0.5);
 
-    var positionEnd = position + targetRect.height;
+    var ca = this.props.constrainToArea,
+        positionEnd = position + targetRect.height;
+
+    if (ca) {
+      if (ca.top != null && position < ca.top)
+        position = ca.top;
+
+      if (ca.bottom != null && positionEnd > ca.bottom) {
+        position = ca.bottom - targetRect.height;
+        positionEnd = position + targetRect.height;
+      }
+    }
 
     if (position < 0)
       position += targetRect.height;
@@ -204,19 +226,10 @@ function calculateAnchorPosition({ anchorRef, anchorLayout, ref, layout, anchorP
   if (!positionInfo)
     return;
 
-  var targetPosition  = calculateTargetPosition(anchorRect, targetRect, positionInfo),
-      finalStyle      = {};
+  var targetPosition  = calculateTargetPosition.call(this, anchorRect, targetRect, positionInfo);
 
   if (!targetPosition || !targetPosition.x || !targetPosition.y)
     return;
-
-  finalStyle.left = targetPosition.x.position;
-  if (targetPosition.x.offset)
-    finalStyle['marginLeft'] = targetPosition.x.offset;
-
-  finalStyle.top = targetPosition.y.position;
-  if (targetPosition.y.offset)
-    finalStyle['marginTop'] = targetPosition.y.offset;
 
   return {
     anchorPosition,
@@ -230,12 +243,26 @@ function calculateAnchorPosition({ anchorRef, anchorLayout, ref, layout, anchorP
     },
     position: targetPosition,
     quadrant: getPositionQuadrant(positionInfo),
-    style: finalStyle
+    style: calculateStyleFromPosition(targetPosition)
   };
 }
 
 function defaultPositioner(args) {
   return calculateAnchorPosition.call(this, args);
+}
+
+function calculateStyleFromPosition(targetPosition) {
+  var finalStyle = {};
+
+  finalStyle.left = targetPosition.x.position;
+  if (targetPosition.x.offset)
+    finalStyle['marginLeft'] = targetPosition.x.offset;
+
+  finalStyle.top = targetPosition.y.position;
+  if (targetPosition.y.offset)
+    finalStyle['marginTop'] = targetPosition.y.offset;
+
+  return finalStyle;
 }
 
 export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
@@ -259,7 +286,8 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       pointerEvents: PropTypes.string,
       position: PropTypes.func,
       visible: PropTypes.bool,
-      contentRef: PropTypes.func
+      contentRef: PropTypes.func,
+      constrainToArea: PropTypes.object
     };
 
     provideContext() {
@@ -350,7 +378,11 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
           args.position = position;
           args._position = currentPosition;
 
-          this.callProvidedCallback('onPositionUpdated', args);
+          if (this.hasProvidedCallback('onPositionUpdated')) {
+            this.callProvidedCallback('onPositionUpdated', args);
+            args.position.style = calculateStyleFromPosition(args.position.position);
+          }
+
           this.setState({ position });
         }
       }, 10, 'positionUpdateDelay');
