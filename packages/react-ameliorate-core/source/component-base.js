@@ -469,14 +469,14 @@ export default class ComponentBase {
     }
 
     if (this.areUpdatesFrozen()) {
-      if (shouldDebugRender)
+      if (__DEV__ && shouldDebugRender)
         console.log(`----> ${componentName}${debugRenderGroup}: NOT rendering because component state updates are currently frozen`);
 
       return (this._raRenderCache || null);
     }
 
     if (this._raRenderCacheInvalid !== true && this._raRenderCache !== undefined) {
-      if (shouldDebugRender)
+      if (__DEV__ && shouldDebugRender)
         console.log(`----> ${componentName}${debugRenderGroup}: NOT rendering because component render cache is still valid`);
 
       return this._raRenderCache;
