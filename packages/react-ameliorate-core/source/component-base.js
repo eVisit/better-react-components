@@ -1791,6 +1791,11 @@ export default class ComponentBase {
   }
 
   getLanguageTermFormatterFlagFormatters() {
+    const pluralize = (_value) => {
+      var value = ('' + _value);
+      return (value.match(/s$/)) ? (value + '\'') : (value + '\'s');
+    };
+
     return [
       {
         flag: '_',
@@ -1825,19 +1830,25 @@ export default class ComponentBase {
       {
         flag: '@@@',
         formatter: (value) => {
-          return moment(value).format('MM/DD/YYYY HH:mm:ssa');
+          return moment(value).format('MM/DD/YYYY hh:mm:ssa');
         }
       },
       {
         flag: '@@',
         formatter: (value) => {
-          return moment(value).format('HH:mm:ssa');
+          return moment(value).format('hh:mm:ssa');
         }
       },
       {
         flag: '@',
         formatter: (value) => {
           return moment(value).format('MM/DD/YYYY');
+        }
+      },
+      {
+        flag: '+',
+        formatter: (value) => {
+          return pluralize(value);
         }
       }
     ];
