@@ -66,7 +66,7 @@ export default createStyleSheet(function(theme) {
       flex: 0,
       padding: BUTTON_PADDING,
       flexDirection: 'column',
-      alignItems: 'center',
+      alignItems: 'stretch',
       justifyContent: 'flex-start'
     },
     buttonContainer: {
