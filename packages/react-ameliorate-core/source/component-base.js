@@ -925,6 +925,10 @@ export default class ComponentBase {
     return true;
   }
 
+  canUpdateState() {
+    return (this.mounted() && !this.areUpdatesFrozen() && this._raIsRenderingSemaphore <= 0);
+  }
+
   setStatePassive(_newState, initial, invokeUpdates, debug) {
     var newState = _newState;
     if (!newState)
@@ -968,7 +972,7 @@ export default class ComponentBase {
   setState(_newState, doneCallback, debug) {
     var newState = this.setStatePassive(_newState, undefined, undefined, debug);
 
-    if (this.mounted() && !this.areUpdatesFrozen() && this._raIsRenderingSemaphore <= 0) {
+    if (this.canUpdateState()) {
       this._setReactComponentState(newState, doneCallback);
     } else if (__DEV__) {
       var { shouldDebugRender, debugRenderGroup, componentName } = this._shouldDebugRender(this.props, this.getState());
