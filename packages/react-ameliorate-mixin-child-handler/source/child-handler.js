@@ -149,7 +149,7 @@ export function ChildHandler({ Parent, componentName }) {
         newChildMap[childID] = child;
       }
 
-      // Calculate the difference and sound out events
+      // Calculate the difference and send out events
       var allChildIDs = Object.keys(allChildMap),
           state;
 
@@ -159,13 +159,13 @@ export function ChildHandler({ Parent, componentName }) {
             currentMatchingChild = allChildMap[newChildID];
 
         if (currentMatchingChild) {
+          state = currentMatchingChild.state;
+
           if (newChild) {
             if (currentMatchingChild.element !== newChild) {
               hasChange = true;
               currentMatchingChild.element = newChild;
             }
-
-            state = currentMatchingChild.state;
 
             if (state === 'leaving' || state === 'left') {
               hasChange = true;
