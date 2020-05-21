@@ -359,6 +359,18 @@ export class StyleSheetBuilder {
       return mergedStyles[0];
 
     var finalStyle = this._styleCache[cacheKey] = this.flattenInternalStyleSheet(mergedStyles);
+
+    if (__DEV__) {
+      var keys = Object.keys(finalStyle);
+      for (var i = 0, il = keys.length; i < il; i++) {
+        var key   = keys[i],
+            value = finalStyle[key];
+
+        if (typeof value === 'number' && (isNaN(value) || !isFinite(value)))
+          throw new Error(`Error: Invalid style property detected [${this.sheetName}][${key}]: ${value}`);
+      }
+    }
+
     return finalStyle;
   }
 
