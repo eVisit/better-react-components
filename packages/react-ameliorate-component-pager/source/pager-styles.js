@@ -20,7 +20,8 @@ export default createStyleSheet(function(theme) {
       flexDirection: 'row'
     },
     pageContainer: {
-      flex: 1
+      flex: 1,
+      overflow: 'hidden'
     }
   };
 });
