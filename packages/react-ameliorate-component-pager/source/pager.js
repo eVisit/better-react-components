@@ -137,7 +137,7 @@ export const Pager = componentFactory('Pager', ({ Parent, componentName }) => {
 
       return (
         <View className={this.getClassName(componentName, pageContainerNames)} style={this.style(pageContainerNames, this.props.pageContainerStyle)}>
-          {this.renderPage({ activeTab, tab, children, pagerBarPlacement, pageContainerNames })}
+          {this.renderPage({ activeTab, tab, tabs: this.props.tabs, children, pagerBarPlacement, pageContainerNames })}
         </View>
       );
     }
