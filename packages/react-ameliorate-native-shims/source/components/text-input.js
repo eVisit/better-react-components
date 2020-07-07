@@ -21,6 +21,7 @@ class TextInputShim extends React.Component {
     // This is required to get Chrome to TRULY respect 'autoComplete="off"'
     // https://stackoverflow.com/questions/12374442/chrome-ignores-autocomplete-off
     this._autoCompleteRandomValue = U.uuid();
+    this._currentSelectionRange = null;
   }
 
   static propTypes = TextInputPropTypes;
@@ -36,7 +37,7 @@ class TextInputShim extends React.Component {
     };
   }
 
-  componentDidMount() {
+  componentDidMount = () => {
     if (this.props.autoFocus === true && this._inputRef)
       this._inputRef.focus();
 
@@ -46,20 +47,23 @@ class TextInputShim extends React.Component {
     }
   }
 
-  componentWillUnmount() {
+  componentWillUnmount = () => {
     if (this._inputRef)
       this._inputRef.removeEventListener('input', this.autoExpand);
   }
 
-  componentDidUpdate(prevProps) {
+  // After update, make sure to set the specified selection range,
+  // or if none is specified, use the recorded selection range
+  // before update happened
+  componentDidUpdate = (prevProps) => {
     if (this.props.multiline && prevProps.value !== this.props.value)
       this.autoExpand();
 
-    if (!this._inputRef || prevProps.selection === this.props.selection)
+    if (!this._inputRef)
       return;
 
     try {
-      var selection = this.props.selection,
+      var selection = this.props.selection || this._currentSelectionRange,
           start = (selection && selection.start),
           end   = (selection && selection.end);
 
@@ -71,6 +75,65 @@ class TextInputShim extends React.Component {
 
       this._inputRef.setSelectionRange(start, end);
     } catch (e) {}
+  }
+
+  // Special thanks to Tim Down from StackOverflow for this
+  // https://stackoverflow.com/questions/3286595/update-textarea-value-but-keep-cursor-position
+
+  // Here we get the current selection range of the field (before update)
+  getInputSelectionRange = () => {
+    if (!this._inputRef)
+      return { start: 999999999, end: 999999999 };
+
+    var start = 0,
+        end = 0,
+        normalizedValue,
+        range,
+        textInputRange,
+        len,
+        endRange,
+        element = this._inputRef;
+
+    if (typeof element.selectionStart == "number" && typeof element.selectionEnd == "number") {
+      start = element.selectionStart;
+      end = element.selectionEnd;
+    } else {
+      range = document.selection.createRange();
+
+      if (range && range.parentElement() == element) {
+        len = element.value.length;
+        normalizedValue = element.value.replace(/\r\n/g, "\n");
+
+        // Create a working TextRange that lives only in the input
+        textInputRange = element.createTextRange();
+        textInputRange.moveToBookmark(range.getBookmark());
+
+        // Check if the start and end of the selection are at the very end
+        // of the input, since moveStart/moveEnd doesn't return what we want
+        // in those cases
+        endRange = element.createTextRange();
+        endRange.collapse(false);
+
+        if (textInputRange.compareEndPoints("StartToEnd", endRange) > -1) {
+          start = end = len;
+        } else {
+          start = -textInputRange.moveStart("character", -len);
+          start += normalizedValue.slice(0, start).split("\n").length - 1;
+
+          if (textInputRange.compareEndPoints("EndToEnd", endRange) > -1) {
+            end = len;
+          } else {
+            end = -textInputRange.moveEnd("character", -len);
+            end += normalizedValue.slice(0, end).split("\n").length - 1;
+          }
+        }
+      }
+    }
+
+    return {
+      start,
+      end
+    };
   }
 
   autoExpand = () => {
@@ -177,7 +240,12 @@ class TextInputShim extends React.Component {
     this._inputRef.blur();
   }
 
-  render() {
+  // Get current caret position before update (so we can restore it after update)
+  getSnapshotBeforeUpdate = () => {
+    this._currentSelectionRange = this.getInputSelectionRange();
+  }
+
+  render = () => {
     var providedProps = this.props,
         value = (providedProps.value !== undefined) ? providedProps.value : this.state.value,
         multiline = providedProps.multiline,
