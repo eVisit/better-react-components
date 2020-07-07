@@ -243,6 +243,7 @@ class TextInputShim extends React.Component {
   // Get current caret position before update (so we can restore it after update)
   getSnapshotBeforeUpdate = () => {
     this._currentSelectionRange = this.getInputSelectionRange();
+    return null; // Or React has a hissy fit
   }
 
   render = () => {
