@@ -21,7 +21,6 @@ class TextInputShim extends React.Component {
     // This is required to get Chrome to TRULY respect 'autoComplete="off"'
     // https://stackoverflow.com/questions/12374442/chrome-ignores-autocomplete-off
     this._autoCompleteRandomValue = U.uuid();
-    this._currentSelectionRange = null;
   }
 
   static propTypes = TextInputPropTypes;
@@ -55,15 +54,15 @@ class TextInputShim extends React.Component {
   // After update, make sure to set the specified selection range,
   // or if none is specified, use the recorded selection range
   // before update happened
-  componentDidUpdate = (prevProps) => {
+  componentDidUpdate = (prevProps, prevState, previousSelectionRange) => {
     if (this.props.multiline && prevProps.value !== this.props.value)
       this.autoExpand();
 
-    if (!this._inputRef)
+    if (!this._inputRef || prevProps.value === this.props.value)
       return;
 
     try {
-      var selection = this.props.selection || this._currentSelectionRange,
+      var selection = this.props.selection || previousSelectionRange,
           start = (selection && selection.start),
           end   = (selection && selection.end);
 
@@ -242,8 +241,7 @@ class TextInputShim extends React.Component {
 
   // Get current caret position before update (so we can restore it after update)
   getSnapshotBeforeUpdate = () => {
-    this._currentSelectionRange = this.getInputSelectionRange();
-    return null; // Or React has a hissy fit
+    return this.getInputSelectionRange();
   }
 
   render = () => {
