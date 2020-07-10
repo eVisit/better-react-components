@@ -633,7 +633,11 @@ export default class ComponentBase {
 
   _invokeComponentWillUnmount() {
     try {
-      return this.componentUnmounting();
+      var ret = this.componentUnmounting();
+
+      this.clearAllDelays();
+
+      return ret;
     } finally {
       this._raCleanup();
     }
@@ -1022,6 +1026,23 @@ export default class ComponentBase {
     console.trace(`STATE UPDATE [${this.getComponentName()}]: `, diff, [ newState, oldState ]);
   }
 
+  clearAllDelays() {
+    var delays  = this._componentDelayTimers,
+        ids     = Object.keys(delays || {});
+
+    for (var i = 0, il = ids.length; i < il; i++) {
+      var id    = ids[i],
+          delay = delays[id];
+
+      delete delays[id];
+
+      if (!delay || !delay.promise)
+        continue;
+
+      delay.promise.cancel();
+    }
+  }
+
   delay(func, time, _id) {
     const clearPendingTimeout = () => {
       if (pendingTimer && pendingTimer.timeout) {
@@ -1078,6 +1099,9 @@ export default class ComponentBase {
       };
 
       promise.cancel = () => {
+        if (status !== 'pending')
+          return;
+
         status = 'rejected';
         clearPendingTimeout();
         this._componentDelayTimers[id] = null;
