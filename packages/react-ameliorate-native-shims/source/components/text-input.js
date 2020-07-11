@@ -1,6 +1,7 @@
 //###if(MOBILE) {###//
 import { TextInput }              from 'react-native';
 //###} else {###//
+import PropTypes                  from '@react-ameliorate/prop-types';
 import { utils as U }             from 'evisit-js-utils';
 import React                      from 'react';
 import { flattenStyle }           from '../shim-utils';
@@ -23,7 +24,10 @@ class TextInputShim extends React.Component {
     this._autoCompleteRandomValue = U.uuid();
   }
 
-  static propTypes = TextInputPropTypes;
+  static propTypes = {
+    ...TextInputPropTypes,
+    restoreSelectionRangeOnUpdate: PropTypes.bool
+  };
 
   static getDerivedStateFromProps(nextProps, state) {
     var value = state.value;
@@ -59,6 +63,9 @@ class TextInputShim extends React.Component {
       this.autoExpand();
 
     if (!this._inputRef || prevProps.value === this.props.value)
+      return;
+
+    if (!this.restoreSelectionRangeOnUpdate && !this.props.selection)
       return;
 
     try {
