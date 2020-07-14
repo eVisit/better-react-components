@@ -846,6 +846,7 @@ export function getPlatform() {
   //###} else {###//
   if (typeof global.navigator !== 'undefined') {
     if (global.navigator.userAgent.match(/(iPad|iPhone|iPod|android|webOS|mobile)/i)
+        || (global.navigator.platform || '').match(/(iPad|iPhone)/i)
         || (global.navigator.userAgent.match(/Mac/) && global.navigator.maxTouchPoints > 2))
       return 'mobile_browser';
   }
