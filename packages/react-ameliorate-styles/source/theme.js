@@ -4,7 +4,7 @@ import { getPlatform }                          from '@react-ameliorate/utils';
 
 var themeIDCounter = 1;
 
-function getScreenInfo() {
+function getScreenInfo(disallowRotate) {
   /* globals _getWindowDimensions */
   if (typeof _getWindowDimensions === 'function')
     return _getWindowDimensions('window');
@@ -17,6 +17,21 @@ function getScreenInfo() {
     devicePixelRatio = window.devicePixelRatio || 1;
     width = window.innerWidth;
     height = window.innerHeight;
+
+    if (disallowRotate) {
+      var rotate = U.get(window, 'orientation', U.get(window, 'screen.orientation.angle', 0));
+      if (!isFinite(rotate))
+        rotate = 0;
+
+      console.log('ROTATION!!!', rotate);
+
+      var isLandscape = (Math.abs(rotate) === 90 || Math.abs(rotate) === 180);
+      if (isLandscape) {
+        var temp = width;
+        width = height;
+        height = temp;
+      }
+    }
   }
 
   return {
