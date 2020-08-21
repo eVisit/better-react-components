@@ -23,8 +23,6 @@ function getScreenInfo(disallowRotate) {
       if (!isFinite(rotate))
         rotate = 0;
 
-      console.log('ROTATION!!!', rotate);
-
       var isLandscape = (Math.abs(rotate) === 90 || Math.abs(rotate) === 180);
       if (isLandscape) {
         var temp = width;
