@@ -169,25 +169,30 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
       return elem;
     }
 
-    renderTitleBar() {
+    renderTitleBar(_args) {
+      var {
+            titleBarStyle,
+            titleBarTitleStyle,
+            titleBarIconStyle
+          } = (_args || {});
       return (
         <View
           className={this.getClassName(componentName, 'titleBar')}
           ref={this.captureReference('titleBar', this.convertTitleBarReference)}
           key="generic-modal-title-bar"
-          style={this.style('titleBar')}
+          style={this.style('titleBar', titleBarStyle)}
         >
           <View
             className={this.getClassName(componentName, 'titleBarTitle')}
             key="generic-modal-title"
-            style={this.style('titleBarTitle')}
+            style={this.style('titleBarTitle', titleBarTitleStyle)}
           >
             {(!!this.props.icon) && (
               <Icon
                 className={this.getClassName(componentName, 'titleBarIcon')}
                 icon={this.props.icon}
                 style={this.style('titleBarTitleIcon', this.props.iconStyle)}
-                containerStyle={this.style('titleBarTitleIconContainer', this.props.iconContainerStyle)}
+                containerStyle={this.style('titleBarTitleIconContainer', this.props.iconContainerStyle, titleBarIconStyle)}
               />
             )}
 
