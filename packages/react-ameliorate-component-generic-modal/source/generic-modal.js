@@ -238,15 +238,15 @@ export const GenericModal = componentFactory('GenericModal', ({ Parent, componen
     renderContent({ children }) {
       const doRender = () => {
         if (this.props.allowScrolling === false) {
-        return (
-          <View
-            className={this.getClassName(componentName, 'content')}
-            key="generic-modal-content"
-            style={this.style('contentScrollContainer')}
-          >
-            {children}
-          </View>
-        );
+          return (
+            <View
+              className={this.getClassName(componentName, 'content')}
+              key="generic-modal-content"
+              style={this.style('contentScrollContainer')}
+            >
+              {children}
+            </View>
+          );
         }
 
         var scrollViewProps = this.props.scrollViewProps || {};
