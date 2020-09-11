@@ -227,7 +227,7 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
         isFirst,
         isLast,
         lastButtonRadiusStyle,
-        toggled,
+        toggled
       } = args;
 
       var colorStyle = null;
@@ -251,6 +251,7 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
           tooltipType={button.tooltipType || this.props.tooltipType || 'default'}
           theme={button.theme || 'white'}
           disabled={button.disabled || this.props.disabled}
+          ref={button.ref}
         >
           {(buttonArgs, button) => {
             return (
