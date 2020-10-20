@@ -160,7 +160,7 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
     if (position < 0)
       position = 0;
     else if (positionEnd > window.innerWidth)
-      position -= (positionEnd - anchorRect.width);
+      position = (window.innerWidth - targetRect.width);
 
     return {
       position: Math.round(position),
@@ -195,7 +195,7 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
     if (position < 0)
       position = 0;
     else if (positionEnd > window.innerHeight)
-      position -= (positionEnd - window.innerHeight);
+      position = (window.innerHeight - targetRect.height);
 
     return {
       position: Math.round(position),
