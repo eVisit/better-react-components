@@ -134,10 +134,11 @@ function getPositionQuadrant(positionInfo) {
 }
 
 function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
-  const getX = (anchorInfo, targetInfo) => {
-    var anchorSide  = anchorInfo.x.side,
-        targetSide  = targetInfo.x.side,
-        position   = (anchorSide === 'center') ? (anchorRect.left + (anchorRect.width * 0.5)) : anchorRect[anchorSide];
+  const getX = (anchorInfo, targetInfo, originalPosition) => {
+    var anchorSide    = anchorInfo.x.side,
+        targetSide    = targetInfo.x.side,
+        oppositeSide  = (targetSide === 'right') ? 'left' : 'right',
+        position      = (anchorSide === 'center') ? (anchorRect.left + (anchorRect.width * 0.5)) : anchorRect[anchorSide];
 
     if (targetSide === 'right')
       position -= targetRect.width;
@@ -157,13 +158,23 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
       }
     }
 
-    if (position < 0)
-      position = 0;
-    else if (positionEnd > window.innerWidth)
-      position -= (positionEnd - anchorRect.width);
+    console.log({ anchorSide, targetSide, originalPosition });
 
-    if (position < 0)
-      position = (window.innerWidth - targetRect.width);
+    if ((position < 0 || positionEnd > window.innerWidth) && !originalPosition) {
+      return getX({
+        ...anchorInfo,
+        x: {
+          ...anchorInfo.x,
+          side: oppositeSide
+        }
+      }, {
+        ...targetInfo,
+        x: {
+          ...targetInfo.x,
+          side: oppositeSide
+        }
+      }, targetSide);
+    }
 
     return {
       position: Math.round(position),
@@ -172,10 +183,11 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
     };
   };
 
-  const getY = (anchorInfo, targetInfo) => {
-    var anchorSide = anchorInfo.y.side,
-        targetSide = targetInfo.y.side,
-        position = (anchorSide === 'center') ? (anchorRect.top + (anchorRect.height * 0.5)) : anchorRect[anchorSide];
+  const getY = (anchorInfo, targetInfo, originalPosition) => {
+    var anchorSide    = anchorInfo.y.side,
+        targetSide    = targetInfo.y.side,
+        oppositeSide  = (targetSide === 'bottom') ? 'top' : 'bottom',
+        position      = (anchorSide === 'center') ? (anchorRect.top + (anchorRect.height * 0.5)) : anchorRect[anchorSide];
 
     if (targetSide === 'bottom')
       position -= targetRect.height;
@@ -195,13 +207,15 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
       }
     }
 
-    if (position < 0)
-      position = 0;
-    else if (positionEnd > window.innerHeight)
-      position -= (positionEnd - window.innerHeight);
-
-    if ((position + targetRect.height) > window.innerHeight)
-      position = (window.innerHeight - targetRect.height);
+    if ((position < 0 || positionEnd > window.innerHeight) && !originalPosition) {
+      return getY(anchorInfo, {
+        ...targetInfo,
+        y: {
+          ...targetInfo.y,
+          side: oppositeSide
+        }
+      }, targetSide);
+    }
 
     return {
       position: Math.round(position),
