@@ -67,7 +67,7 @@ export function Focusable({ Parent, componentName }) {
       this.setCurrentlyFocussedComponent(this, true);
 
       if (focusable && typeof focusable.focus === 'function')
-        focusable.focus();
+        focusable.focus({ preventScroll: true });
       else
         this.defaultOnFocusHandler();
     }
