@@ -158,8 +158,6 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
       }
     }
 
-    console.log({ anchorSide, targetSide, originalPosition });
-
     if ((position < 0 || positionEnd > window.innerWidth) && !originalPosition) {
       return getX({
         ...anchorInfo,
