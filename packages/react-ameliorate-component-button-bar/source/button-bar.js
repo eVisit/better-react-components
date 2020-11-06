@@ -105,7 +105,7 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
           toggledStates: {},
-          lastPressedButton: null
+          activeButtonIndex: null
         })
       };
     }
@@ -123,13 +123,13 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
     }
 
     isButtonActive({ button, buttonIndex }) {
-      var lastPressedButton = this.getState('lastPressedButton');
+      var activeButtonIndex = this.getState('activeButtonIndex');
 
-      if (!lastPressedButton)
+      if (U.noe(activeButtonIndex))
         return button.active;
 
 
-      return (U.get(lastPressedButton, 'buttonIndex') === buttonIndex);
+      return (activeButtonIndex === buttonIndex);
     }
 
     toggleButton({ button, buttonIndex }, set) {
@@ -175,7 +175,7 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
     }
 
     async onButtonPress(button, buttonIndex, event) {
-      this.setState({ lastPressedButton: { button, buttonIndex } });
+      this.setState({ activeButtonIndex: buttonIndex });
 
       var onPress = (button && button.onPress);
       if (typeof onPress === 'function' && (await onPress.call(this, { button, buttonIndex, event })) === false)
