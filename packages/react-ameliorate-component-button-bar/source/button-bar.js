@@ -125,13 +125,11 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
     }
 
     isButtonActive({ button, buttonIndex }) {
-      var { activeButton } = this.props;
+      var { activeButton, defaultActiveButton } = this.props;
+      var { activeButtonIndex } = this.getState();
 
       if (!U.noe(activeButton))
        return (activeButton === buttonIndex);
-
-      var { defaultActiveButton } = this.props;
-      var activeButtonIndex = this.getState('activeButtonIndex');
 
       if (!U.noe(defaultActiveButton) && U.noe(activeButtonIndex))
         return (defaultActiveButton === buttonIndex);
