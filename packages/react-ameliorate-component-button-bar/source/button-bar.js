@@ -107,9 +107,16 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
           toggledStates: {},
-          activeButtonIndex: null
+          activeButtonIndex: this.props.defaultActiveButton || 0
         })
       };
+    }
+
+    onPropUpdated_activeButton(newValue) {
+      if (U.noe(newValue))
+        return;
+
+      this.setState({ activeButtonIndex: newValue });
     }
 
     getButtonToggleScope({ button, buttonIndex }) {
@@ -125,14 +132,7 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
     }
 
     isButtonActive({ button, buttonIndex }) {
-      var { activeButton, defaultActiveButton } = this.props;
       var { activeButtonIndex } = this.getState();
-
-      if (!U.noe(activeButton))
-       return (activeButton === buttonIndex);
-
-      if (!U.noe(defaultActiveButton) && U.noe(activeButtonIndex))
-        return (defaultActiveButton === buttonIndex);
 
       if (U.noe(activeButtonIndex))
         return button.active;
