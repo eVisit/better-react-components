@@ -280,10 +280,10 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
           disabled={button.disabled || this.props.disabled}
           ref={button.ref}
         >
-          {(buttonArgs, button) => {
+          {(buttonArgs, _button) => {
             return (
               <React.Fragment>
-                {button.renderDefaultContent(buttonArgs)}
+                {_button.renderDefaultContent(buttonArgs)}
 
                 {children}
 
