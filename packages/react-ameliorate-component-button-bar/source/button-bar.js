@@ -107,7 +107,7 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
           toggledStates: {},
-          activeButtonIndex: this.props.defaultActiveButton || 0
+          activeButtonIndex: props.defaultActiveButton || 0
         })
       };
     }
