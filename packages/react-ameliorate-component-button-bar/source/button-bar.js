@@ -11,6 +11,7 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
     static styleSheet = styleSheet;
 
     static propTypes = {
+      activeButton: PropTypes.number,
       activeButtonStyle: PropTypes.any,
       activeButtonCaptionStyle: PropTypes.any,
       activeButtonCaptionContainerStyle: PropTypes.any,
@@ -25,6 +26,7 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
       buttons: PropTypes.oneOfType([ PropTypes.array, PropTypes.func ]).isRequired,
       buttonStyle: PropTypes.any,
       calculateButtonRadiusStyle: PropTypes.func,
+      defaultActiveButton: PropTypes.number,
       direction: PropTypes.string,
       disabled: PropTypes.bool,
       firstButtonCaptionContainerStyle: PropTypes.any,
@@ -105,9 +107,16 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
         ...super.resolveState.apply(this, arguments),
         ...this.getState({
           toggledStates: {},
-          activeButtonIndex: null
+          activeButtonIndex: props.defaultActiveButton || 0
         })
       };
+    }
+
+    onPropUpdated_activeButton(newValue) {
+      if (U.noe(newValue))
+        return;
+
+      this.setState({ activeButtonIndex: newValue });
     }
 
     getButtonToggleScope({ button, buttonIndex }) {
@@ -123,11 +132,10 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
     }
 
     isButtonActive({ button, buttonIndex }) {
-      var activeButtonIndex = this.getState('activeButtonIndex');
+      var { activeButtonIndex } = this.getState();
 
       if (U.noe(activeButtonIndex))
         return button.active;
-
 
       return (activeButtonIndex === buttonIndex);
     }
@@ -272,10 +280,10 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
           disabled={button.disabled || this.props.disabled}
           ref={button.ref}
         >
-          {(buttonArgs, button) => {
+          {(buttonArgs, _button) => {
             return (
               <React.Fragment>
-                {button.renderDefaultContent(buttonArgs)}
+                {_button.renderDefaultContent(buttonArgs)}
 
                 {children}
 
