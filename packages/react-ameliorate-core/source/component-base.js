@@ -1137,7 +1137,7 @@ export default class ComponentBase {
     return [ this.getCurrentLocale() ];
   }
 
-  memoizeWithCacheID(cacheID, cb, _args) {
+  memoizeWithCacheID(cacheID, cb, _args, noDefaults) {
     const isCacheValid = (cache, args) => {
       if (!cache)
         return false;
@@ -1157,8 +1157,11 @@ export default class ComponentBase {
       return true;
     };
 
-    var args = (_args) ? _args.concat(this.memoizeDefaultArguments(cacheID, cb, args) || []) : null,
+    var args = (_args) ? _args : null,
         cache = this._raMemoizeCache[cacheID];
+
+    if (args && noDefaults !== true)
+      args = args.concat(this.memoizeDefaultArguments(cacheID, cb, args) || []);
 
     if (isCacheValid(cache, args))
       return cache.value;
@@ -1191,6 +1194,10 @@ export default class ComponentBase {
     }, args);
   }
 
+  invalidateMemoizeCache(cacheID) {
+    delete this._raMemoizeCache[cacheID];
+  }
+
   objectToValuesArray(obj, _keys) {
     if (!obj)
       return [];
@@ -1218,10 +1225,6 @@ export default class ComponentBase {
     }
 
     return obj;
-  }
-
-  invalidateMemoizeCache(cacheID) {
-    delete this._raMemoizeCache[cacheID];
   }
 
   shouldComponentUpdate(oldProps, oldState) {
