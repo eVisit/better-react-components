@@ -14,7 +14,8 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
       disallowReposition: PropTypes.bool,
       hasBorder: PropTypes.bool,
       inline: PropTypes.bool,
-      modalStyle: PropTypes.any
+      modalStyle: PropTypes.any,
+      pointerEvents: PropTypes.string
     }];
 
     static defaultProps = {
@@ -127,7 +128,7 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
             this.props.style, (!this.props.disallowReposition) ? this.getState('modalPositionStyle') : null,
             this.props.modalStyle
           )}
-          pointerEvents="auto"
+          pointerEvents={this.props.pointerEvents || "auto"}
         >
           {this.getChildren(children)}
         </View>
