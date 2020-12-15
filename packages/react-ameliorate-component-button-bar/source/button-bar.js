@@ -261,6 +261,9 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
       if (button.color)
         colorStyle = { color: button.color };
 
+
+      console.log('RENDER REXTRAA', button.leftIconRenderExtra);
+
       return (
         <Button
           className={`${this.getRootClassName(componentName, buttonNames)}${(button.className) ? ` ${button.className}` : ''}`}
@@ -270,6 +273,7 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
           internalContainerStyle={this.style(buttonNames, this.props.buttonContainerStyle, isFirst && this.props.firstButtonContainerStyle, isLast && this.props.lastButtonContainerStyle, toggled && this.props.toggledButtonContainerStyle, toggled && button.toggledButtonContainerStyle, isFirst && firstButtonRadiusStyle, isLast && lastButtonRadiusStyle, isActive && this.props.activeButtonContainerStyle, isActive && button.activeButtonContainerStyle)}
           leftIcon={(!!button.icon && this.props.showIcons !== false) ? button.icon : null}
           leftIconStyle={this.style(buttonIconNames, this.props.buttonIconStyle, isFirst && this.props.firstButtonIconStyle, isLast && this.props.lastButtonIconStyle, colorStyle, toggled && this.props.toggledButtonIconStyle, toggled && button.toggledButtonIconStyle, isActive && this.props.activeButtonIconStyle, isActive && button.activeButtonIconStyle)}
+          leftIconRenderExtra={button.leftIconRenderExtra}
           iconContainerStyle={this.style(buttonIconContainerNames, this.props.buttonIconContainerStyle, isFirst && this.props.firstButtonIconContainerStyle, isLast && this.props.lastButtonIconContainerStyle, toggled && this.props.toggledButtonIconContainerStyle, toggled && button.toggledButtonIconContainerStyle, isActive && this.props.activeButtonIconContainerStyle, isActive && button.activeButtonIconContainerStyle)}
           caption={(!!button.caption && this.props.showCaptions !== false) ? button.caption : null}
           captionStyle={this.style(buttonCaptionNames, this.props.buttonCaptionStyle, isFirst && this.props.firstButtonCaptionStyle, isLast && this.props.lastButtonCaptionStyle, colorStyle, toggled && this.props.toggledButtonCaptionStyle, toggled && button.toggledButtonCaptionStyle, isActive && this.props.activeButtonCaptionStyle, isActive && button.activeButtonCaptionStyle)}
