@@ -261,9 +261,6 @@ export const ButtonBar = componentFactory('ButtonBar', ({ Parent, componentName 
       if (button.color)
         colorStyle = { color: button.color };
 
-
-      console.log('RENDER REXTRAA', button.leftIconRenderExtra);
-
       return (
         <Button
           className={`${this.getRootClassName(componentName, buttonNames)}${(button.className) ? ` ${button.className}` : ''}`}
