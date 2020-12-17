@@ -282,6 +282,13 @@ export default class ComponentBase {
     return this.constructor.getComponentName();
   }
 
+  _destruct() {
+    this.destruct();
+  }
+
+  destruct() {
+  }
+
   _construct() {
     const InstanceClass = this.constructor;
     if (InstanceClass.propTypes && !this.props.raTestMode) {
@@ -629,6 +636,8 @@ export default class ComponentBase {
 
     if (__DEV__ && globalEventActionHooks.hasOwnProperty(componentID))
       console.error(`Component ${this.getComponentName()} registered global event listeners, but never removed the listeners when it was unmounted.`);
+
+    this._destruct();
   }
 
   _invokeComponentWillUnmount() {
