@@ -137,7 +137,6 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
   const getX = (anchorInfo, targetInfo, originalPosition) => {
     var anchorSide    = anchorInfo.x.side,
         targetSide    = targetInfo.x.side,
-        oppositeSide  = (targetSide === 'right') ? 'left' : 'right',
         position      = (anchorSide === 'center') ? (anchorRect.left + (anchorRect.width * 0.5)) : anchorRect[anchorSide];
 
     if (targetSide === 'right')
@@ -158,18 +157,21 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
       }
     }
 
-    if ((position < 0 || positionEnd > window.innerWidth) && !originalPosition) {
+    var outOfWindow = (position < 0 || positionEnd > window.innerWidth),
+        switchSide  = (!originalPosition || targetSide !== 'center');
+
+    if (outOfWindow && switchSide) {
       return getX({
         ...anchorInfo,
         x: {
           ...anchorInfo.x,
-          side: oppositeSide
+          side: (originalPosition) ? 'center' : (targetSide === 'right') ? 'left' : 'right'
         }
       }, {
         ...targetInfo,
         x: {
           ...targetInfo.x,
-          side: oppositeSide
+          side: (originalPosition) ? 'center' : (targetSide === 'right') ? 'left' : 'right'
         }
       }, targetSide);
     }
@@ -184,7 +186,6 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
   const getY = (anchorInfo, targetInfo, originalPosition) => {
     var anchorSide    = anchorInfo.y.side,
         targetSide    = targetInfo.y.side,
-        oppositeSide  = (targetSide === 'bottom') ? 'top' : 'bottom',
         position      = (anchorSide === 'center') ? (anchorRect.top + (anchorRect.height * 0.5)) : anchorRect[anchorSide];
 
     if (targetSide === 'bottom')
@@ -205,12 +206,15 @@ function calculateTargetPosition(anchorRect, targetRect, positionInfo) {
       }
     }
 
-    if ((position < 0 || positionEnd > window.innerHeight) && !originalPosition) {
+    var outOfWindow = (position < 0 || positionEnd > window.innerHeight),
+        switchSide  = (!originalPosition || targetSide !== 'center');
+
+    if (outOfWindow && switchSide) {
       return getY(anchorInfo, {
         ...targetInfo,
         y: {
           ...targetInfo.y,
-          side: oppositeSide
+          side: (originalPosition) ? 'center' : (targetSide === 'bottom') ? 'top' : 'bottom'
         }
       }, targetSide);
     }
