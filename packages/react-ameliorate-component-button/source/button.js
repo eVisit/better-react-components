@@ -19,12 +19,14 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       internalContainerStyle: PropTypes.any,
       leftIcon: PropTypes.string,
       leftIconContainerStyle: PropTypes.any,
+      leftIconRenderExtra: PropTypes.func,
       leftIconStyle: PropTypes.any,
       onPress: PropTypes.func,
       onPressEnd: PropTypes.func,
       onPressStart: PropTypes.func,
       rightIcon: PropTypes.string,
       rightIconContainerStyle: PropTypes.any,
+      rightIconRenderExtra: PropTypes.func,
       rightIconStyle: PropTypes.any,
       tabIndex: PropTypes.number,
       theme: PropTypes.string,
@@ -122,29 +124,31 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
       return Object.assign({}, flags, { PRESSED: largestFlag << 1 });
     }
 
-    renderDefaultContent({
-      leftIcon,
-      rightIcon,
-      caption,
-      theme,
-      flags,
-      captionClassName,
-      leftIconClassName,
-      rightIconClassName,
-      captionStyleNames,
-      leftIconStyleNames,
-      rightIconStyleNames,
-      leftIconContainerStyleNames,
-      rightIconContainerStyleNames,
-      extraCaptionStyle,
-      extraIconStyle,
-      extraIconContainerStyle,
-      extraLeftIconStyle,
-      extraLeftIconContainerStyle,
-      extraRightIconStyle,
-      extraRightIconContainerStyle,
-      children
-    }) {
+    renderDefaultContent(args) {
+      var {
+        leftIcon,
+        rightIcon,
+        caption,
+        theme,
+        flags,
+        captionClassName,
+        leftIconClassName,
+        rightIconClassName,
+        captionStyleNames,
+        leftIconStyleNames,
+        rightIconStyleNames,
+        leftIconContainerStyleNames,
+        rightIconContainerStyleNames,
+        extraCaptionStyle,
+        extraIconStyle,
+        extraIconContainerStyle,
+        extraLeftIconStyle,
+        extraLeftIconContainerStyle,
+        extraRightIconStyle,
+        extraRightIconContainerStyle,
+        children
+      } = args;
+
       return (
         <React.Fragment>
           {(!!leftIcon) && (
@@ -153,7 +157,9 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
               icon={leftIcon}
               containerStyle={this.style(leftIconContainerStyleNames, extraIconContainerStyle, extraLeftIconContainerStyle, this.props.iconContainerStyle, this.props.leftIconContainerStyle)}
               style={this.style(leftIconStyleNames, this.props.captionStyle, extraIconStyle, extraLeftIconStyle, this.props.iconStyle, this.props.leftIconStyle)}
-            />
+            >
+              {this.callProvidedCallback('leftIconRenderExtra', [ args ])}
+            </Icon>
           )}
 
           {(!!caption) && (
@@ -171,7 +177,9 @@ export const Button = componentFactory('Button', ({ Parent, componentName }) => 
               icon={rightIcon}
               containerStyle={this.style(rightIconContainerStyleNames, extraIconContainerStyle, extraRightIconContainerStyle, this.props.iconContainerStyle, this.props.rightIconContainerStyle)}
               style={this.style(rightIconStyleNames, this.props.captionStyle, extraIconStyle, extraRightIconStyle, this.props.iconStyle, this.props.rightIconStyle)}
-            />
+            >
+              {this.callProvidedCallback('rightIconRenderExtra', [ args ])}
+            </Icon>
           )}
 
           {children}
