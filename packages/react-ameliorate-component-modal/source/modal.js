@@ -117,30 +117,40 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
       };
     }
 
-    renderModal(children) {
+    _renderModal(args) {
+      return this.renderModal({
+        containerClassName: this.getRootClassName(componentName),
+        containerStyle: this.style(
+          (this.props.defaultSizeConstraints !== false) ? 'defaultConstraints' : null,
+          (this.props.hasBorder !== false) ? 'containerBorder' : null,
+          'container',
+          this.props.style, (!this.props.disallowReposition) ? this.getState('modalPositionStyle') : null,
+          this.props.modalStyle
+        ),
+        pointerEvents: this.props.pointerEvents || 'auto',
+        ...(args || {})
+      });
+    }
+
+    renderModal({ children, containerClassName, containerStyle, pointerEvents }) {
       return (
         <View
-          className={this.getRootClassName(componentName)}
-          style={this.style(
-            (this.props.defaultSizeConstraints !== false) ? 'defaultConstraints' : null,
-            (this.props.hasBorder !== false) ? 'containerBorder' : null,
-            'container',
-            this.props.style, (!this.props.disallowReposition) ? this.getState('modalPositionStyle') : null,
-            this.props.modalStyle
-          )}
-          pointerEvents={this.props.pointerEvents || "auto"}
+          className={containerClassName}
+          style={containerStyle}
+          pointerEvents={pointerEvents}
         >
-          {this.getChildren(children)}
+          {children}
         </View>
       );
     }
 
-    render(children) {
+    render(_children) {
       if ((this.context._raModalManager || this.props.inline === true) && !this.getState('visible'))
           return super.render(null);
 
+      var children = this.getChildren(_children);
       if (this.context._raModalManager || this.props.inline === true)
-        return super.render(this.renderModal(children));
+        return super.render(this._renderModal({ children }));
 
       return super.render(
         <Paper
@@ -149,7 +159,7 @@ export const Modal = componentFactory('Modal', ({ Parent, componentName }) => {
           className={this.getClassName(componentName, 'overlay')}
           requiresLayout={false}
         >
-          {this.renderModal(children)}
+          {this._renderModal({ children })}
         </Paper>
       );
     }
