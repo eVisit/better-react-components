@@ -312,6 +312,8 @@ export class StyleSheetBuilder {
 
   styleWithHelper(helper, ...args) {
     const resolveAllStyles = (styles, finalStyles) => {
+      var completeStyle = {};
+
       for (var i = 0, il = styles.length; i < il; i++) {
         var style = styles[i];
 
@@ -338,7 +340,10 @@ export class StyleSheetBuilder {
         }
 
         if (typeof style === 'object')
-          style = this.sanitizeProps(null, style);
+          style = completeStyle = this.sanitizeProps(null, Object.assign({}, completeStyle, style));
+
+        if (completeStyle['borderWidth'] && completeStyle['borderBottomWidth'])
+          debugger;
 
         finalStyles.push(style);
       }
@@ -350,13 +355,10 @@ export class StyleSheetBuilder {
     if (cachedStyle)
       return cachedStyle;
 
-    var sheet = this.getInternalStyleSheet(),
-        mergedStyles = [];
+    var sheet           = this.getInternalStyleSheet(),
+        mergedStyles    = [];
 
     resolveAllStyles(args, mergedStyles);
-
-    if (mergedStyles.length < 2)
-      return mergedStyles[0];
 
     var finalStyle = this._styleCache[cacheKey] = this.flattenInternalStyleSheet(mergedStyles);
 
@@ -626,13 +628,88 @@ export class StyleSheetBuilder {
       return { before: mutatedProps, after: { [testKey]: undefined } };
     };
 
-    var sides = ['Top', 'Left', 'Right', 'Bottom'];
+    const mutateFlex = (props) => {
+      var value = props['flex'];
+      if (value == null)
+        return;
+
+      var mutatedProps  = {},
+          flexGrow      = props['flexGrow'],
+          flexShrink    = props['flexShrink'],
+          flexBasis     = props['flexBasis'],
+          preValues     = {};
+
+      if (flexGrow != null)
+        preValues['flexGrow'] = flexGrow;
+
+      if (flexShrink != null)
+        preValues['flexShrink'] = flexShrink;
+
+      if (flexBasis != null)
+        preValues['flexBasis'] = flexBasis;
+
+      if (value === 'inherit') {
+        mutatedProps = {
+          flexGrow: 'inherit',
+          flexShrink: 'inherit',
+          flexBasis: 'inherit'
+        };
+      } else if (value === 'none') {
+        mutatedProps = {
+          flexGrow: 0,
+          flexShrink: 0,
+          flexBasis: 'auto'
+        };
+      } else if (value === 'initial') {
+        mutatedProps = {
+          flexGrow: 0,
+          flexShrink: 1,
+          flexBasis: 'auto'
+        };
+      } else if (value === 'auto') {
+        mutatedProps = {
+          flexGrow: 1,
+          flexShrink: 1,
+          flexBasis: 'auto'
+        };
+      } else if (U.instanceOf(value, 'number')) {
+        mutatedProps = {
+          flexGrow: value,
+          flexShrink: 1,
+          flexBasis: 'auto'
+        };
+      } else if (U.instanceOf(value, 'string')) {
+        preValues = {};
+
+        var mutatedProps  = {},
+            values        = value.split(/\s+/g).map((p) => p.trim()).filter(Boolean);
+
+        for (var i = 0, il = flexKeys.length; i < il; i++) {
+          var thisValue = values[i];
+          if (thisValue && thisValue.match(/^[\d+.-]$/))
+            thisValue = parseFloat(thisValue);
+
+          mutatedProps[flexKeys[i]] = (thisValue == null) ? flexDefaultValues[i] : thisValue;
+        }
+      }
+
+      return {
+        before: Object.assign(mutatedProps, preValues),
+        after:  { 'flex': undefined }
+      };
+    };
+
+    var sides             = [ 'Top', 'Left', 'Right', 'Bottom' ],
+        flexKeys          = [ 'flexGrow', 'flexShrink', 'flexBasis' ],
+        flexDefaultValues = [ 0, 1, 'auto' ];
+
     return [
       mutateFourWay.bind(this, 'margin'),
       mutateFourWay.bind(this, 'padding'),
       mutateFourWay.bind(this, 'borderWidth', (side) => `border${side}Width`),
       mutateFourWay.bind(this, 'borderColor', (side) => `border${side}Color`),
-      mutateFourWay.bind(this, 'borderStyle', (side) => `border${side}Style`)
+      mutateFourWay.bind(this, 'borderStyle', (side) => `border${side}Style`),
+      mutateFlex
     ];
   }
 

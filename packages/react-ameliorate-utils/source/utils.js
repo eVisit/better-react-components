@@ -320,14 +320,14 @@ export function cloneComponents(children, propsHelper, cloneHelper, recurseHelpe
 }
 
 export function filterObjectKeys(filter, ...args) {
-  var newProps = {},
-      filterIsRE = (filter instanceof RegExp),
-      filterIsFunc = (typeof filter === 'function'),
-      tempObj = Object.assign({}, ...(args.filter(Boolean)));
+  var newProps      = {},
+      filterIsRE    = (filter instanceof RegExp),
+      filterIsFunc  = (typeof filter === 'function'),
+      tempObj       = Object.assign({}, ...(args.filter(Boolean)));
 
   var keys = Object.keys(tempObj);
   for (var j = 0, jl = keys.length; j < jl; j++) {
-    var key = keys[j],
+    var key   = keys[j],
         value = tempObj[key];
 
     if (filterIsRE) {
