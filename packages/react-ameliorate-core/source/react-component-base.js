@@ -2,8 +2,7 @@ import {
   areObjectsEqualShallow,
   copyPrototypeFuncs,
   RAContext,
-  calculateObjectDifferences,
-  nextTick
+  calculateObjectDifferences
 }                                     from '@react-ameliorate/utils';
 
 import React                          from 'react';
@@ -115,6 +114,16 @@ export default class ReactComponentBase extends React.Component {
     return this._componentInstance;
   }
 
+  // alias for React setState
+  __setState() {
+    return super.setState.apply(this, arguments);
+  }
+
+  // alias for React forceUpdate
+  __forceUpdate() {
+    return super.forceUpdate.apply(this, arguments);
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
     const handleUpdate = () => {
       // Props have changed... update componentInstance
@@ -144,6 +153,7 @@ export default class ReactComponentBase extends React.Component {
         this._stateUpdateCounter = this._componentInstance._raStateUpdateCounter;
 
       var shouldUpdate = this._componentInstance._invokeResolveState.call(this._componentInstance, propsDiffer, statesDiffer, false, nextProps);
+
       if (!shouldUpdate && this._stateUpdateCounter < this._componentInstance._raStateUpdateCounter) {
         this._stateUpdateCounter = this._componentInstance._raStateUpdateCounter;
         shouldUpdate = true;

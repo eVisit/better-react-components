@@ -25,6 +25,8 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
     };
 
     construct() {
+      super.construct.apply(this, arguments);
+
       this._registeredFields = {};
     }
 

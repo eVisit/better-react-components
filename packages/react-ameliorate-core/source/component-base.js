@@ -136,6 +136,12 @@ export default class ComponentBase {
         configurable: true,
         value: {}
       },
+      '_raVolatileState': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: {}
+      },
       '_raStateUpdateCounter': {
         writable: true,
         enumerable: false,
@@ -201,6 +207,12 @@ export default class ComponentBase {
         enumerable: false,
         configurable: true,
         value: {}
+      },
+      '_raResolvingStateInProgress': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: false
       },
       'props': {
         writable: true,
@@ -307,18 +319,6 @@ export default class ComponentBase {
 
     this.construct();
 
-    // Call mixin "construct" initializers
-    var mixins = InstanceClass._raMixins;
-    if (mixins && mixins.length) {
-      for (var i = 0, il = mixins.length; i < il; i++) {
-        var mixin = mixins[i],
-            constructFunc = mixin.prototype['construct'];
-
-        if (typeof constructFunc === 'function')
-          constructFunc.call(this);
-      }
-    }
-
     this._invokeResolveState(false, false, true, this._raReactProps);
     this._invokeComponentWillMount();
   }
@@ -390,10 +390,6 @@ export default class ComponentBase {
       },
       set: () => {}
     });
-  }
-
-  _forceReactComponentUpdate() {
-    this._raReactComponent.forceUpdate();
   }
 
   _invalidateRenderCache() {
@@ -514,7 +510,7 @@ export default class ComponentBase {
 
         updateRenderState(elems);
         this._raRenderAsyncResult = true;
-        this._forceReactComponentUpdate();
+        this._reactComponentForceUpdate();
       }).catch((error) => {
         updateRenderState(null);
         throw new Error(error);
@@ -524,10 +520,6 @@ export default class ComponentBase {
     } else if (elements !== undefined) {
       return updateRenderState(elements);
     }
-  }
-
-  _setReactComponentState(newState, doneCallback) {
-    return this._raReactComponent.setState(newState, doneCallback);
   }
 
   _resolveState(initial, props, _props) {
@@ -542,7 +534,16 @@ export default class ComponentBase {
     return false;
   }
 
-  _invokeResolveState(propsUpdated, stateUpdated, initial, newProps, ...args) {
+  _invokeResolveState() {
+    try {
+      this._raResolvingStateInProgress = true;
+      return this.__invokeResolveState.apply(this, arguments);
+    } finally {
+      this._raResolvingStateInProgress = false;
+    }
+  }
+
+  __invokeResolveState(_propsUpdated, stateUpdated, initial, newProps, ...args) {
     const getResolvedProps = (force) => {
       if (force !== true && this._raResolvedPropsCache && !initial && !propsUpdated && !stateUpdated)
         return this._raResolvedPropsCache;
@@ -554,8 +555,9 @@ export default class ComponentBase {
       return formattedProps;
     };
 
-    var oldProps = this.props,
-        props = getResolvedProps(this.shouldClearInternalPropsCache(newProps, initial)),
+    var propsUpdated  = _propsUpdated,
+        oldProps      = this.props,
+        props         = getResolvedProps(this.shouldClearInternalPropsCache(newProps, initial)),
         newState,
         shouldRender;
 
@@ -569,14 +571,15 @@ export default class ComponentBase {
     try {
       newState = this._resolveState.call(this, initial, props, oldProps, ...args);
     } finally {
+      // Call prop update hooks
+      if (initial || props !== this._raResolvedPropsCache) {
+        this.props = this._raResolvedPropsCache = props;
+        this._invokeStateOrPropKeyUpdates(false, initial, props, oldProps);
+        propsUpdated = true;
+      }
+
       // Now flush the queue of state updates
       shouldRender = this.queueStateUpdates(false);
-    }
-
-    if (initial || props !== this._raResolvedPropsCache) {
-      this.props = this._raResolvedPropsCache = props;
-      this._invokeStateOrPropKeyUpdates(false, initial, props, oldProps);
-      return true;
     }
 
     return (propsUpdated || stateUpdated || shouldRender);
@@ -616,7 +619,7 @@ export default class ComponentBase {
 
   _invokeComponentDidMount() {
     if (this._raStateUpdateCounter > this._raReactComponent._stateUpdateCounter)
-      this._setReactComponentState(this.getState());
+      this._reactComponentSetState(this.getState());
 
     this.componentMounted();
   }
@@ -918,11 +921,11 @@ export default class ComponentBase {
     if (this._raQueueStateUpdatesSemaphore > 0)
       return;
 
-    var stateUpdates = this._raQueuedStateUpdates,
-        oldState = this._raInternalState;
-
+    var stateUpdates = this._raQueuedStateUpdates;
     if (!stateUpdates.length)
       return false;
+
+    var oldState = this._raInternalState;
 
     for (var i = 0, il = stateUpdates.length; i < il; i++) {
       var stateUpdate = stateUpdates[i];
@@ -932,14 +935,22 @@ export default class ComponentBase {
     if (doUpdate === false)
       return true;
 
-    this._invokeStateOrPropKeyUpdates(true, false, this.getState(), oldState);
-    this._invalidateRenderCache();
+    if (!areObjectsEqualShallow(oldState, this._raInternalState)) {
+      this._invokeStateOrPropKeyUpdates(true, false, this.getState(), oldState);
+
+      this._raStateUpdateCounter++;
+      this._invalidateRenderCache();
+    }
 
     return true;
   }
 
   canUpdateState() {
     return (this.mounted() && !this.areUpdatesFrozen() && this._raIsRenderingSemaphore <= 0);
+  }
+
+  _reactComponentSetState(newState, doneCallback) {
+    return this._raReactComponent.__setState(newState, doneCallback);
   }
 
   setStatePassive(_newState, initial, invokeUpdates, debug) {
@@ -962,22 +973,25 @@ export default class ComponentBase {
     if (debug)
       debugger;
 
-    var oldState = this._raInternalState,
-        currentState = this._raInternalState = Object.assign({}, oldState, newState);
+    var oldState      = this._raInternalState,
+        currentState  = this._raInternalState = Object.assign({}, oldState, newState);
 
     if (debug)
       debugger;
 
-    if (!areObjectsEqualShallow(oldState, currentState))
-      this._raStateUpdateCounter++;
+    if (invokeUpdates === false)
+      return newState;
+
+    // setState({}) should always trigger a re-render
+    if ((typeof newState === 'object' && Object.keys(newState).length > 0) && areObjectsEqualShallow(oldState, currentState))
+      return newState;
 
     if (typeof this._debugStateUpdates === 'function')
       this._debugStateUpdates(currentState, oldState, newState);
 
-    if (invokeUpdates !== false) {
-      this._invokeStateOrPropKeyUpdates(true, initial, currentState, oldState);
-      this._invalidateRenderCache();
-    }
+    this._raStateUpdateCounter++;
+    this._invokeStateOrPropKeyUpdates(true, initial, currentState, oldState);
+    this._invalidateRenderCache();
 
     return newState;
   }
@@ -986,7 +1000,7 @@ export default class ComponentBase {
     var newState = this.setStatePassive(_newState, undefined, undefined, debug);
 
     if (this.canUpdateState()) {
-      this._setReactComponentState(newState, doneCallback);
+      this._reactComponentSetState(newState, doneCallback);
     } else if (__DEV__) {
       var { shouldDebugRender, debugRenderGroup, componentName } = this._shouldDebugRender(this.props, this.getState());
       if (shouldDebugRender)
@@ -994,6 +1008,17 @@ export default class ComponentBase {
     }
 
     return newState;
+  }
+
+  _reactComponentForceUpdate(callback) {
+    this._raStateUpdateCounter++;
+    this._invalidateRenderCache();
+
+    return this._raReactComponent.__forceUpdate(callback);
+  }
+
+  forceUpdate(callback) {
+    return this._reactComponentForceUpdate(callback);
   }
 
   getState(path, defaultValue) {

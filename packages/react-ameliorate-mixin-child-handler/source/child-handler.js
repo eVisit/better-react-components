@@ -1,4 +1,6 @@
-export function ChildHandler({ Parent, componentName }) {
+import { mixinFactory } from '@react-ameliorate/core';
+
+export const ChildHandler = mixinFactory('ChildHandler', ({ Parent, componentName }) => {
   const eventFuncMapping = {
     'entering': 'onEntering',
     'entered': 'onEntered',
@@ -208,4 +210,4 @@ export function ChildHandler({ Parent, componentName }) {
       return { changed: hasChanged, childMap: newChildren };
     }
   };
-}
+});

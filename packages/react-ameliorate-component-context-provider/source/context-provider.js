@@ -11,6 +11,8 @@ export const ContextProvider = componentFactory('ContextProvider', ({ Parent, co
     };
 
     construct() {
+      super.construct.apply(this, arguments);
+
       this._contextCache = {};
     }
 
