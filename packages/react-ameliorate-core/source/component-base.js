@@ -208,6 +208,12 @@ export default class ComponentBase {
         configurable: true,
         value: false
       },
+      '_raComponentMountedState': {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: null
+      },
       'props': {
         writable: true,
         enumerable: false,
@@ -313,12 +319,15 @@ export default class ComponentBase {
 
     this.construct();
 
+    if (this._raComponentMountedState !== 'construct')
+      console.error(`${this.getComponentName()}: "construct" failure: "super.construct" call missed somewhere in your call chain. Please ensure to always call "super.construct" in all your lifecycle hooks.`);
+
     this._invokeResolveState(false, false, true, this._raReactProps);
     this._invokeComponentWillMount();
   }
 
   construct() {
-
+    this._raComponentMountedState = 'construct';
   }
 
   _renderCount() {
@@ -607,17 +616,6 @@ export default class ComponentBase {
     // do nothing
   }
 
-  _invokeComponentWillMount() {
-    this.componentMounting();
-  }
-
-  _invokeComponentDidMount() {
-    if (this._raStateUpdateCounter > this._raReactComponent._stateUpdateCounter)
-      this._reactComponentSetState(this.getState());
-
-    this.componentMounted();
-  }
-
   _raCleanup() {
     var componentID = this.getComponentID();
 
@@ -637,16 +635,48 @@ export default class ComponentBase {
     this._destruct();
   }
 
+  _invokeComponentWillMount() {
+    this.componentMounting();
+
+    if (this._raComponentMountedState !== 'mounting')
+      console.error(`${this.getComponentName()}: "componentMounting" failure: "super.componentMounting" call missed somewhere in your call chain. Please ensure to always call "super.componentMounting" in all your lifecycle hooks.`);
+  }
+
+  _invokeComponentDidMount() {
+    if (this._raStateUpdateCounter > this._raReactComponent._stateUpdateCounter)
+      this._reactComponentSetState(this.getState());
+
+    this.componentMounted();
+
+    if (this._raComponentMountedState !== 'mounted')
+      console.error(`${this.getComponentName()}: "componentMounted" failure: "super.componentMounted" call missed somewhere in your call chain. Please ensure to always call "super.componentMounted" in all your lifecycle hooks.`);
+  }
+
   _invokeComponentWillUnmount() {
     try {
       var ret = this.componentUnmounting();
 
       this.clearAllDelays();
 
+      if (this._raComponentMountedState !== 'unmounting')
+        console.error(`${this.getComponentName()}: "componentUnmounting" failure: "super.componentUnmounting" call missed somewhere in your call chain. Please ensure to always call "super.componentUnmounting" in all your lifecycle hooks.`);
+
       return ret;
     } finally {
       this._raCleanup();
     }
+  }
+
+  componentMounting() {
+    this._raComponentMountedState = 'mounting';
+  }
+
+  componentMounted() {
+    this._raComponentMountedState = 'mounted';
+  }
+
+  componentUnmounting() {
+    this._raComponentMountedState = 'unmounting';
   }
 
   componentUpdating() {
@@ -855,15 +885,6 @@ export default class ComponentBase {
     return this._raID;
   }
 
-  componentMounting() {
-  }
-
-  componentMounted() {
-  }
-
-  componentUnmounting() {
-  }
-
   getPlatform() {
     return Platform.OS;
   }
@@ -1015,6 +1036,13 @@ export default class ComponentBase {
 
   forceUpdate(callback) {
     return this._reactComponentForceUpdate(callback);
+  }
+
+  getInitialState(obj) {
+    if (!U.instanceOf(obj, 'object'))
+      throw new TypeError('"getInitialState": first argument must be an object');
+
+    return this.getState.apply(this, arguments);
   }
 
   getState(path, defaultValue) {

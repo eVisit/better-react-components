@@ -335,6 +335,8 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
     }
 
     componentMounted() {
+      super.componentMounted.apply(this, arguments);
+
       this._updateInterval = setInterval(this.doUpdatePosition, 50);
     }
 
@@ -342,7 +344,8 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       clearInterval(this._updateInterval);
 
       this.removeFromOverlay({ props: { id: this.props.id } });
-      super.componentUnmounting();
+
+      return super.componentUnmounting.apply(this, arguments);
     }
 
 
