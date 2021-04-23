@@ -136,12 +136,6 @@ export default class ComponentBase {
         configurable: true,
         value: {}
       },
-      '_raVolatileState': {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: {}
-      },
       '_raStateUpdateCounter': {
         writable: true,
         enumerable: false,
@@ -931,6 +925,8 @@ export default class ComponentBase {
       var stateUpdate = stateUpdates[i];
       this.setStatePassive(stateUpdate, false, false);
     }
+
+    this._raQueuedStateUpdates = [];
 
     if (doUpdate === false)
       return true;

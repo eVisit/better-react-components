@@ -124,6 +124,14 @@ export default class ReactComponentBase extends React.Component {
     return super.forceUpdate.apply(this, arguments);
   }
 
+  setState() {
+    return this._componentInstance.setState.apply(this._componentInstance, arguments);
+  }
+
+  forceUpdate() {
+    return this._componentInstance.forceUpdate.apply(this._componentInstance, arguments);
+  }
+
   shouldComponentUpdate(nextProps, nextState) {
     const handleUpdate = () => {
       // Props have changed... update componentInstance
