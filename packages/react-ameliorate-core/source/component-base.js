@@ -296,9 +296,13 @@ export default class ComponentBase {
 
   _destruct() {
     this.destruct();
+
+    if (this._raComponentMountedState !== 'destruct')
+      console.error(`${this.getComponentName()}: "destruct" failure: "super.destruct" call missed somewhere in your call chain. Please ensure to always call "super.destruct" in all your "destruct" lifecycle hooks.`);
   }
 
   destruct() {
+    this._raComponentMountedState = 'destruct';
   }
 
   _construct() {
@@ -320,7 +324,7 @@ export default class ComponentBase {
     this.construct();
 
     if (this._raComponentMountedState !== 'construct')
-      console.error(`${this.getComponentName()}: "construct" failure: "super.construct" call missed somewhere in your call chain. Please ensure to always call "super.construct" in all your lifecycle hooks.`);
+      console.error(`${this.getComponentName()}: "construct" failure: "super.construct" call missed somewhere in your call chain. Please ensure to always call "super.construct" in all your "construct" lifecycle hooks.`);
 
     this._invokeResolveState(false, false, true, this._raReactProps);
     this._invokeComponentWillMount();
@@ -537,6 +541,10 @@ export default class ComponentBase {
     return false;
   }
 
+  isResolvingState() {
+    return this._raResolvingStateInProgress;
+  }
+
   _invokeResolveState() {
     try {
       this._raResolvingStateInProgress = true;
@@ -639,7 +647,7 @@ export default class ComponentBase {
     this.componentMounting();
 
     if (this._raComponentMountedState !== 'mounting')
-      console.error(`${this.getComponentName()}: "componentMounting" failure: "super.componentMounting" call missed somewhere in your call chain. Please ensure to always call "super.componentMounting" in all your lifecycle hooks.`);
+      console.error(`${this.getComponentName()}: "componentMounting" failure: "super.componentMounting" call missed somewhere in your call chain. Please ensure to always call "super.componentMounting" in all your "componentMounting" lifecycle hooks.`);
   }
 
   _invokeComponentDidMount() {
@@ -649,7 +657,7 @@ export default class ComponentBase {
     this.componentMounted();
 
     if (this._raComponentMountedState !== 'mounted')
-      console.error(`${this.getComponentName()}: "componentMounted" failure: "super.componentMounted" call missed somewhere in your call chain. Please ensure to always call "super.componentMounted" in all your lifecycle hooks.`);
+      console.error(`${this.getComponentName()}: "componentMounted" failure: "super.componentMounted" call missed somewhere in your call chain. Please ensure to always call "super.componentMounted" in all your "componentMounted" lifecycle hooks.`);
   }
 
   _invokeComponentWillUnmount() {
@@ -659,7 +667,7 @@ export default class ComponentBase {
       this.clearAllDelays();
 
       if (this._raComponentMountedState !== 'unmounting')
-        console.error(`${this.getComponentName()}: "componentUnmounting" failure: "super.componentUnmounting" call missed somewhere in your call chain. Please ensure to always call "super.componentUnmounting" in all your lifecycle hooks.`);
+        console.error(`${this.getComponentName()}: "componentUnmounting" failure: "super.componentUnmounting" call missed somewhere in your call chain. Please ensure to always call "super.componentUnmounting" in all your "componentUnmounting" lifecycle hooks.`);
 
       return ret;
     } finally {
