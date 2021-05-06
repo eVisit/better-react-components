@@ -1060,7 +1060,25 @@ export default class ComponentBase {
       }
     };
 
-    var id = (!_id) ? ('' + func) : _id;
+    var id = _id;
+
+    // If we don't get an id from the user, then guess the id by turning the function
+    // into a string (raw source) and use that for an id instead
+    if (id == null) {
+      id = ('' + func);
+
+      // If this is a transpiled code, then an async generator will be used for async functions
+      // This wraps the real function, and so when converting the function into a string
+      // it will NOT be unique per call-site. For this reason, if we detect this issue,
+      // we will go the "slow" route and create a stack trace, and use that for the unique id
+      if (id.match(/asyncGeneratorStep/)) {
+        id = (new Error()).stack;
+        console.warn('react-ameliorate warning: "this.delay" called without a specified "id" parameter while passing an async function. async functions need you to specify an "id" parameter or there will be a hit to performance. Please add a specific "id" parameter to your "this.delay(async function(), time, \'your_unique_id\')" call.');
+      }
+    } else {
+      id = ('' + id);
+    }
+
     if (!this._componentDelayTimers) {
       Object.defineProperty(this, '_componentDelayTimers', {
         writable: true,
