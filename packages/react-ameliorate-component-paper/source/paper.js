@@ -435,20 +435,24 @@ export const Paper = componentFactory('Paper', ({ Parent, componentName }) => {
       }, (time || 10), 'anchorLayoutUpdateDelay');
     }
 
-    updateLayout(event, time) {
+    updateLayout(event, time, retryCount) {
+      // Abort if we have hit max retries
+      if (retryCount && retryCount > 10)
+        return;
+
       this.delay(() => {
         if (!this.mounted())
-          return this.updateLayout();
+          return this.updateLayout(undefined, undefined, (retryCount || 0) + 1);
 
         var rootView = this.getReference('_rootView');
         if (!rootView)
-          return this.updateLayout(null, 100);
+          return this.updateLayout(null, 100, (retryCount || 0) + 1);
 
         var paperContext = this.props.raPaperContext || this.context._raPaperContext,
             node = findDOMNode(paperContext);
 
         if (!node)
-          return this.updateLayout();
+          return this.updateLayout(undefined, undefined, (retryCount || 0) + 1);
 
         rootView.measureLayout(node, (x, y, width, height) => {
           var layout = layoutToBoundingClientRect({ x, y, width, height }),
