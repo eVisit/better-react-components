@@ -628,7 +628,7 @@ export function sendOnLayoutEvent(onLayout, elem) {
   rect.elem = elem;
   this._cachedLayout = rect;
 
-  requestAnimationFrame(() => {
+  nextTick(() => {
     onLayout({
       nativeEvent: {
         layout: rect

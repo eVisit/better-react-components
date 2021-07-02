@@ -5,6 +5,7 @@ import { View, TouchableWithoutFeedback } from '@react-ameliorate/native-shims';
 import { ChildHandler }                   from '@react-ameliorate/mixin-child-handler';
 import { TransitionGroup }                from '@react-ameliorate/component-transition-group';
 import {
+  nextTick,
   findDOMNode,
   isDescendantElement,
   preventEventDefault,
@@ -134,7 +135,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
       if (!child)
         return;
 
-      requestAnimationFrame(() => {
+      nextTick(() => {
         var children = this.getState('children', []).slice(),
             index = children.findIndex((thisChild) => (thisChild.props.id === child.props.id || thisChild === child));
 
@@ -148,7 +149,7 @@ export const Overlay = componentFactory('Overlay', ({ Parent, componentName }) =
     }
 
     removeChild(child) {
-      requestAnimationFrame(() => {
+      nextTick(() => {
         var children = this.getState('children', []),
             index = children.findIndex((thisChild) => (thisChild.props.id === child.props.id || thisChild === child));
 
