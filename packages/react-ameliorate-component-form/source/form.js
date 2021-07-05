@@ -25,11 +25,13 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
     };
 
     construct() {
+      super.construct.apply(this, arguments);
+
       this._registeredFields = {};
     }
 
     componentMounted() {
-      super.componentMounted();
+      super.componentMounted.apply(this, arguments);
 
       var parentForm = this.getParentForm();
       if (parentForm)
@@ -37,7 +39,7 @@ export const Form = componentFactory('Form', ({ Parent, componentName }) => {
     }
 
     componentUnmounting() {
-      super.componentUnmounting();
+      super.componentUnmounting.apply(this, arguments);
 
       var parentForm = this.getParentForm();
       if (parentForm)

@@ -29,14 +29,6 @@ export const SelectField = componentFactory('SelectField', ({ Parent, componentN
       disableSearch: PropTypes.bool
     };
 
-    componentMounted() {
-      super.componentMounted();
-    }
-
-    componentUnmounting() {
-      super.componentUnmounting();
-    }
-
     resolveProps() {
       var props = super.resolveProps.apply(this, arguments);
 

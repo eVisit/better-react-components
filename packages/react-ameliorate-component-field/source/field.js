@@ -57,7 +57,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
     }
 
     componentMounted() {
-      super.componentMounted();
+      super.componentMounted.apply(this, arguments);
 
       if (this.props.skipFormRegistration)
         return;
@@ -72,7 +72,7 @@ export const Field = componentFactory('Field', ({ Parent, componentName }) => {
     }
 
     componentUnmounting() {
-      super.componentUnmounting();
+      super.componentUnmounting.apply(this, arguments);
 
       var parentForm = this.getParentForm();
       if (parentForm)
